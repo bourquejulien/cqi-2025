@@ -1,0 +1,11 @@
+
+services:
+  kilopascal:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+      target: final
+    container_name: kilopascal
+    ports:
+      - 11000:11000
+    restart: unless-stopped

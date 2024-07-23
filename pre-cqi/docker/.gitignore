@@ -1,0 +1,5 @@
+synapse/
+*.o
+*.ppu
+main
+synapse.tar.gz
