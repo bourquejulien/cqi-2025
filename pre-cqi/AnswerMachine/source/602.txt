@@ -1,0 +1,3 @@
+Freightos operates a booking and payments platform for international freight, using a SaaS-Enabled Marketplace model. It also provides rate management and quoting software for freight forwarders and carriers through WebCargo, a subsidiary acquired in 2016
+The freightos.com online freight marketplace, which as first piloted in July 2016, enables online instant freight quoting and booking, as well as shipment management. The platform is also used by partners, like Alibaba.com. 
+The company went public on Nasdaq with ticker symbol CRGO January 2023 by combining with the SPAC Gesher 1. The company is registered in Cayman Islands and its largest office is Barcelona.

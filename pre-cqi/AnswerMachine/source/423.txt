@@ -1,0 +1,2 @@
+In topology, puncturing a manifold is removing a finite set of points from that manifold. The set of points can be small as a single point. In this case, the manifold is known as once-punctured. With the removal of a second point, it becomes twice-punctured, and so on.
+Examples of punctured manifolds include the open disk (which is a sphere with a single puncture), the cylinder (which is a sphere with two punctures), and the Möbius strip (which is a projective plane with a single puncture).

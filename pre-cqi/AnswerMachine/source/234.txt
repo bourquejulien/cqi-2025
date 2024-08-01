@@ -1,0 +1,1 @@
+The Metadata Object Description Schema (MODS) is an XML-based bibliographic description schema developed by the United States Library of Congress' Network Development and Standards Office. MODS was designed as a compromise between the complexity of the MARC format used by libraries and the extreme simplicity of Dublin Core metadata.

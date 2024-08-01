@@ -1,0 +1,2 @@
+In mathematics, subshifts of finite type are used to model dynamical systems, and in particular are the objects of study in symbolic dynamics and ergodic theory. They also describe the set of all possible sequences executed by a finite state machine. The most widely studied shift spaces are the subshifts of finite type.
+

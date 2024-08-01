@@ -1,0 +1,1 @@
+A main product is a joint output that generates a significant portion of the net realizable value (NRV) within a joint production process. The classification of a product resulting from a joint production process as either a main product or a by-product has relevance in the context of cost management because costs are only allocated to main products, not to by-products.

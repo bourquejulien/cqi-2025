@@ -1,0 +1,6 @@
+Polytetrahedron is a term used for three distinct types of objects, all based
+on the tetrahedron:
+
+A uniform convex 4-polytope made up of 600 tetrahedral cells. It is more commonly known as a 600-cell or hexacosichoron. Other derivative 4-polytope are identified as polytetrahedra, where a qualifying prefix such as rectified or truncated is used.
+A connected set of regular tetrahedra, the 3-dimensional analogue of a polyiamond. Polytetrahedra and polyiamonds are related as polycubes are related to polyominoes.
+In origami, a polypolyhedron is "a compound of multiple linked polyhedral skeletons with uniform nonintersecting edges" [1]. There exist two topologically distinct polytetrahedra, each made up of four intersecting triangles.

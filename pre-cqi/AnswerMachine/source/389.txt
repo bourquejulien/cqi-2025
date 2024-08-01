@@ -1,0 +1,1 @@
+Maria: The Modular Reachability Analyzer is a reachability analyzer for concurrent systems that uses Algebraic System Nets (a high-level variant of Petri nets) as its modelling formalism.

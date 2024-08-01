@@ -1,0 +1,110 @@
+Black's Equation is a mathematical model for the mean time to failure (MTTF) of a semiconductor circuit due to electromigration: a phenomenon of molecular rearrangement (movement) in the solid phase caused by an electromagnetic field.
+The equation is:
+
+  
+    
+      
+        
+          M
+          T
+          T
+          F
+        
+        =
+        
+          
+            A
+            
+              j
+              
+                n
+              
+            
+          
+        
+        
+          e
+          
+            
+              (
+              
+                
+                  Q
+                  
+                    k
+                    T
+                  
+                
+              
+              )
+            
+          
+        
+      
+    
+    {\displaystyle \mathrm {MTTF} ={\frac {A}{j^{n}}}e^{\left({\frac {Q}{kT}}\right)}}
+  
+
+where
+
+  
+    
+      
+        A
+      
+    
+    {\displaystyle A}
+  
+ is a constant
+
+  
+    
+      
+        j
+      
+    
+    {\displaystyle j}
+  
+ is the current density
+
+  
+    
+      
+        n
+      
+    
+    {\displaystyle n}
+  
+ is a model parameter
+
+  
+    
+      
+        Q
+      
+    
+    {\displaystyle Q}
+  
+ is the activation energy
+
+  
+    
+      
+        k
+      
+    
+    {\displaystyle k}
+  
+ is the Boltzmann constant
+
+  
+    
+      
+        T
+      
+    
+    {\displaystyle T}
+  
+ is the absolute temperature
+The model is abstract, not based on a specific physical model, but flexibly describes the failure rate dependence on the temperature, the electrical stress, and the specific technology and materials. More adequately described as descriptive than prescriptive, the values for A, n, and Q are found by fitting the model to experimental data.
+The model's value is that it maps experimental data taken at elevated temperature and electrical stress levels in short periods of time to expected component failure rates under actual operating conditions. Experimental data is obtained by running a combination of high temperature operating life (HTOL), electrical, and any other relevant operating environment variables.
