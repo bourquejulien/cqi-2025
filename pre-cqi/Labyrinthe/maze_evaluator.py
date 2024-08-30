@@ -1,1 +1,0 @@
-# TODO - Évaluer la réponse pour les labyrinthes

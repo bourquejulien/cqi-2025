@@ -1,7 +1,0 @@
-*.ppu
-*.o
-main
-compose.yml
-Dockerfile
-synapse/
-synapse.tar.gz

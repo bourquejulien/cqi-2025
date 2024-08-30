@@ -1,1 +1,0 @@
-# TODO - Résoudre le labyrinthe

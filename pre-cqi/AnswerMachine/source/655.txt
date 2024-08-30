@@ -1,2 +1,0 @@
-ARGOsearch is a software to search within recordings, such as audio recordings, call notes, transcriptions, and meta-data, for information including spoken words, phone numbers, and dates.
-ARGOsearch is a spin-off from Calltrunk—a cloud-based call recording and call management business, developed on its OpenVoice platform.

@@ -1,1 +1,0 @@
-All web applications, both traditional and Web 2.0, are operated by software running somewhere. This is a list of free software which can be used to run alternative web applications. Also listed are similar proprietary  web applications that users may be familiar with. Most of this software is server-side software, often running on a web server.
