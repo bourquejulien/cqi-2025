@@ -1,35 +1,35 @@
-from peice import Peice, PEICE_SHAPES
+from piece import Piece, PEICE_SHAPES
 from board import Board
 
 class Player:
     def __init__(self, id: int, npc: bool = False):
         self.playing = False
         self.id = id
-        self.create_peices()
+        self.create_pieces()
     
-    def create_peices(self) -> list[Peice]:
-        self.peices = [Peice(shape, self.id, peice_id) for peice_id, shape in enumerate(PEICE_SHAPES)]
+    def create_pieces(self) -> list[Piece]:
+        self.pieces = [Piece(shape, self.id, piece_id) for piece_id, shape in enumerate(PEICE_SHAPES)]
 
     @property
-    def peices_remaining(self) -> int:
-        return len(self.peices)
+    def pieces_remaining(self) -> int:
+        return len(self.pieces)
 
     @property
     def score(self) -> int:
         score = 0
 
-        for peice in self.peices:
-            for segment in peice.shape.flat:
+        for piece in self.pieces:
+            for segment in piece.shape.flat:
                 if segment == 1:
                     score += 1
 
         return score
 
-    def play(self, board: Board, peice_id: int, orientation: Peice.Orientation, x: int, y: int, first_peice: bool = False) -> bool:
-        peice = self.peices[peice_id]
-        sucess = board.add_peice(peice, orientation, x, y, first_peice)
+    def play(self, board: Board, piece_id: int, orientation: Piece.Orientation, x: int, y: int, first_piece: bool = False) -> bool:
+        piece = self.pieces[piece_id]
+        sucess = board.add_piece(piece, orientation, x, y, first_piece)
         
         if sucess:
-            del self.peices[peice_id]
+            del self.pieces[piece_id]
 
         return sucess

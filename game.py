@@ -1,5 +1,5 @@
 from board import Board
-from peice import Peice
+from piece import Piece
 from player import Player
 import random
 
@@ -18,12 +18,12 @@ players = [player_1, player_2, player_3, player_4]
 starting_player = random.randint(0, 3)
 players = players[starting_player:] + players[:starting_player]
 
-for peice in players[0].peices:
-    peice.to_img(Peice.Orientation.UP, name=f"peice/peice_{peice.id}")
+for piece in players[0].pieces:
+    piece.to_img(Piece.Orientation.UP, name=f"piece/piece_{piece.id}")
 
 # The game loop
 playing = True
-first_peice = True
+first_piece = True
 
 # Start the game for each player
 for player in players:
@@ -45,15 +45,15 @@ while playing:
 
         # Play the move
         # If the move is invalid the player will not play anymore
-        player.playing = player.play(board, 4, Peice.Orientation.LEFT, 0, 0, first_peice=first_peice)
+        player.playing = player.play(board, 4, Piece.Orientation.LEFT, 0, 0, first_piece=first_piece)
 
-        # If the has no more peices the game is over
-        if player.peices_remaining == 0:
+        # If the has no more pieces the game is over
+        if player.pieces_remaining == 0:
             playing = False
             break
     
-    # The first peice has been played for each player
-    first_peice = False
+    # The first piece has been played for each player
+    first_piece = False
 
     # if no player is playing the game is over
     if not any([player.playing for player in players]):

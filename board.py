@@ -1,7 +1,7 @@
 import PIL.Image
 import numpy as np
 import PIL
-from peice import Peice
+from piece import Piece
 
 TILE_SIZE = 20
 
@@ -11,52 +11,52 @@ class Board:
         self.width = board.shape[0]
         self.height = board.shape[1]
 
-    def add_peice(self, peice: Peice, orientation: Peice.Orientation, x: int, y: int, first_peice: bool) -> bool:
-        shape: np.ndarray = peice.get_shape(orientation)
+    def add_piece(self, piece: Piece, orientation: Piece.Orientation, x: int, y: int, first_piece: bool) -> bool:
+        shape: np.ndarray = piece.get_shape(orientation)
         
         valid_placement = False
 
         # Verifier si le placement est valide
-        for i in range(peice.size):
-            for j in range(peice.size):
+        for i in range(piece.size):
+            for j in range(piece.size):
                 if shape[i][j] != 0:
                     
-                    # Part of the peice is off the board
+                    # Part of the piece is off the board
                     if x + i >= self.width or y + j >= self.height:
                         return False
                     if x + i < 0 or y + j < 0:
                         return False
                     
-                    # Check if the peice overlaps with the board or another peice
+                    # Check if the piece overlaps with the board or another piece
                     if self.board[x + i][y + j] != 0:
                         return False
                     
-                    # Check if the peice touches directly a peice of the same color right
+                    # Check if the piece touches directly a piece of the same color right
                     if x + i + 1 < self.width:
                         if self.board[x + i + 1][y + j] == shape[i][j]:
                             return False
-                    elif first_peice:
+                    elif first_piece:
                         valid_placement = True
 
-                    # Check if the peice touches directly a peice of the same color left
+                    # Check if the piece touches directly a piece of the same color left
                     if x + i - 1 >= 0:
                         if self.board[x + i - 1][y + j] == shape[i][j]:
                             return False
-                    elif first_peice:
+                    elif first_piece:
                         valid_placement = True
 
-                    # Check if the peice touches directly a peice of the same color down
+                    # Check if the piece touches directly a piece of the same color down
                     if y + j + 1 < self.height:
                         if self.board[x + i][y + j + 1] == shape[i][j]:
                             return False
-                    elif first_peice:
+                    elif first_piece:
                         valid_placement = True
 
-                    # Check if the peice touches directly a peice of the same color up
+                    # Check if the piece touches directly a piece of the same color up
                     if y + j - 1 >= 0:
                         if self.board[x + i][y + j - 1] == shape[i][j]:
                             return False
-                    elif first_peice:
+                    elif first_piece:
                         valid_placement = True
                     
                     if not valid_placement:
@@ -78,8 +78,8 @@ class Board:
         
         # Ajouter la pièce
         if valid_placement:
-            for i in range(peice.size):
-                for j in range(peice.size):
+            for i in range(piece.size):
+                for j in range(piece.size):
                     if shape[i][j] != 1:
                         self.board[x + i][y + j] = shape[i][j]
                     

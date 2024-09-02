@@ -4,7 +4,7 @@ from enum import Enum
 
 TILE_SIZE = 20
 
-class Peice:
+class Piece:
     class Orientation(Enum):
         UP = 0
         RIGHT = 1
@@ -12,16 +12,16 @@ class Peice:
         LEFT = 3
         
     
-    # A peice is a square shape filled with 1s and 0s
-    # The 1s represent the peice and the 0s represent the empty space
-    # The peice has a direction describing its rotation
-    # The peice has a size describing its width and height
+    # A piece is a square shape filled with 1s and 0s
+    # The 1s represent the piece and the 0s represent the empty space
+    # The piece has a direction describing its rotation
+    # The piece has a size describing its width and height
     # Each shape must have a unique id
     # Player id are 1, 2, 3, 4
-    # Peice id are from 1 to 99
-    def __init__(self, shape: np.ndarray, player_id: int, peice_id: int):
+    # Piece id are from 1 to 99
+    def __init__(self, shape: np.ndarray, player_id: int, piece_id: int):
         # Setup the shape with the id
-        self.id = peice_id
+        self.id = piece_id
 
         self.shape = shape
         self.shape[self.shape == 1] = player_id
@@ -32,7 +32,7 @@ class Peice:
     def get_shape(self, orientation: Orientation) -> np.ndarray:
         return np.rot90(self.shape, orientation.value)
     
-    def to_img(self, orientation: Orientation, name="peice") -> bytes:
+    def to_img(self, orientation: Orientation, name="piece") -> bytes:
         # Create an image of the board
         img = PIL.Image.new('RGB', (self.size * TILE_SIZE, self.size * TILE_SIZE), color = 'black')
 
@@ -57,7 +57,7 @@ class Peice:
         return img.tobytes()
         
     
-# ID of the peice is the index of the shape in the list
+# ID of the piece is the index of the shape in the list
 PEICE_SHAPES = [
     np.array(
         [[1]]
