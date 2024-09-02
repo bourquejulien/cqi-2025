@@ -58,7 +58,7 @@ class Piece:
         
     
 # ID of the piece is the index of the shape in the list
-PEICE_SHAPES = [
+PIECE_SHAPES = [
     np.array(
         [[1]]
     ),

@@ -14,7 +14,7 @@ player_4 = Player(4)
 
 players = [player_1, player_2, player_3, player_4]
 
-# Radomize the starting player
+# Randomize the starting player
 starting_player = random.randint(0, 3)
 players = players[starting_player:] + players[:starting_player]
 
@@ -58,5 +58,3 @@ while playing:
     # if no player is playing the game is over
     if not any([player.playing for player in players]):
         playing = False
-    
-    

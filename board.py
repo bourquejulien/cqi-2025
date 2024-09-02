@@ -113,6 +113,3 @@ class Board:
     @classmethod
     def simple_board(cls, width = 20, height = 20):
         return cls(np.array([[0] * width] * height))
-    
-
-    
