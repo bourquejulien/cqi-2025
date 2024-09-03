@@ -1,0 +1,23 @@
+{
+    "name": "Python Project",
+    "dockerComposeFile": "../docker-compose.yml",
+    "service": "${localEnv:DEVCONTAINER_SERVICE:server}", // Default to server, but allow override
+    "workspaceFolder": "/app",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-python.python",
+                "ms-python.vscode-pylance",
+                "ms-azuretools.vscode-docker"
+            ]
+        }
+    },
+    "forwardPorts": [5001, 3000],
+    "remoteUser": "root",
+    "postCreateCommand": "pip install -r requirements.txt",
+    // Add options to choose between server and client
+    "overrideCommand": true,
+    "remoteEnv": {
+        "DEVCONTAINER_SERVICE": "${localEnv:DEVCONTAINER_SERVICE:server}"
+    }
+}

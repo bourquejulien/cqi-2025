@@ -2,3 +2,10 @@ requests
 pillow
 wikipedia
 beautifulsoup4
+numpy
+flask
+flask-socketio
+flask-cors
+gevent
+gevent-websocket
+websocket-client

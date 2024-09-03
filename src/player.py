@@ -1,5 +1,5 @@
-from peice import Peice, PEICE_SHAPES
-from board import Board
+from src.peice import Peice, PEICE_SHAPES
+from src.board import Board
 
 class Player:
     def __init__(self, id: int, npc: bool = False):

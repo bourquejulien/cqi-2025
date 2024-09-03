@@ -1,6 +1,6 @@
-from board import Board
-from peice import Peice
-from player import Player
+from src.board import Board
+from src.peice import Peice
+from src.player import Player
 import random
 
 # Create the board class

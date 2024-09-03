@@ -1,7 +1,7 @@
 import PIL.Image
 import numpy as np
 import PIL
-from peice import Peice
+from src.peice import Peice
 
 TILE_SIZE = 20
 

@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile.server
+    ports:
+      - 5001:5001
+    volumes:
+      - ./src:/app/src
+      - ./server:/app/
+      - ./requirements.txt:/app/requirements.txt
+    environment:
+      - FLASK_APP=app.py
+      - FLASK_ENV=development
+      - NETWORK=${NETWORK:-none}
+    command: python app.py
+    network_mode: "${NETWORK:-bridge}"
+    tty: true
+
+  client:
+    build:
+      context: .
+      dockerfile: Dockerfile.client
+    environment:
+      - ADDRESS=${ADDRESS:-localhost}
+      - NETWORK=${NETWORK:-none}
+    volumes:
+      - ./src:/app/src
+      - ./client:/app/
+      - ./requirements.txt:/app/requirements.txt
+    command: python main.py
+    network_mode: "${NETWORK:-bridge}"
+    tty: true
+
+# networks:
+#   default:
+#     name: app-network
+
