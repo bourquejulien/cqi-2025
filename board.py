@@ -1,7 +1,9 @@
+from io import BytesIO
 import PIL.Image
 import numpy as np
 import PIL
 from piece import Piece
+import base64
 
 TILE_SIZE = 20
 
@@ -80,7 +82,7 @@ class Board:
         if valid_placement:
             for i in range(piece.size):
                 for j in range(piece.size):
-                    if shape[i][j] != 1:
+                    if shape[i][j] != 0:
                         self.board[x + i][y + j] = shape[i][j]
                     
         return valid_placement                   
@@ -88,7 +90,7 @@ class Board:
     def __str__(self):
         return str(self.board)
     
-    def to_img(self) -> list[bytes]:
+    def to_img_64(self) -> bytes:
         # Create an image of the board
         img = PIL.Image.new('RGB', (self.width * TILE_SIZE, self.height * TILE_SIZE), color = 'black')
 
@@ -104,11 +106,10 @@ class Board:
                     img.paste('green', (i * TILE_SIZE, j * TILE_SIZE, (i + 1) * TILE_SIZE, (j + 1) * TILE_SIZE))
                 elif self.board[i][j] == 4:
                     img.paste('yellow', (i * TILE_SIZE, j * TILE_SIZE, (i + 1) * TILE_SIZE, (j + 1) * TILE_SIZE))
-
-        with open('board.png', 'wb') as f:
-            img.save(f, 'PNG')
-            
-        return img.tobytes()
+       
+        buffered = BytesIO()
+        img.save(buffered, format="PNG")
+        return base64.b64encode(buffered.getvalue())
 
     @classmethod
     def simple_board(cls, width = 20, height = 20):

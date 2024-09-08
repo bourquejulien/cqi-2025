@@ -1,14 +1,14 @@
-from piece import Piece, PEICE_SHAPES
+from piece import Piece, PIECE_SHAPES
 from board import Board
 
 class Player:
     def __init__(self, id: int, npc: bool = False):
-        self.playing = False
+        self.playing = True
         self.id = id
         self.create_pieces()
     
     def create_pieces(self) -> list[Piece]:
-        self.pieces = [Piece(shape, self.id, piece_id) for piece_id, shape in enumerate(PEICE_SHAPES)]
+        self.pieces = [Piece(shape, self.id, piece_id) for piece_id, shape in enumerate(PIECE_SHAPES)]
 
     @property
     def pieces_remaining(self) -> int:
@@ -20,7 +20,7 @@ class Player:
 
         for piece in self.pieces:
             for segment in piece.shape.flat:
-                if segment == 1:
+                if segment == self.id:
                     score += 1
 
         return score

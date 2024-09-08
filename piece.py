@@ -23,7 +23,7 @@ class Piece:
         # Setup the shape with the id
         self.id = piece_id
 
-        self.shape = shape
+        self.shape = shape.copy()
         self.shape[self.shape == 1] = player_id
 
         # Get the size

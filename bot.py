@@ -1,43 +1,34 @@
-#!/bin/env python3
+from board import Board
+from player import Player
+import random
 
-from dataclasses import dataclass
-from flask import (
-    Flask, 
-    jsonify
-)
-
-@dataclass
-class StartGameResponse:
-    isStarting: bool
-
-@dataclass
-class SendMoveRequest:
-    move: ...
-
-@dataclass
-class SendMoveResponse:
-    newMap: ...
-
-def generateServer():
-    app = Flask(__name__)
-
-    @app.route('/health')
-    def health():
-        return "ok ✅"
+def edge_tiles(player: Player, board: Board) -> list[tuple[int, int]]:
+    edge_tiles = set()
+    for i in range(board.width):
+        for j in range(board.height):
+            if board.board[i][j] == player.id:
+                # Check empty diagonal tiles
+                if i + 1 < board.width and j + 1 < board.height:
+                    if board.board[i + 1][j + 1] == 0:
+                        edge_tiles.add((i + 1, j + 1))
+                if i - 1 >= 0 and j + 1 < board.height:
+                    if board.board[i - 1][j + 1] == 0:
+                        edge_tiles.add((i - 1, j + 1))
+                if i + 1 < board.width and j - 1 >= 0:
+                    if board.board[i + 1][j - 1] == 0:
+                        edge_tiles.add((i + 1, j - 1))
+                if i - 1 >= 0 and j - 1 >= 0:
+                    if board.board[i - 1][j - 1] == 0:
+                        edge_tiles.add((i - 1, j - 1))
     
-    @app.route('/start_game')
-    def start_game():
-        start_game_response = StartGameResponse()
-        return jsonify(dict(start_game_response))
-    
-    @app.route('/send_move')
-    def send_move():
-        send_move_response = StartGameResponse()
-        return jsonify(dict(send_move_response))
-    
-    return app
+    return list(edge_tiles)
 
+def random_play(player: Player, board: Board):
+    # Choose a peice at random
+    peice_id = random.randint(0, player.pieces_remaining)
+    
+    
 
-if __name__ == "__main__":
-    app = generateServer()
-    app.run(debug=True)
+def greedy():
+    pass
+

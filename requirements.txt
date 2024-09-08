@@ -1,4 +1,4 @@
 requests
 pillow
-wikipedia
-beautifulsoup4
+flask
+Flask-Caching

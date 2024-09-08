@@ -3,58 +3,49 @@ from piece import Piece
 from player import Player
 import random
 
-# Create the board class
-board: Board = Board.simple_board()
+class Game:
+    def __init__(self) -> None:
+        self.game_over = False
+        self.board = Board.simple_board()
+        self.players = [Player(1), Player(2), Player(3), Player(4)]
 
-# Create the players
-player_1 = Player(1)
-player_2 = Player(2)
-player_3 = Player(3)
-player_4 = Player(4)
+        self.real_player_id = 3
+        self.player_playing = 0
+        self.first_turn = True
+        self.total_nb_turns = 0
 
-players = [player_1, player_2, player_3, player_4]
+    def setup_turn(self):
+        # Check if the game is over (All players are not playing)
+        if not any([player.playing for player in self.players]):
+            self.game_over = True
 
-# Randomize the starting player
-starting_player = random.randint(0, 3)
-players = players[starting_player:] + players[:starting_player]
+        # Check if the current player has no more pieces to play
+        if len(self.players[self.player_playing].pieces) == 0:
+            self.game_over = True
 
-for piece in players[0].pieces:
-    piece.to_img(Piece.Orientation.UP, name=f"piece/piece_{piece.id}")
+        # Check if we are at still the first turn
+        if self.total_nb_turns >= len(self.players):
+            self.first_turn = False
 
-# The game loop
-playing = True
-first_piece = True
+        # Go to the next player
+        self.player_playing = (self.player_playing + 1) % len(self.players)
 
-# Start the game for each player
-for player in players:
-    player.playing = True
+    def play_turn(self, x: int, y: int, orientation: Piece.Orientation, piece_id: int) -> None:
+        # Increment the number of turns played
+        self.total_nb_turns += 1
 
-while playing:
-    for i, player in enumerate(players):
+        # Get the player playing
+        player = self.players[self.player_playing]
         
         # If the player is not playing skip him
         if not player.playing:
-            continue
-
-        # Print the board
-        img: bytes = board.to_img()
-
-        # TODO - SEND THE BOARD TO THE NEXT PLAYER
-
-        # TODO - IMPLEMENT AGENT TO CHOOSE A MOVE HERE
-
+            return
+        
         # Play the move
-        # If the move is invalid the player will not play anymore
-        player.playing = player.play(board, 4, Piece.Orientation.LEFT, 0, 0, first_piece=first_piece)
-
-        # If the has no more pieces the game is over
-        if player.pieces_remaining == 0:
-            playing = False
-            break
-    
-    # The first piece has been played for each player
-    first_piece = False
-
-    # if no player is playing the game is over
-    if not any([player.playing for player in players]):
-        playing = False
+        player.playing = player.play(
+            board=self.board,
+            piece_id=piece_id, 
+            orientation=orientation, 
+            x=x, 
+            y=y, 
+            first_piece=self.first_turn)
