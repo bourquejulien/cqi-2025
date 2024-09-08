@@ -6,10 +6,10 @@ TILE_SIZE = 20
 
 class Piece:
     class Orientation(Enum):
-        UP = 0
-        RIGHT = 1
-        DOWN = 2
-        LEFT = 3
+        UP = "up"
+        RIGHT = "right"
+        DOWN = "down"
+        LEFT = "left"
         
     
     # A piece is a square shape filled with 1s and 0s
@@ -30,7 +30,17 @@ class Piece:
         self.size = self.shape.shape[0]
 
     def get_shape(self, orientation: Orientation) -> np.ndarray:
-        return np.rot90(self.shape, orientation.value)
+        def k():
+            match orientation:
+                case Piece.Orientation.UP:
+                    return 0
+                case Piece.Orientation.RIGHT:
+                    return 1
+                case Piece.Orientation.DOWN:
+                    return 2
+                case Piece.Orientation.LEFT:
+                    return 3
+        return np.rot90(self.shape, k())
     
     def to_img(self, orientation: Orientation, name="piece") -> bytes:
         # Create an image of the board

@@ -28,7 +28,7 @@ def get_move_positions(piece: Piece, board: Board, positions: list[tuple[int, in
     for x, y in positions:
         for i in range(piece.size):
             for j in range(piece.size):
-                for orientation in range(4):
+                for orientation in ["up", "down", "left", "right"]:
                     if board.check_piece(piece, Piece.Orientation(orientation), x - i, y - j, False):
                         return (x - i, y - j, orientation, piece.id)
     
@@ -38,13 +38,13 @@ def random_play(player: Player, board: Board) -> tuple[int, int, int, int]:
     positions = edge_tiles(player, board)
 
     # Choose a piece at random 20 times
-    for i in range(20):
+    for _ in range(20):
         piece = random.choice(player.pieces)
         move = get_move_positions(piece, board, positions)
-        if move:
+        if move is not None:
             return move
 
-    return (0, 0, 0, 0)
+    return (0, 0, "up", 0)
 
 def greedy_play(player: Player, board: Board) -> tuple[int, int, int, int]:
     positions = edge_tiles(player, board)
@@ -55,5 +55,4 @@ def greedy_play(player: Player, board: Board) -> tuple[int, int, int, int]:
         if move:
             return move
 
-    return (0, 0, 0, 0)
-
+    return (0, 0, "up", 0)

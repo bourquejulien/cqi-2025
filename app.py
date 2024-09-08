@@ -19,10 +19,23 @@ cache.init_app(app)
 class Move:
     x: int
     y: int
-    orientation: int
+    orientation: Piece.Orientation
     piece_id: int
+    
+    def __init__(self, x: int, y: int, orientation: str, piece_id: int):
+        self.x = x
+        self.y = y
+        self.orientation = Piece.Orientation(orientation.lower())
+        self.piece_id = piece_id
 
-@app.route('/end_game', methods=["GET"])
+@app.route('/health', methods=["GET"])
+def get_health():
+    return Response(
+        response="ok", 
+        status=200
+    )
+
+@app.route('/end_game', methods=["POST"])
 def end_game():
     game: Game = None
 
@@ -48,7 +61,7 @@ def end_game():
             status=200
         )
 
-@app.route('/start_game', methods=["GET"])
+@app.route('/start_game', methods=["POST"])
 def start_game():
     game: Game = None
 
@@ -76,7 +89,7 @@ def start_game():
 
     return Response(
         response= json.dumps({
-            "color": "yellow",
+            "color": "FFFF00",
             "board": game.board.to_img_64().decode()
         }),
         status=200,
@@ -121,7 +134,7 @@ def move():
 
     # Play the move for the player
     game.setup_turn()
-    game.play_turn(move.x, move.y, Piece.Orientation(move.orientation), move.piece_id)
+    game.play_turn(move.x, move.y, move.orientation, move.piece_id)
     player_score = game.players[game.player_playing].score
 
     # Check if the game is over for the player
@@ -190,4 +203,4 @@ def move():
     )
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run("0.0.0.0", 5000, debug=True)
