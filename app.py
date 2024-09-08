@@ -1,3 +1,5 @@
+#!/bin/env python3
+
 from flask import Flask, Response, request, session
 from flask_caching import Cache
 import json

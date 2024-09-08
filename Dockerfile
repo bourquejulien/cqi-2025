@@ -7,6 +7,6 @@ WORKDIR /app
 COPY requirements.txt requirements.txt
 RUN pip install -r requirements.txt
 
-COPY . .
+COPY *.py .
 
-ENTRYPOINT [ "bot.py" ]
+ENTRYPOINT [ "/app/app.py" ]

@@ -1,5 +1,5 @@
 services:
-  web:
+  bot:
     build: .
     ports:
       - "8000:5000"
