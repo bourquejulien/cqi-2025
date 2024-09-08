@@ -52,7 +52,7 @@ def greedy_play(player: Player, board: Board) -> tuple[int, int, int, int]:
     # Iterate over piece in reverse order (i.e. from largest to smallest)
     for piece in player.pieces[::-1]:
         move = get_move_positions(piece, board, positions)
-        if move:
+        if move is not None:
             return move
 
     return (0, 0, "up", 0)

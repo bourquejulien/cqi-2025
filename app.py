@@ -186,7 +186,7 @@ def move():
     game.setup_turn()
 
     # Player 3 is greedy
-    x, y, orientation, piece_id = bot.random_play(game.players[2], game.board)
+    x, y, orientation, piece_id = bot.greedy_play(game.players[2], game.board)
     game.play_turn(x, y, Piece.Orientation(orientation), piece_id)
     
     cache.set('game', game)
