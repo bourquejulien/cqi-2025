@@ -24,23 +24,23 @@ def edge_tiles(player: Player, board: Board) -> list[tuple[int, int]]:
     
     return list(edge_tiles)
 
-def get_move_positions(peice: Piece, board: Board, positions: list[tuple[int, int]]) -> tuple[int, int, int, int]:
+def get_move_positions(piece: Piece, board: Board, positions: list[tuple[int, int]]) -> tuple[int, int, int, int]:
     for x, y in positions:
-        for i in range(peice.size):
-            for j in range(peice.size):
+        for i in range(piece.size):
+            for j in range(piece.size):
                 for orientation in range(4):
-                    if board.check_piece(peice, Piece.Orientation(orientation), x - i, y - j, False):
-                        return (x - i, y - j, orientation, peice.id)
+                    if board.check_piece(piece, Piece.Orientation(orientation), x - i, y - j, False):
+                        return (x - i, y - j, orientation, piece.id)
     
     return None
 
 def random_play(player: Player, board: Board) -> tuple[int, int, int, int]:
     positions = edge_tiles(player, board)
 
-    # Choose a peice at random 20 times
+    # Choose a piece at random 20 times
     for i in range(20):
-        peice = random.choice(player.pieces)
-        move = get_move_positions(peice, board, positions)
+        piece = random.choice(player.pieces)
+        move = get_move_positions(piece, board, positions)
         if move:
             return move
 
@@ -49,9 +49,9 @@ def random_play(player: Player, board: Board) -> tuple[int, int, int, int]:
 def greedy_play(player: Player, board: Board) -> tuple[int, int, int, int]:
     positions = edge_tiles(player, board)
 
-    # Iterate over peice in reverse order (i.e. from largest to smallest)
-    for peice in player.pieces[::-1]:
-        move = get_move_positions(peice, board, positions)
+    # Iterate over piece in reverse order (i.e. from largest to smallest)
+    for piece in player.pieces[::-1]:
+        move = get_move_positions(piece, board, positions)
         if move:
             return move
 

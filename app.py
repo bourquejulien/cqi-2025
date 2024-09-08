@@ -20,7 +20,7 @@ class Move:
     x: int
     y: int
     orientation: int
-    peice_id: int
+    piece_id: int
 
 @app.route('/end_game', methods=["GET"])
 def end_game():
@@ -121,7 +121,7 @@ def move():
 
     # Play the move for the player
     game.setup_turn()
-    game.play_turn(move.x, move.y, Piece.Orientation(move.orientation), move.peice_id)
+    game.play_turn(move.x, move.y, Piece.Orientation(move.orientation), move.piece_id)
     player_score = game.players[game.player_playing].score
 
     # Check if the game is over for the player
@@ -159,22 +159,22 @@ def move():
 
     # Make the bots play
     # Player 1 is random
-    x, y, orientation, peice_id = bot.random_play(game.players[0], game.board)
-    game.play_turn(x, y, Piece.Orientation(orientation), peice_id)
+    x, y, orientation, piece_id = bot.random_play(game.players[0], game.board)
+    game.play_turn(x, y, Piece.Orientation(orientation), piece_id)
 
     # Next player
     game.setup_turn()
 
     # Player 2 is random
-    x, y, orientation, peice_id = bot.random_play(game.players[1], game.board)
-    game.play_turn(x, y, Piece.Orientation(orientation), peice_id)
+    x, y, orientation, piece_id = bot.random_play(game.players[1], game.board)
+    game.play_turn(x, y, Piece.Orientation(orientation), piece_id)
     
     # Next player
     game.setup_turn()
 
     # Player 3 is greedy
-    x, y, orientation, peice_id = bot.random_play(game.players[2], game.board)
-    game.play_turn(x, y, Piece.Orientation(orientation), peice_id)
+    x, y, orientation, piece_id = bot.random_play(game.players[2], game.board)
+    game.play_turn(x, y, Piece.Orientation(orientation), piece_id)
     
     cache.set('game', game)
     return Response(
