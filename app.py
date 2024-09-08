@@ -42,23 +42,19 @@ def end_game():
     # Check if a game is already running
     try:
         game = cache.get('game')
+        cache.delete('game')
         if game.game_over:
             return Response(
                 response="The game is already over", 
                 status=400
             )
         
-        cache.delete('game')
-        return Response(
-            response=json.dumps({
-                "message": "The game was ended",
-                "score": game.players[game.real_player_id].score
-            })
-        )
+        player_score = game.players[game.player_playing].score
+        return GameResponse(game, player_score, True, "Game ended manually")
     except:
         return Response(
             response="No game is running", 
-            status=200
+            status=400
         )
 
 @app.route('/start_game', methods=["POST"])
@@ -106,12 +102,12 @@ def move():
         game = cache.get('game')
         if game.game_over:
             return Response(
-                response="The game is over", 
+                response="The game is over",
                 status=400
             )
     except:
         return Response(
-            response="The game is not running", 
+            response="The game is not running",
             status=400
         )
 
@@ -140,17 +136,7 @@ def move():
     # Check if the game is over for the player
     if not game.players[game.player_playing].playing:
         cache.set('game', game)
-        return Response(
-                response= json.dumps({
-                    "game_over": True,
-                    "score": player_score,
-                    "board": game.board.to_img_64().decode()
-                }),
-            status=200,
-            headers={
-                "Content-Type": "application/json"
-            }
-        )
+        return GameResponse(game, player_score, True)
     
     # Setup the next turn
     game.setup_turn()
@@ -158,17 +144,7 @@ def move():
     # Check if the game is over
     if game.game_over:
         cache.set('game', game)
-        return Response(
-                response= json.dumps({
-                    "game_over": True,
-                    "score": player_score,
-                    "board": game.board.to_img_64().decode()
-                }),
-            status=200,
-            headers={
-                "Content-Type": "application/json"
-            }
-        )
+        return GameResponse(game, player_score, True)
 
     # Make the bots play
     # Player 1 is random
@@ -190,17 +166,21 @@ def move():
     game.play_turn(x, y, Piece.Orientation(orientation), piece_id)
     
     cache.set('game', game)
-    return Response(
-        response= json.dumps({
-            "game_over": False,
-            "score": player_score,
-            "board": game.board.to_img_64().decode()
-        }),
-        status=200,
-        headers={
-            "Content-Type": "application/json"
-        }
-    )
+    return GameResponse(game, player_score, False)
+
+def GameResponse(game: Game, score: int, is_over: bool, message: str | None = None):
+        return Response(
+            response= json.dumps({
+                "game_over": is_over,
+                "score": score,
+                "message": message,
+                "board": game.board.to_img_64().decode()
+            }),
+            status=200,
+            headers={
+                "Content-Type": "application/json"
+            }
+        )
 
 if __name__ == "__main__":
     app.run("0.0.0.0", 5000, debug=True)
