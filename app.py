@@ -5,6 +5,8 @@ from game import Game
 from piece import Piece
 import base64
 from dataclasses import dataclass
+import random
+import bot
 
 # Setup Flask
 cache = Cache(config={'CACHE_TYPE': 'SimpleCache'})
@@ -61,11 +63,11 @@ def start_game():
         game = Game()
        
     # Make the bots play
-    game.play_turn(0, 0, Piece.Orientation.UP, 5) # Player 1
+    game.play_turn(0, 0, Piece.Orientation.UP, random.randint(0, 20)) # Player 1
     game.setup_turn()
-    game.play_turn(17, 0, Piece.Orientation.UP, 19) # Player 2
+    game.play_turn(15, 0, Piece.Orientation.UP, random.randint(0, 20)) # Player 2
     game.setup_turn()
-    game.play_turn(0, 16, Piece.Orientation.DOWN, 10) # Player 3
+    game.play_turn(0, 17, Piece.Orientation.UP, random.randint(15, 20)) # Player 3
 
     # Save the game in the cache
     cache.set('game', game)
@@ -153,13 +155,24 @@ def move():
             }
         )
 
-    # TODO - Make the bots play
     # Make the bots play
-    game.play_turn(3, 2, Piece.Orientation.UP, 2) # Player 1
+    # Player 1 is random
+    x, y, orientation, peice_id = bot.random_play(game.players[0], game.board)
+    game.play_turn(x, y, Piece.Orientation(orientation), peice_id)
+
+    # Next player
     game.setup_turn()
-    game.play_turn(15, 1, Piece.Orientation.UP, 5) # Player 2
+
+    # Player 2 is random
+    x, y, orientation, peice_id = bot.random_play(game.players[1], game.board)
+    game.play_turn(x, y, Piece.Orientation(orientation), peice_id)
+    
+    # Next player
     game.setup_turn()
-    game.play_turn(17, 4, Piece.Orientation.UP, 10) # Player 3
+
+    # Player 3 is greedy
+    x, y, orientation, peice_id = bot.random_play(game.players[2], game.board)
+    game.play_turn(x, y, Piece.Orientation(orientation), peice_id)
     
     cache.set('game', game)
     return Response(

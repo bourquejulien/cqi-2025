@@ -26,7 +26,16 @@ class Player:
         return score
 
     def play(self, board: Board, piece_id: int, orientation: Piece.Orientation, x: int, y: int, first_piece: bool = False) -> bool:
-        piece = self.pieces[piece_id]
+        # Get the piece
+        chosen_piece = None
+        for piece in self.pieces:
+            if piece.id == piece_id:
+                chosen_piece = piece
+                break
+        
+        if chosen_piece is None:
+            return False
+        
         sucess = board.add_piece(piece, orientation, x, y, first_piece)
         
         if sucess:

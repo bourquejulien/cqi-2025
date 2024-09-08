@@ -14,6 +14,21 @@ class Board:
         self.height = board.shape[1]
 
     def add_piece(self, piece: Piece, orientation: Piece.Orientation, x: int, y: int, first_piece: bool) -> bool:
+        valid_placement = False
+        shape: np.ndarray = piece.get_shape(orientation)
+
+        valid_placement = self.check_piece(piece, orientation, x, y, first_piece)
+
+        # Ajouter la pièce
+        if valid_placement:
+            for i in range(piece.size):
+                for j in range(piece.size):
+                    if shape[i][j] != 0:
+                        self.board[x + i][y + j] = shape[i][j]
+                    
+        return valid_placement 
+
+    def check_piece(self, piece: Piece, orientation: Piece.Orientation, x: int, y: int, first_piece: bool) -> bool:
         shape: np.ndarray = piece.get_shape(orientation)
         
         valid_placement = False
@@ -78,15 +93,8 @@ class Board:
                             if self.board[x + i - 1][y + j - 1] == shape[i][j]:
                                 valid_placement = True
         
-        # Ajouter la pièce
-        if valid_placement:
-            for i in range(piece.size):
-                for j in range(piece.size):
-                    if shape[i][j] != 0:
-                        self.board[x + i][y + j] = shape[i][j]
-                    
-        return valid_placement                   
-    
+        return valid_placement
+                        
     def __str__(self):
         return str(self.board)
     
