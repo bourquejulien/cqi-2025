@@ -36,9 +36,9 @@ class Player:
         if chosen_piece is None:
             return False
         
-        sucess = board.add_piece(piece, orientation, x, y, first_piece)
+        success = board.add_piece(piece, orientation, x, y, first_piece)
         
-        if sucess:
-            del self.pieces[piece_id]
+        if success:
+            self.pieces.remove(chosen_piece)
 
-        return sucess
+        return success
