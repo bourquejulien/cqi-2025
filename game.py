@@ -4,38 +4,29 @@ from player import Player, Move
 
 class Game:
     board: Board
+    real_player: Player
     players: list[Player]
-    real_player_id: int
-    current_player_id: int
     total_nb_turns: int
 
     def __init__(self) -> None:
         self.board = Board.simple_board()
-        self.players = [Player(1, "#FF0000"), Player(2, "#0000FF"), Player(3, "#00FF00"), Player(4, "#FFFF00")]
+        self.real_player = Player(4, "#FFFF00")
+        self.players = [Player(1, "#FF0000"), Player(2, "#0000FF"), Player(3, "#00FF00"), self.real_player]
 
-        self.real_player_id = 3
-        self.current_player_id = 0
         self.total_nb_turns = 0
 
     @property
     def current_player(self) -> Player:
-        return self.players[self.current_player_id]
-    
-    @property
-    def real_player(self) -> Player:
-        return self.players[self.real_player_id]
+        current_player_idx = self.total_nb_turns % len(self.players)
+        return self.players[current_player_idx]
     
     @property
     def game_over(self) -> bool:
-        return not self.players[self.real_player_id].playing or any([len(player.pieces) == 0 for player in self.players]) or all([not player.playing for player in self.players])
+        return not self.real_player.playing or any([len(player.pieces) == 0 for player in self.players]) or all([not player.playing for player in self.players])
     
     @property
     def first_turn(self) -> bool:
         return self.total_nb_turns < len(self.players)
-
-    def next_turn(self):
-        # Go to the next player
-        self.current_player_id = (self.current_player_id + 1) % len(self.players)
 
     def play_turn(self, x: int, y: int, orientation: Piece.Orientation, piece_id: int) -> None:
         self.play_move(Move(x, y, orientation, piece_id))

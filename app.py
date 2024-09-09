@@ -19,7 +19,7 @@ def GameResponse(game: Game, message: str = ""):
                 "game_over": game.game_over,
                 "score": game.real_player.score,
                 "message": message,
-                "board": game.board.to_img_64().decode()
+                "board": game.to_img_64().decode()
             }),
             status=200,
             headers={
@@ -50,11 +50,8 @@ def start_game():
        
     # Make the bots play
     game.play_turn(0, 0, Piece.Orientation.UP, random.randint(0, 20)) # Player 1
-    game.next_turn()
     game.play_turn(15, 0, Piece.Orientation.UP, random.randint(0, 20)) # Player 2
-    game.next_turn()
     game.play_turn(0, 17, Piece.Orientation.UP, random.randint(15, 20)) # Player 3
-    game.next_turn()
 
     # Save the game in the cache
     cache.set("game", game)
@@ -107,7 +104,6 @@ def move():
 
     # Play the move for the player
     game.play_move(move)
-    game.next_turn()
 
     # Check if the game is over
     if game.game_over:
@@ -118,17 +114,14 @@ def move():
     # Player 1 is random
     x, y, orientation, piece_id = bot.random_play(game.players[0], game.board)
     game.play_turn(x, y, Piece.Orientation(orientation), piece_id)
-    game.next_turn()
 
     # Player 2 is random
     x, y, orientation, piece_id = bot.random_play(game.players[1], game.board)
     game.play_turn(x, y, Piece.Orientation(orientation), piece_id)
-    game.next_turn()
 
     # Player 3 is greedy
     x, y, orientation, piece_id = bot.greedy_play(game.players[2], game.board)
     game.play_turn(x, y, Piece.Orientation(orientation), piece_id)
-    game.next_turn()
     
     cache.set("game", game)
     return GameResponse(game, "Valid move")
