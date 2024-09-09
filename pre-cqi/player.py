@@ -18,12 +18,14 @@ class Player:
     id: int
     color: str
     playing: bool
+    is_first_move: bool
     pieces: list[Piece]
 
     def __init__(self, id: int, color: str):
         self.id = id
         self.color = color
         self.playing = True
+        self.is_first_move = True
         self.create_pieces()
     
     def create_pieces(self) -> list[Piece]:
@@ -37,7 +39,7 @@ class Player:
     def score(self) -> int:
         return sum([piece.value for piece in self.pieces])
 
-    def play(self, board: Board, move: Move, first_piece: bool = False) -> bool:
+    def play(self, board: Board, move: Move) -> bool:
         chosen_piece: Piece | None = None
 
         # Get the piece
@@ -49,9 +51,10 @@ class Player:
         if chosen_piece is None:
             return False
         
-        success = board.add_piece(piece, move.orientation, move.x, move.y, first_piece)
+        success = board.add_piece(piece, move.orientation, move.x, move.y, self.is_first_move)
         
         if success:
             self.pieces.remove(chosen_piece)
 
+        self.is_first_move = False
         return success

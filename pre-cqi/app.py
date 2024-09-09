@@ -50,12 +50,12 @@ def start_game():
         )
 
     # Create a new game
-    game = Game()
+    player_idx = 3 # random.randint(0, 3)
+    game = Game(player_idx)
        
-    # Make the bots play
-    game.play_turn(0, 0, Piece.Orientation.UP, random.randint(0, 20)) # Player 1
-    game.play_turn(15, 0, Piece.Orientation.UP, random.randint(0, 20)) # Player 2
-    game.play_turn(0, 17, Piece.Orientation.UP, random.randint(15, 20)) # Player 3
+    for _ in range(player_idx):
+        move = bot.bot_play(game.current_player, game.board)
+        game.play_move(move)
 
     # Save the game in the cache
     cache.set("game", game)
@@ -116,17 +116,9 @@ def move():
         return GameResponse(game, "You lost, game is over" if game.real_player.playing else "Wrong move, game is over")
     
     # Make the bots play
-    # Player 1 is random
-    x, y, orientation, piece_id = bot.random_play(game.players[0], game.board)
-    game.play_turn(x, y, Piece.Orientation(orientation), piece_id)
-
-    # Player 2 is random
-    x, y, orientation, piece_id = bot.random_play(game.players[1], game.board)
-    game.play_turn(x, y, Piece.Orientation(orientation), piece_id)
-
-    # Player 3 is greedy
-    x, y, orientation, piece_id = bot.greedy_play(game.players[2], game.board)
-    game.play_turn(x, y, Piece.Orientation(orientation), piece_id)
+    for _ in range(len(game.players) - 1):
+        move = bot.bot_play(game.current_player, game.board)
+        game.play_move(move)
     
     cache.set("game", game)
     return GameResponse(game, "Valid move")
