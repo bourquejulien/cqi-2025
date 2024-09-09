@@ -1,5 +1,6 @@
 #!/bin/env python3
 
+import logging
 from flask import Flask, Response, request
 from flask_caching import Cache
 import json
@@ -14,13 +15,16 @@ app: Flask = Flask(__name__)
 cache.init_app(app)
 
 def GameResponse(game: Game, message: str = ""):
+        response = {
+            "game_over": game.game_over,
+            "score": game.real_player.score,
+            "message": message,
+        }
+        app.logger.info("%s", response)
+
+        response["board"] = game.to_img_64().decode()
         return Response(
-            response= json.dumps({
-                "game_over": game.game_over,
-                "score": game.real_player.score,
-                "message": message,
-                "board": game.to_img_64().decode()
-            }),
+            response= json.dumps(response),
             status=200,
             headers={
                 "Content-Type": "application/json"
@@ -56,6 +60,7 @@ def start_game():
     # Save the game in the cache
     cache.set("game", game)
 
+    app.logger.info("Game started, player id: %d", game.real_player.id)
     return Response(
         response= json.dumps({
             "color": game.real_player.color,
@@ -139,6 +144,12 @@ def end_game():
     game: Game = cache.get("game")
     cache.delete("game")
     return GameResponse(game, "Game ended manually")
+
+def start_gunicorn():
+    gunicorn_logger = logging.getLogger("gunicorn.error")
+    app.logger.handlers = gunicorn_logger.handlers
+    app.logger.setLevel(gunicorn_logger.level)
+    return app
 
 if __name__ == "__main__":
     app.run("0.0.0.0", 5000, debug=True)
