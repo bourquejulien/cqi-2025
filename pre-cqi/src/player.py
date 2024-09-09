@@ -1,7 +1,8 @@
 from dataclasses import dataclass
-from piece import Piece
-from piece_shapes import PIECE_SHAPES
-from board import Board
+
+from .piece import Piece
+from .piece_shapes import PIECE_SHAPES
+from .board import Board
 
 @dataclass
 class Move:

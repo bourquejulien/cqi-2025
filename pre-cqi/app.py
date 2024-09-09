@@ -1,14 +1,16 @@
 #!/bin/env python3
 
 import logging
+import random
+import json
+
 from flask import Flask, Response, request
 from flask_caching import Cache
-import json
-from game import Game
-from player import Move
-from piece import Piece
-import random
-import bot
+
+import src.bot as bot
+from src.game import Game
+from src.player import Move
+from src.piece import Piece
 
 cache = Cache(config={"CACHE_TYPE": "SimpleCache"})
 app: Flask = Flask(__name__)
@@ -40,8 +42,6 @@ def get_health():
 
 @app.route("/start_game", methods=["POST"])
 def start_game():
-    game: Game = None
-
     # Check if a game is already running
     if cache.has("game") and not cache.get("game").game_over:
         return Response(
@@ -125,7 +125,6 @@ def move():
 
 @app.route("/end_game", methods=["POST"])
 def end_game():
-
     # Check if a game is already ended
     if not cache.has("game") or cache.get("game").game_over:
         return Response(
@@ -134,7 +133,7 @@ def end_game():
         )
     
     game: Game = cache.get("game")
-    cache.delete("game")
+    game.force_end_game()
     return GameResponse(game, "Game ended manually")
 
 def start_gunicorn():

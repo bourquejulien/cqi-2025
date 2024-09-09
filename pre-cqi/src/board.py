@@ -2,8 +2,9 @@ from io import BytesIO
 import PIL.Image
 import numpy as np
 import PIL
-from piece import Piece
 import base64
+
+from .piece import Piece
 
 TILE_SIZE = 20
 

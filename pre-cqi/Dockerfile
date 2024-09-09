@@ -4,7 +4,8 @@ WORKDIR /app
 
 RUN pip install pyarmor==8.5.11
 
-COPY *.py .
+COPY ./src ./src
+COPY ./app.py ./app.py
 RUN pyarmor gen .
 
 FROM python:3.12-alpine3.20 AS final

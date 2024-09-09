@@ -1,7 +1,8 @@
-from board import Board
-from player import Player, Move
-from piece import Piece
 import random
+
+from .board import Board
+from .player import Player, Move
+from .piece import Piece
 
 def _edge_tiles(player: Player, board: Board) -> list[tuple[int, int]]:
     edge_tiles = set()
