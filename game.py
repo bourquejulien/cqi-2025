@@ -1,51 +1,55 @@
 from board import Board
 from piece import Piece
-from player import Player
-import random
+from player import Player, Move
 
 class Game:
+    board: Board
+    players: list[Player]
+    real_player_id: int
+    current_player_id: int
+    total_nb_turns: int
+
     def __init__(self) -> None:
-        self.game_over = False
         self.board = Board.simple_board()
         self.players = [Player(1), Player(2), Player(3), Player(4)]
 
         self.real_player_id = 3
-        self.player_playing = 0
-        self.first_turn = True
+        self.current_player_id = 0
         self.total_nb_turns = 0
 
-    def setup_turn(self):
-        # Check if the game is over (All players are not playing)
-        if not any([player.playing for player in self.players]):
-            self.game_over = True
+    @property
+    def current_player(self) -> Player:
+        return self.players[self.current_player_id]
+    
+    @property
+    def real_player(self) -> Player:
+        return self.players[self.real_player_id]
+    
+    @property
+    def game_over(self) -> bool:
+        return not self.players[self.real_player_id].playing or any([len(player.pieces) == 0 for player in self.players]) or all([not player.playing for player in self.players])
+    
+    @property
+    def first_turn(self) -> bool:
+        return self.total_nb_turns < len(self.players)
 
-        # Check if the current player has no more pieces to play
-        if len(self.players[self.player_playing].pieces) == 0:
-            self.game_over = True
-
-        # Check if we are at still the first turn
-        if self.total_nb_turns >= len(self.players):
-            self.first_turn = False
-
+    def next_turn(self):
         # Go to the next player
-        self.player_playing = (self.player_playing + 1) % len(self.players)
+        self.current_player_id = (self.current_player_id + 1) % len(self.players)
 
     def play_turn(self, x: int, y: int, orientation: Piece.Orientation, piece_id: int) -> None:
-        # Increment the number of turns played
-        self.total_nb_turns += 1
+        self.play_move(Move(x, y, orientation, piece_id))
 
+    def play_move(self, move: Move) -> None:
         # Get the player playing
-        player = self.players[self.player_playing]
+        player = self.current_player
         
         # If the player is not playing skip him
         if not player.playing:
             return
         
         # Play the move
-        player.playing = player.play(
-            board=self.board,
-            piece_id=piece_id, 
-            orientation=orientation, 
-            x=x, 
-            y=y, 
-            first_piece=self.first_turn)
+        player.playing = player.play(board=self.board, move=move, first_piece=self.first_turn)
+
+        # Increment the number of turns played
+        self.total_nb_turns += 1

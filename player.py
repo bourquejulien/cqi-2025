@@ -1,8 +1,25 @@
-from piece import Piece, PIECE_SHAPES
+from dataclasses import dataclass
+from piece import Piece
+from piece_shapes import PIECE_SHAPES
 from board import Board
 
+@dataclass
+class Move:
+    x: int
+    y: int
+    orientation: Piece.Orientation
+    piece_id: int
+    
+    @classmethod
+    def from_request(cls, x: int, y: int, orientation: str, piece_id: int):
+        return cls(x, y, Piece.Orientation(orientation.lower()), piece_id)
+
 class Player:
-    def __init__(self, id: int, npc: bool = False):
+    id: int
+    playing: bool
+    pieces: list[Piece]
+
+    def __init__(self, id: int):
         self.playing = True
         self.id = id
         self.create_pieces()
@@ -16,27 +33,21 @@ class Player:
 
     @property
     def score(self) -> int:
-        score = 0
+        return sum([piece.value for piece in self.pieces])
 
-        for piece in self.pieces:
-            for segment in piece.shape.flat:
-                if segment == self.id:
-                    score += 1
+    def play(self, board: Board, move: Move, first_piece: bool = False) -> bool:
+        chosen_piece: Piece | None = None
 
-        return score
-
-    def play(self, board: Board, piece_id: int, orientation: Piece.Orientation, x: int, y: int, first_piece: bool = False) -> bool:
         # Get the piece
-        chosen_piece = None
         for piece in self.pieces:
-            if piece.id == piece_id:
+            if piece.id == move.piece_id:
                 chosen_piece = piece
                 break
         
         if chosen_piece is None:
             return False
         
-        success = board.add_piece(piece, orientation, x, y, first_piece)
+        success = board.add_piece(piece, move.orientation, move.x, move.y, first_piece)
         
         if success:
             self.pieces.remove(chosen_piece)

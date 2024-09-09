@@ -8,8 +8,12 @@ import base64
 TILE_SIZE = 20
 
 class Board:
+    board: np.ndarray
+    width: int
+    height: int
+
     def __init__(self, board: np.ndarray):
-        self.board: np.ndarray = board
+        self.board = board
         self.width = board.shape[0]
         self.height = board.shape[1]
 
@@ -100,20 +104,20 @@ class Board:
     
     def to_img_64(self) -> bytes:
         # Create an image of the board
-        img = PIL.Image.new('RGB', (self.width * TILE_SIZE, self.height * TILE_SIZE), color = 'black')
+        img = PIL.Image.new("RGB", (self.width * TILE_SIZE, self.height * TILE_SIZE), color = "black")
 
         for i in range(self.width):
             for j in range(self.height):
                 if self.board[i][j] == 0:
-                    img.paste('black', (i * TILE_SIZE, j * TILE_SIZE, (i + 1) * TILE_SIZE, (j + 1) * TILE_SIZE))
+                    img.paste("black", (i * TILE_SIZE, j * TILE_SIZE, (i + 1) * TILE_SIZE, (j + 1) * TILE_SIZE))
                 elif self.board[i][j] == 1:
-                    img.paste('red', (i * TILE_SIZE, j * TILE_SIZE, (i + 1) * TILE_SIZE, (j + 1) * TILE_SIZE))
+                    img.paste("red", (i * TILE_SIZE, j * TILE_SIZE, (i + 1) * TILE_SIZE, (j + 1) * TILE_SIZE))
                 elif self.board[i][j] == 2:
-                    img.paste('blue', (i * TILE_SIZE, j * TILE_SIZE, (i + 1) * TILE_SIZE, (j + 1) * TILE_SIZE))
+                    img.paste("blue", (i * TILE_SIZE, j * TILE_SIZE, (i + 1) * TILE_SIZE, (j + 1) * TILE_SIZE))
                 elif self.board[i][j] == 3:
-                    img.paste('green', (i * TILE_SIZE, j * TILE_SIZE, (i + 1) * TILE_SIZE, (j + 1) * TILE_SIZE))
+                    img.paste("green", (i * TILE_SIZE, j * TILE_SIZE, (i + 1) * TILE_SIZE, (j + 1) * TILE_SIZE))
                 elif self.board[i][j] == 4:
-                    img.paste('yellow', (i * TILE_SIZE, j * TILE_SIZE, (i + 1) * TILE_SIZE, (j + 1) * TILE_SIZE))
+                    img.paste("yellow", (i * TILE_SIZE, j * TILE_SIZE, (i + 1) * TILE_SIZE, (j + 1) * TILE_SIZE))
        
         buffered = BytesIO()
         img.save(buffered, format="PNG")

@@ -5,6 +5,11 @@ from enum import Enum
 TILE_SIZE = 20
 
 class Piece:
+    id: int
+    size: int
+    shape: np.ndarray
+    value: int
+
     class Orientation(Enum):
         UP = "up"
         RIGHT = "right"
@@ -29,150 +34,38 @@ class Piece:
         # Get the size
         self.size = self.shape.shape[0]
 
+        self.value = sum([1 for segment in self.shape.flat if segment == player_id])
+
     def get_shape(self, orientation: Orientation) -> np.ndarray:
-        def k():
-            match orientation:
-                case Piece.Orientation.UP:
-                    return 0
-                case Piece.Orientation.RIGHT:
-                    return 1
-                case Piece.Orientation.DOWN:
-                    return 2
-                case Piece.Orientation.LEFT:
-                    return 3
-        return np.rot90(self.shape, k())
+        k = {
+            Piece.Orientation.UP: 0,
+            Piece.Orientation.RIGHT: 1,
+            Piece.Orientation.DOWN: 2,
+            Piece.Orientation.LEFT: 3
+        }.get(orientation)
+        return np.rot90(self.shape, k)
     
-    def to_img(self, orientation: Orientation, name="piece") -> bytes:
+    def to_img(self, orientation: Orientation, name: str | None = None) -> bytes:
         # Create an image of the board
-        img = PIL.Image.new('RGB', (self.size * TILE_SIZE, self.size * TILE_SIZE), color = 'black')
+        img = PIL.Image.new("RGB", (self.size * TILE_SIZE, self.size * TILE_SIZE), color = "black")
 
         shape = self.get_shape(orientation)
 
         for i in range(self.size):
             for j in range(self.size):
                 if shape[i][j] == 0:
-                    img.paste('black', (i * TILE_SIZE, j * TILE_SIZE, (i + 1) * TILE_SIZE, (j + 1) * TILE_SIZE))
+                    img.paste("black", (i * TILE_SIZE, j * TILE_SIZE, (i + 1) * TILE_SIZE, (j + 1) * TILE_SIZE))
                 elif shape[i][j] == 1:
-                    img.paste('red', (i * TILE_SIZE, j * TILE_SIZE, (i + 1) * TILE_SIZE, (j + 1) * TILE_SIZE))
+                    img.paste("red", (i * TILE_SIZE, j * TILE_SIZE, (i + 1) * TILE_SIZE, (j + 1) * TILE_SIZE))
                 elif shape[i][j] == 2:
-                    img.paste('blue', (i * TILE_SIZE, j * TILE_SIZE, (i + 1) * TILE_SIZE, (j + 1) * TILE_SIZE))
+                    img.paste("blue", (i * TILE_SIZE, j * TILE_SIZE, (i + 1) * TILE_SIZE, (j + 1) * TILE_SIZE))
                 elif shape[i][j] == 3:
-                    img.paste('green', (i * TILE_SIZE, j * TILE_SIZE, (i + 1) * TILE_SIZE, (j + 1) * TILE_SIZE))
+                    img.paste("green", (i * TILE_SIZE, j * TILE_SIZE, (i + 1) * TILE_SIZE, (j + 1) * TILE_SIZE))
                 elif shape[i][j] == 4:
-                    img.paste('yellow', (i * TILE_SIZE, j * TILE_SIZE, (i + 1) * TILE_SIZE, (j + 1) * TILE_SIZE))
+                    img.paste("yellow", (i * TILE_SIZE, j * TILE_SIZE, (i + 1) * TILE_SIZE, (j + 1) * TILE_SIZE))
 
-        with open(f"{name}.png", 'wb') as f:
-            img.save(f, 'PNG')
+        if name is not None:
+            with open(f"{name}.png", "wb") as f:
+                img.save(f, "PNG")
             
         return img.tobytes()
-        
-    
-# ID of the piece is the index of the shape in the list
-PIECE_SHAPES = [
-    np.array(
-        [[1]]
-    ),
-    np.array(
-        [[1, 0],
-         [1, 0]]
-    ),
-    np.array(
-        [[1, 0],
-         [1, 1]]
-    ),
-    np.array(
-        [[1, 0, 0],
-         [1, 0, 0],
-         [1, 0, 0]]
-    ),
-    np.array(
-        [[1, 0, 0, 0],
-         [1, 0, 0, 0],
-         [1, 0, 0, 0],
-         [1, 0, 0, 0]]
-    ),
-    np.array(
-        [[0, 1, 0],
-         [0, 1, 0],
-         [1, 1, 0]]
-    ),
-    np.array(
-        [[1, 0, 0],
-         [1, 1, 0],
-         [1, 0, 0]]
-    ),
-    np.array(
-        [[1, 1],
-         [1, 1]]
-    ),
-    np.array(
-        [[1, 1, 0],
-         [0, 1, 1],
-         [0, 0, 0]]
-    ),
-    np.array(
-        [[1, 0, 0, 0, 0],
-         [1, 0, 0, 0, 0],
-         [1, 0, 0, 0, 0],
-         [1, 0, 0, 0, 0],
-         [1, 0, 0, 0, 0]]
-    ),
-    np.array(
-        [[0, 1, 0, 0],
-         [0, 1, 0, 0],
-         [0, 1, 0, 0],
-         [1, 1, 0, 0]]
-    ),
-    np.array(
-        [[0, 1, 0, 0],
-         [0, 1, 0, 0],
-         [1, 1, 0, 0],
-         [1, 0, 0, 0]]
-    ),
-    np.array(
-        [[0, 1, 0],
-         [1, 1, 0],
-         [1, 1, 0]]
-    ),
-    np.array(
-        [[1, 1, 0],
-         [0, 1, 0],
-         [1, 1, 0]]
-    ),
-    np.array(
-        [[1, 0, 0, 0],
-         [1, 1, 0, 0],
-         [1, 0, 0, 0],
-         [1, 0, 0, 0]]
-    ),
-    np.array(
-        [[0, 1, 0],
-         [0, 1, 0],
-         [1, 1, 1]]
-    ),
-    np.array(
-        [[1, 0, 0],
-         [1, 0, 0],
-         [1, 1, 1]]
-    ),
-    np.array(
-        [[1, 1, 0],
-         [0, 1, 1],
-         [0, 0, 1]]
-    ),
-    np.array(
-        [[1, 0, 0],
-         [1, 1, 1],
-         [0, 0, 1]]
-    ),
-    np.array(
-        [[1, 0, 0],
-         [1, 1, 1], 
-         [0, 1, 0]]
-    ),
-    np.array(
-        [[0, 1, 0],
-         [1, 1, 1],
-         [0, 1, 0]]
-    )
-]
