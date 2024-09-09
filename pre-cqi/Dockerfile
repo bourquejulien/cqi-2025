@@ -1,24 +1,37 @@
-FROM python:3.12 AS base
+FROM python:3.12-alpine3.20 AS base
 
 WORKDIR /app
 
-COPY requirements.txt requirements.txt
-RUN pip install -r requirements.txt
+RUN pip install pyarmor==8.5.11
 
 COPY *.py .
+RUN pyarmor gen .
 
-FROM python:3.12-slim AS final
+FROM python:3.12-alpine3.20 AS final
 
-ENV PORT=5000
-RUN groupadd -g 10001 cqi && useradd -u 10000 -g cqi cqi
+ARG PORT=5000
+EXPOSE $PORT
+
+RUN addgroup \
+    --gid 10001 \
+    cqi \
+    && adduser \
+    --disabled-password \
+    --gecos "" \
+    --home "$(pwd)" \
+    --ingroup cqi \
+    --no-create-home \
+    --uid 10000 \
+    cqi
 
 WORKDIR /app
 
-COPY --from=base --chown=cqi:cqi /app/requirements.txt /app/requirements.txt
+COPY --chown=cqi:cqi start.sh .
+COPY --chown=cqi:cqi ./requirements.txt ./requirements.txt
+
 RUN pip install -r requirements.txt
 
-COPY --from=base --chown=cqi:cqi /app .
-COPY --chown=cqi:cqi start.sh .
+COPY --from=base --chown=cqi:cqi /app/dist .
 USER cqi
 
 ENTRYPOINT [ "sh", "start.sh" ]
