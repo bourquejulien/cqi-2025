@@ -11,7 +11,7 @@ class Game:
 
     def __init__(self) -> None:
         self.board = Board.simple_board()
-        self.players = [Player(1), Player(2), Player(3), Player(4)]
+        self.players = [Player(1, "#FF0000"), Player(2, "#0000FF"), Player(3, "#00FF00"), Player(4, "#FFFF00")]
 
         self.real_player_id = 3
         self.current_player_id = 0
@@ -53,3 +53,8 @@ class Game:
 
         # Increment the number of turns played
         self.total_nb_turns += 1
+
+    def to_img_64(self) -> bytes:
+        color_mapping = {player.id:player.color for player in self.players}
+        color_mapping[0] = "#000000"
+        return self.board.to_img_64(color_mapping)

@@ -13,6 +13,20 @@ cache = Cache(config={"CACHE_TYPE": "SimpleCache"})
 app: Flask = Flask(__name__)
 cache.init_app(app)
 
+def GameResponse(game: Game, message: str = ""):
+        return Response(
+            response= json.dumps({
+                "game_over": game.game_over,
+                "score": game.real_player.score,
+                "message": message,
+                "board": game.board.to_img_64().decode()
+            }),
+            status=200,
+            headers={
+                "Content-Type": "application/json"
+            }
+        )
+
 @app.route("/health", methods=["GET"])
 def get_health():
     return Response(
@@ -47,8 +61,8 @@ def start_game():
 
     return Response(
         response= json.dumps({
-            "color": "#FFFF00",
-            "board": game.board.to_img_64().decode()
+            "color": game.real_player.color,
+            "board": game.to_img_64().decode()
         }),
         status=200,
         headers={
@@ -95,15 +109,10 @@ def move():
     game.play_move(move)
     game.next_turn()
 
-    # Check if the game is over for the player
-    if not game.real_player.playing:
-        cache.set("game", game)
-        return GameResponse(game, "Wrong move, game is over")
-    
     # Check if the game is over
     if game.game_over:
         cache.set("game", game)
-        return GameResponse(game, "Game is over, you lose")
+        return GameResponse(game, "You lost, game is over" if game.real_player.playing else "Wrong move, game is over")
     
     # Make the bots play
     # Player 1 is random
@@ -126,38 +135,17 @@ def move():
 
 @app.route("/end_game", methods=["POST"])
 def end_game():
-    game: Game = None
 
-    # Check if a game is already running
-    try:
-        game = cache.get("game")
-        cache.delete("game")
-        if game.game_over:
-            return Response(
-                response="The game is already over", 
-                status=400
-            )
-        
-        return GameResponse(game, "Game ended manually")
-    except:
+    # Check if a game is already ended
+    if not cache.has("game") or cache.get("game").game_over:
         return Response(
-            response="No game is running", 
+            response="No game currently running", 
             status=400
         )
-
-def GameResponse(game: Game, message: str = ""):
-        return Response(
-            response= json.dumps({
-                "game_over": game.game_over,
-                "score": game.real_player.score,
-                "message": message,
-                "board": game.board.to_img_64().decode()
-            }),
-            status=200,
-            headers={
-                "Content-Type": "application/json"
-            }
-        )
+    
+    game: Game = cache.get("game")
+    cache.delete("game")
+    return GameResponse(game, "Game ended manually")
 
 if __name__ == "__main__":
     app.run("0.0.0.0", 5000, debug=True)

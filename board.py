@@ -102,22 +102,14 @@ class Board:
     def __str__(self):
         return str(self.board)
     
-    def to_img_64(self) -> bytes:
+    def to_img_64(self, color_mapping: dict) -> bytes:
         # Create an image of the board
         img = PIL.Image.new("RGB", (self.width * TILE_SIZE, self.height * TILE_SIZE), color = "black")
 
         for i in range(self.width):
             for j in range(self.height):
-                if self.board[i][j] == 0:
-                    img.paste("black", (i * TILE_SIZE, j * TILE_SIZE, (i + 1) * TILE_SIZE, (j + 1) * TILE_SIZE))
-                elif self.board[i][j] == 1:
-                    img.paste("red", (i * TILE_SIZE, j * TILE_SIZE, (i + 1) * TILE_SIZE, (j + 1) * TILE_SIZE))
-                elif self.board[i][j] == 2:
-                    img.paste("blue", (i * TILE_SIZE, j * TILE_SIZE, (i + 1) * TILE_SIZE, (j + 1) * TILE_SIZE))
-                elif self.board[i][j] == 3:
-                    img.paste("green", (i * TILE_SIZE, j * TILE_SIZE, (i + 1) * TILE_SIZE, (j + 1) * TILE_SIZE))
-                elif self.board[i][j] == 4:
-                    img.paste("yellow", (i * TILE_SIZE, j * TILE_SIZE, (i + 1) * TILE_SIZE, (j + 1) * TILE_SIZE))
+                color = color_mapping[int(self.board[i][j])]
+                img.paste(color, (i * TILE_SIZE, j * TILE_SIZE, (i + 1) * TILE_SIZE, (j + 1) * TILE_SIZE))
        
         buffered = BytesIO()
         img.save(buffered, format="PNG")

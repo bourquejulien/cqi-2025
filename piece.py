@@ -16,7 +16,6 @@ class Piece:
         DOWN = "down"
         LEFT = "left"
         
-    
     # A piece is a square shape filled with 1s and 0s
     # The 1s represent the piece and the 0s represent the empty space
     # The piece has a direction describing its rotation
@@ -46,7 +45,6 @@ class Piece:
         return np.rot90(self.shape, k)
     
     def to_img(self, orientation: Orientation, name: str | None = None) -> bytes:
-        # Create an image of the board
         img = PIL.Image.new("RGB", (self.size * TILE_SIZE, self.size * TILE_SIZE), color = "black")
 
         shape = self.get_shape(orientation)
@@ -55,14 +53,8 @@ class Piece:
             for j in range(self.size):
                 if shape[i][j] == 0:
                     img.paste("black", (i * TILE_SIZE, j * TILE_SIZE, (i + 1) * TILE_SIZE, (j + 1) * TILE_SIZE))
-                elif shape[i][j] == 1:
-                    img.paste("red", (i * TILE_SIZE, j * TILE_SIZE, (i + 1) * TILE_SIZE, (j + 1) * TILE_SIZE))
-                elif shape[i][j] == 2:
+                else:
                     img.paste("blue", (i * TILE_SIZE, j * TILE_SIZE, (i + 1) * TILE_SIZE, (j + 1) * TILE_SIZE))
-                elif shape[i][j] == 3:
-                    img.paste("green", (i * TILE_SIZE, j * TILE_SIZE, (i + 1) * TILE_SIZE, (j + 1) * TILE_SIZE))
-                elif shape[i][j] == 4:
-                    img.paste("yellow", (i * TILE_SIZE, j * TILE_SIZE, (i + 1) * TILE_SIZE, (j + 1) * TILE_SIZE))
 
         if name is not None:
             with open(f"{name}.png", "wb") as f:

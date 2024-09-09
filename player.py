@@ -16,12 +16,14 @@ class Move:
 
 class Player:
     id: int
+    color: str
     playing: bool
     pieces: list[Piece]
 
-    def __init__(self, id: int):
-        self.playing = True
+    def __init__(self, id: int, color: str):
         self.id = id
+        self.color = color
+        self.playing = True
         self.create_pieces()
     
     def create_pieces(self) -> list[Piece]:
