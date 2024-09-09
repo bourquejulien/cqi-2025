@@ -3,3 +3,4 @@ pillow
 flask
 Flask-Caching
 numpy
+gunicorn
