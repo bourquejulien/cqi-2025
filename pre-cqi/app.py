@@ -134,6 +134,7 @@ def end_game():
     
     game: Game = cache.get("game")
     game.force_end_game()
+    cache.set("game", game)
     return GameResponse(game, "Game ended manually")
 
 def start_gunicorn():

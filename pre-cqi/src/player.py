@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 
-from .piece import Piece
-from .piece_shapes import PIECE_SHAPES
+from .piece import Piece, PieceWithMetadata
 from .board import Board
 
 @dataclass
@@ -20,25 +19,22 @@ class Player:
     color: str
     playing: bool
     is_first_move: bool
-    pieces: list[Piece]
+    pieces_with_count: list[PieceWithMetadata]
 
     def __init__(self, id: int, color: str):
         self.id = id
         self.color = color
         self.playing = True
         self.is_first_move = True
-        self.create_pieces()
+        self.pieces_with_count = PieceWithMetadata.create_pieces(self.id)
     
-    def create_pieces(self) -> list[Piece]:
-        self.pieces = [Piece(shape, self.id, piece_id) for piece_id, shape in enumerate(PIECE_SHAPES)]
-
     @property
-    def pieces_remaining(self) -> int:
-        return len(self.pieces)
+    def pieces(self) -> list[Piece]:
+        return [data.piece for data in self.pieces_with_count if data.count > 0]
 
     @property
     def score(self) -> int:
-        return sum([piece.value for piece in self.pieces])
+        return sum([data.piece.value * data.count for data in self.pieces_with_count])
 
     def play(self, board: Board, move: Move) -> bool:
         chosen_piece: Piece | None = None
@@ -55,7 +51,7 @@ class Player:
         success = board.add_piece(piece, move.orientation, move.x, move.y, self.is_first_move)
         
         if success:
-            self.pieces.remove(chosen_piece)
+            self.pieces_with_count[chosen_piece.id].count -= 1
 
         self.is_first_move = False
         return success

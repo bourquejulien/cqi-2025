@@ -61,11 +61,12 @@ def _greedy_play(player: Player, board: Board) -> Move:
 def bot_play(player: Player, board: Board) -> Move:
     # Use a predefined location on the first move for all bots
     if player.is_first_move:
+        piece_id = random.randint(0, len(player.pieces) - 1)
         return {
-            1: Move(0, 0, Piece.Orientation.UP, random.randint(0, 20)),
-            2: Move(15, 0, Piece.Orientation.UP, random.randint(0, 20)),
-            3: Move(0, 17, Piece.Orientation.UP, random.randint(15, 20)),
-            4: Move(17, 17, Piece.Orientation.UP, random.randint(15, 20))
+            1: Move(0, 0, Piece.Orientation.UP, piece_id),
+            2: Move(15, 0, Piece.Orientation.UP, piece_id),
+            3: Move(0, 17, Piece.Orientation.UP, piece_id),
+            4: Move(17, 17, Piece.Orientation.UP, piece_id)
         }.get(player.id)
 
     # Player 3 is greedy, the other bots are random

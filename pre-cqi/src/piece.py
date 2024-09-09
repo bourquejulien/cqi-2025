@@ -1,6 +1,11 @@
+from dataclasses import dataclass
+import PIL.Image
 import numpy as np
 import PIL
 from enum import Enum
+from typing import Self
+
+from .piece_shapes import PIECE_SHAPES
 
 TILE_SIZE = 20
 
@@ -44,7 +49,7 @@ class Piece:
         }.get(orientation)
         return np.rot90(self.shape, k)
     
-    def to_img(self, orientation: Orientation, name: str | None = None) -> bytes:
+    def to_img(self, orientation: Orientation, color: str) -> PIL.Image:
         img = PIL.Image.new("RGB", (self.size * TILE_SIZE, self.size * TILE_SIZE), color = "black")
 
         shape = self.get_shape(orientation)
@@ -52,12 +57,17 @@ class Piece:
         for i in range(self.size):
             for j in range(self.size):
                 if shape[i][j] == 0:
-                    img.paste("black", (i * TILE_SIZE, j * TILE_SIZE, (i + 1) * TILE_SIZE, (j + 1) * TILE_SIZE))
+                    img.paste("#000000", (i * TILE_SIZE, j * TILE_SIZE, (i + 1) * TILE_SIZE, (j + 1) * TILE_SIZE))
                 else:
-                    img.paste("blue", (i * TILE_SIZE, j * TILE_SIZE, (i + 1) * TILE_SIZE, (j + 1) * TILE_SIZE))
-
-        if name is not None:
-            with open(f"{name}.png", "wb") as f:
-                img.save(f, "PNG")
+                    img.paste(color, (i * TILE_SIZE, j * TILE_SIZE, (i + 1) * TILE_SIZE, (j + 1) * TILE_SIZE))
             
-        return img.tobytes()
+        return img
+
+@dataclass
+class PieceWithMetadata:
+    piece: Piece
+    count: int
+
+    @classmethod
+    def create_pieces(cls, player_id: int) -> list[Self]:
+        return [cls(Piece(piece_data["piece"], player_id, piece_id), piece_data["count"]) for piece_id, piece_data in enumerate(PIECE_SHAPES)]
