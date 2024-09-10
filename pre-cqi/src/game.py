@@ -37,7 +37,7 @@ class Game:
             return
         
         # Play the move
-        player.playing = player.play(board=self.board, move=move)
+        player.play(board=self.board, move=move)
 
         # Increment the number of turns played
         self.total_nb_turns += 1

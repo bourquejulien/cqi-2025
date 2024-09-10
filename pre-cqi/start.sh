@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 if [ -z ${PORT+x} ]; then
     PORT=5000

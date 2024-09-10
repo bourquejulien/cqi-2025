@@ -33,13 +33,6 @@ def GameResponse(game: Game, message: str = ""):
             }
         )
 
-@app.route("/health", methods=["GET"])
-def get_health():
-    return Response(
-        response="ok", 
-        status=200
-    )
-
 @app.route("/status", methods=["GET"])
 def get_status():
     if not cache.has("game"):
@@ -91,10 +84,9 @@ def move():
         )
     
     # Get the parameters
-    move: Move = None
+    move: Move | None = None
     try:
         move: Move = Move.from_request(**request.json)
-        # TODO - Validate parameters
     except:
         return Response(
             response="Invalid parameters", 
@@ -145,6 +137,7 @@ def end_game():
     game: Game = cache.get("game")
     game.force_end_game()
     cache.set("game", game)
+    
     return GameResponse(game, "Game ended manually")
 
 def start_gunicorn():

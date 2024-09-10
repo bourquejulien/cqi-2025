@@ -36,7 +36,7 @@ class Player:
     def score(self) -> int:
         return sum([data.piece.value * data.count for data in self.pieces_with_count])
 
-    def play(self, board: Board, move: Move) -> bool:
+    def play(self, board: Board, move: Move):
         chosen_piece: Piece | None = None
 
         # Get the piece
@@ -46,7 +46,8 @@ class Player:
                 break
         
         if chosen_piece is None:
-            return False
+            self.playing = False
+            return
         
         success = board.add_piece(piece, move.orientation, move.x, move.y, self.is_first_move)
         
@@ -54,4 +55,4 @@ class Player:
             self.pieces_with_count[chosen_piece.id].count -= 1
 
         self.is_first_move = False
-        return success
+        self.playing = success

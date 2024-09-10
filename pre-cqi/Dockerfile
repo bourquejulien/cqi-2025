@@ -2,11 +2,16 @@ FROM python:3.12-alpine3.20 AS base
 
 WORKDIR /app
 
-RUN pip install pyarmor==8.5.11
+RUN apk add --no-cache build-base && \
+    apk add --no-cache shc --repository=http://dl-cdn.alpinelinux.org/alpine/edge/testing/ && \
+    pip install --no-cache-dir pyarmor==8.5.11
 
 COPY ./src ./src
-COPY ./app.py ./app.py
-RUN pyarmor gen .
+COPY ./app.py .
+COPY ./start.sh .
+
+# Obfuscate the start script and the python code
+RUN shc -S -B -r -f start.sh -o start && pyarmor gen .
 
 FROM python:3.12-alpine3.20 AS final
 
@@ -27,12 +32,14 @@ RUN addgroup \
 
 WORKDIR /app
 
-COPY --chown=cqi:cqi start.sh .
-COPY --chown=cqi:cqi ./requirements.txt ./requirements.txt
+COPY ./requirements.txt ./requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
-RUN pip install -r requirements.txt
+COPY --from=base /app/dist .
+COPY --from=base ./app/start .
 
-COPY --from=base --chown=cqi:cqi /app/dist .
+# Prevent user cqi from accessing the app files, make the start binary run as root
+RUN chmod -R 770 /app && chmod 4771 /app/start
 USER cqi
 
-ENTRYPOINT [ "sh", "start.sh" ]
+ENTRYPOINT [ "/app/start" ]
