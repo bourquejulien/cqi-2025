@@ -40,6 +40,16 @@ def get_health():
         status=200
     )
 
+@app.route("/status", methods=["GET"])
+def get_status():
+    if not cache.has("game"):
+        return Response(
+            response="No game available",
+            status=400
+        )
+    
+    return GameResponse(cache.get("game"))
+
 @app.route("/start_game", methods=["POST"])
 def start_game():
     # Check if a game is already running
