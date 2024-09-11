@@ -1,5 +1,3 @@
-import random
-
 from .board import Board
 from .player import Player, Move
 
@@ -10,10 +8,9 @@ class Game:
     total_nb_turns: int
     is_user_ended: bool
 
-    def __init__(self, real_player_idx: int = 3) -> None:
+    def __init__(self, real_player_idx: int) -> None:
         self.board = Board.simple_board()
         self.players = [Player(1, "#FF0000"), Player(2, "#0000FF"), Player(3, "#00FF00"), Player(4, "#FFFF00")]
-        random.shuffle(self.players)
 
         self.real_player = self.players[real_player_idx]
         self.total_nb_turns = 0

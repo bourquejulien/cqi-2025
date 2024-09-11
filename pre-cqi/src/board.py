@@ -1,3 +1,5 @@
+from collections import deque
+from dataclasses import dataclass
 from io import BytesIO
 import PIL.Image
 import numpy as np
@@ -8,6 +10,12 @@ from .piece import Piece
 
 TILE_SIZE = 20
 
+@dataclass(eq=True, frozen=True)
+class Tile:
+    x: int
+    y: int
+    id: int
+
 class Board:
     board: np.ndarray
     width: int
@@ -17,6 +25,50 @@ class Board:
         self.board = board
         self.width = board.shape[0]
         self.height = board.shape[1]
+
+    @property
+    def is_empty(self) -> bool:
+        return not self.board.any()
+
+    def get(self, x: int, y: int)-> Tile | None:
+        size_x, size_y = self.board.shape
+        if 0 <= x < size_x and 0 <= y < size_y:
+            return Tile(x, y, self.board[x, y])
+        return None
+    
+    def get_nearby_tiles(self, x: int, y: int)-> list[Tile]:
+        if self.get(x, y) == None:
+            return []
+        
+        tiles: list[Tile | None] = []
+
+        tiles.append(self.get(x - 1, y))
+        tiles.append(self.get(x + 1, y))
+        tiles.append(self.get(x, y - 1))
+        tiles.append(self.get(x, y + 1))
+
+        return [tile for tile in tiles if tile is not None]
+    
+    # Get nearest tile from a give location
+    def get_nearest_tile(self, x: int, y: int) -> Tile | None:
+        first_tile = self.get(x, y)
+
+        if first_tile is None:
+            return None
+
+        visited: set[Tile] = set()
+        to_visit: deque[Tile] = deque([first_tile])
+
+        while len(to_visit) > 0:
+            current = to_visit.pop()
+
+            if(current.id != 0):
+                return current
+
+            visited.add(current)
+            to_visit.extend([tile for tile in self.get_nearby_tiles(current.x, current.y) if not tile in visited])
+        
+        return None
 
     def add_piece(self, piece: Piece, orientation: Piece.Orientation, x: int, y: int, first_piece: bool) -> bool:
         shape: np.ndarray = piece.get_shape(orientation)

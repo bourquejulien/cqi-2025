@@ -10,7 +10,6 @@ from flask_caching import Cache
 import src.bot as bot
 from src.game import Game
 from src.player import Move
-from src.piece import Piece
 
 cache = Cache(config={"CACHE_TYPE": "SimpleCache"})
 app: Flask = Flask(__name__)
@@ -53,7 +52,7 @@ def start_game():
         )
 
     # Create a new game
-    player_idx = 3 # random.randint(0, 3)
+    player_idx = random.randint(0, 3)
     game = Game(player_idx)
        
     for _ in range(player_idx):
@@ -137,7 +136,7 @@ def end_game():
     game: Game = cache.get("game")
     game.force_end_game()
     cache.set("game", game)
-    
+
     return GameResponse(game, "Game ended manually")
 
 def start_gunicorn():

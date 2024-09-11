@@ -1,8 +1,22 @@
+from collections import deque
 import random
 
-from .board import Board
+from .board import Board, Tile
 from .player import Player, Move
 from .piece import Piece
+
+# Make the most isolated move in the predefined moves
+def _get_first_move(player: Player, board: Board) -> Move:
+    piece_id = random.randint(9, len(player.pieces) - 1)
+    possible_moves = [Move(0, 0, Piece.Orientation.UP, piece_id), Move(17, 0, Piece.Orientation.UP, piece_id), Move(0, 17, Piece.Orientation.UP, piece_id), Move(17, 17, Piece.Orientation.UP, piece_id)]
+
+    if (board.is_empty):
+        return random.choice(possible_moves)
+
+    nearest_tiles: list[tuple[Move, Tile]] = [(move, board.get_nearest_tile(move.x, move.y)) for move in possible_moves]
+    best_move, _ = max([(move, abs(move.x - tile.x) + abs(move.y - tile.y)) for move, tile in nearest_tiles], key=lambda x: x[1])
+
+    return best_move
 
 def _edge_tiles(player: Player, board: Board) -> list[tuple[int, int]]:
     edge_tiles = set()
@@ -59,15 +73,9 @@ def _greedy_play(player: Player, board: Board) -> Move:
     return Move(0, 0, Piece.Orientation.UP, 0)
 
 def bot_play(player: Player, board: Board) -> Move:
-    # Use a predefined location on the first move for all bots
     if player.is_first_move:
-        piece_id = random.randint(0, len(player.pieces) - 1)
-        return {
-            1: Move(0, 0, Piece.Orientation.UP, piece_id),
-            2: Move(15, 0, Piece.Orientation.UP, piece_id),
-            3: Move(0, 17, Piece.Orientation.UP, piece_id),
-            4: Move(17, 17, Piece.Orientation.UP, piece_id)
-        }.get(player.id)
+        # On first move, use predefined locations
+        return _get_first_move(player, board)
 
     # Player 3 is greedy, the other bots are random
     run_bot = _greedy_play if player.id == 3 else _random_play
