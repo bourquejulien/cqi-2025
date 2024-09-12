@@ -35,6 +35,9 @@ class Player:
     @property
     def score(self) -> int:
         return sum([data.piece.value * data.count for data in self.pieces_with_count])
+    
+    def get_pieces_summary(self) -> list[dict]:
+        return [data.summary() for data in self.pieces_with_count]
 
     def play(self, board: Board, move: Move):
         chosen_piece: Piece | None = None

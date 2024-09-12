@@ -68,6 +68,13 @@ class PieceWithMetadata:
     piece: Piece
     count: int
 
+    def summary(self) -> dict:
+        return {
+            "id": self.piece.id,
+            "count": self.count,
+            "shape": self.piece.shape.tolist()
+        }
+
     @classmethod
     def create_pieces(cls, player_id: int) -> list[Self]:
         return [cls(Piece(piece_data["piece"], player_id, piece_id), piece_data["count"]) for piece_id, piece_data in enumerate(PIECE_SHAPES)]

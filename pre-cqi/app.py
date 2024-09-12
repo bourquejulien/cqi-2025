@@ -66,7 +66,8 @@ def start_game():
     return Response(
         response= json.dumps({
             "color": game.real_player.color,
-            "board": game.to_img_64().decode()
+            "board": game.to_img_64().decode(),
+            "pieces": game.real_player.get_pieces_summary()
         }),
         status=200,
         headers={
