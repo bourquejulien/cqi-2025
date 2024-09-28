@@ -1,0 +1,8 @@
+services:
+  bot:
+    image: brqu/latestoflatest:latest
+    build:
+      context: .
+      target: final
+    ports:
+      - "5000:5000"
