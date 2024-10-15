@@ -8,9 +8,11 @@ Installation:
 - pip install docker
 '''
 
+import socket
 import sys
 import requests
 import time
+import signal
 import docker
 
 from docker import DockerClient
@@ -20,6 +22,22 @@ from docker.models.containers import Container
 GRADING_IMAGE_NAME = "brqu/pre-cqi-prog-2025:latest"
 RUN_COUNT = 10
 GAME_TIMEOUT = 30
+STOP_TIMEOUT = 5
+
+
+def get_port() -> int:
+    with socket.socket() as sock:
+        sock.bind(("localhost", 0))
+        port = sock.getsockname()[1]
+        return port
+
+
+should_stop = False
+def signal_handler(sig, frame):
+    global should_stop
+    print("Stopping...")
+    should_stop = True
+
 
 class Grader:
     _client: DockerClient
@@ -35,7 +53,7 @@ class Grader:
     def __init__(self, client: DockerClient, team_image_name: str) -> None:
         self._client = client
         self._team_image_name = team_image_name
-        self._grader_port = 7869
+        self._grader_port = get_port()
         self._grading_container = None
         self._team_container = None
         self._network_name = "grader_network"
@@ -57,23 +75,31 @@ class Grader:
                 network.remove()
                 break
 
-        self._network = self._client.networks.create(self._network_name, driver="bridge")
-        self._grading_container = self._client.containers.run(GRADING_IMAGE_NAME, name=self._grading_container_name, detach=True, network=self._network.name, hostname=self._network_name, ports={"5000": self._grader_port})
+        self._network = self._client.networks.create(
+            self._network_name, driver="bridge")
+        self._grading_container = self._client.containers.run(GRADING_IMAGE_NAME, name=self._grading_container_name,
+                                                              detach=True, network=self._network.name, hostname=self._grading_container_name, ports={"5000": self._grader_port})
 
-        time.sleep(5)
+        time.sleep(STOP_TIMEOUT)
         response = requests.get(f"http://localhost:{self._grader_port}/status")
 
         if not response.ok and not response.content.startswith(b"No game available"):
             raise Exception("Failed to connect to grading server")
-    
+
     def stop(self):
         self.reset()
-        self._grading_container.stop(timeout=5)
+        self._grading_container.stop(timeout=STOP_TIMEOUT)
         self._network.remove()
 
     def grade(self) -> int | None:
-        self._team_container = self._client.containers.run(self._team_image_name, detach=True, network=self._network.name, hostname=self._network_name, command="grade:5000")
-        self._team_container.wait(timeout=GAME_TIMEOUT)
+        self._team_container = self._client.containers.run(
+            self._team_image_name, detach=True, network=self._network.name, command=f"{self._grading_container_name}:5000")
+
+        try:
+            self._team_container.wait(timeout=GAME_TIMEOUT)
+        except:
+            print("Bot timed out")
+            return None
 
         response = requests.get(f"http://localhost:{self._grader_port}/status")
 
@@ -84,7 +110,7 @@ class Grader:
         game_response = response.json()
         if not game_response["game_over"]:
             return None
-        
+
         return game_response["score"]
 
     def reset(self):
@@ -94,12 +120,13 @@ class Grader:
         self._team_container.reload()
         if self._team_container.status == "running":
             print("Container not correctly stopped")
-        
+
         self._team_container.remove(force=True)
         self._team_container = None
 
 
 def main():
+    signal.signal(signal.SIGINT, signal_handler)
     client = docker.from_env()
 
     team_image_name: str
@@ -114,6 +141,9 @@ def main():
 
     total_score = 0
     for i in range(RUN_COUNT):
+        if should_stop:
+            break
+
         score = grader.grade()
         grader.reset()
 
@@ -122,11 +152,12 @@ def main():
             total_score += score
             formatted_score = score
 
-        print(f"Score un run {i+1}: {formatted_score}")
-    
+        print(f"Score run {i+1}: {formatted_score}")
+
     print(f"Average score after {RUN_COUNT} runs: {total_score/RUN_COUNT}")
 
     grader.stop()
+
 
 if __name__ == "__main__":
     main()
