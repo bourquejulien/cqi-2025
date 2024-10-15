@@ -62,7 +62,7 @@ def start_game():
     # Save the game in the cache
     cache.set("game", game)
 
-    app.logger.info("Game started, player id: %d", game.real_player.id)
+    app.logger.info("Game started, player id: %d, color: %s", game.real_player.id, game.real_player.color)
     return Response(
         response= json.dumps({
             "color": game.real_player.color,
@@ -121,6 +121,10 @@ def move():
     for _ in range(len(game.players) - 1):
         move = bot.bot_play(game.current_player, game.board)
         game.play_move(move)
+
+    if game.game_over:
+        cache.set("game", game)
+        return GameResponse(game, "You won, other player are unable to play.")
     
     cache.set("game", game)
     return GameResponse(game, "Valid move")

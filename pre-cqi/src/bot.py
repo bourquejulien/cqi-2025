@@ -7,7 +7,7 @@ from .piece import Piece
 
 # Make the most isolated move in the predefined moves
 def _get_first_move(player: Player, board: Board) -> Move:
-    piece_id = random.randint(9, len(player.pieces) - 1)
+    piece_id = random.randint(10, len(player.pieces) - 1)
     possible_moves = [Move(0, 0, Piece.Orientation.UP, piece_id), Move(17, 0, Piece.Orientation.UP, piece_id), Move(0, 17, Piece.Orientation.UP, piece_id), Move(17, 17, Piece.Orientation.UP, piece_id)]
 
     if (board.is_empty):

@@ -28,6 +28,9 @@ class Game:
     def play_move(self, move: Move) -> None:
         # Get the player playing
         player = self.current_player
+
+        # Increment the number of turns played
+        self.total_nb_turns += 1
         
         # If the player is not playing skip him
         if not player.playing:
@@ -36,8 +39,6 @@ class Game:
         # Play the move
         player.play(board=self.board, move=move)
 
-        # Increment the number of turns played
-        self.total_nb_turns += 1
 
     def force_end_game(self):
         self.is_user_ended = True
