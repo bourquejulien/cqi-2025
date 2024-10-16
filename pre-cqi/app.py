@@ -110,6 +110,7 @@ def move():
     game: Game = cache.get("game")
 
     # Play the move for the player
+    app.logger.info("Bot played: %s", move)
     game.play_move(move)
 
     # Check if the game is over
