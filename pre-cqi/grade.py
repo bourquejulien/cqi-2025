@@ -1,24 +1,37 @@
 #!/bin/env python3
 
 '''
+Minimum Python version required: 3.10
+
 Dependencies:
 - Docker SDK for Python
+- Requests
 
 Installation:
-- pip install docker
+- pip install docker requests
 '''
+
+import sys
+
+if sys.version_info.major < 3 or sys.version_info.minor < 10:
+    info = \
+        "You are currently running Python {}.{} which is antique.\n" \
+        "To run this script you need a python version >= 3.10." \
+        .format(sys.version_info.major, sys.version_info.minor)
+    print(info)
+    exit(1)
+
 
 import signal
 import time
-import requests
-import sys
 import socket
 import uuid
 import subprocess
 
 
 def imports() -> None:
-    global docker, DockerClient, Container, Network
+    global requests, docker, DockerClient, Container, Network
+    import requests
     import docker
     from docker import DockerClient
     from docker.models.containers import Container
@@ -27,14 +40,15 @@ def imports() -> None:
 
 def install_dependencies(dependencies: list[str]) -> bool:
     print(f"Failed to load dependencies: {dependencies}")
-    should_install = input(
-        "Do you want to install them in the current environnement (Y, N)? \n").lower().startswith("y")
+    should_install = \
+        input("Do you want to install them in the current environnement (Y, N)?\n") \
+        .lower().startswith("y")
     if not should_install:
         return False
 
     try:
         subprocess.check_call(
-            [sys.executable, "-m", "pip", "install", " ".join(dependencies)])
+            [sys.executable, "-m", "pip", "install", *dependencies])
     except:
         print("Unable to install dependencies, did you install pip (https://pip.pypa.io/en/stable/installation/)?")
         return False
@@ -45,7 +59,7 @@ def install_dependencies(dependencies: list[str]) -> bool:
 try:
     imports()
 except:
-    if not install_dependencies(["docker"]):
+    if not install_dependencies(["requests", "docker"]):
         print("Install the required dependencies to continue")
         exit(1)
     imports()
@@ -56,17 +70,9 @@ GRADER_NAME_BASE = "grader"
 TEAM_NAME_BASE = "team"
 NETWORK_NAME_BASE = "grader_network"
 RUN_COUNT = 10
-GAME_TIMEOUT = 30
+GAME_TIMEOUT = 60
 STOP_TIMEOUT = 5
-
-
-should_stop = False
-
-
-def signal_handler(sig, frame) -> None:
-    global should_stop
-    print("Stopping...")
-    should_stop = True
+TIMEOUT_SCORE = 89
 
 
 def get_available_port() -> int:
@@ -74,6 +80,26 @@ def get_available_port() -> int:
         sock.bind(("localhost", 0))
         port = sock.getsockname()[1]
         return port
+
+
+class StopToken:
+    def __init__(self):
+        self._is_canceled = False
+
+    def is_canceled(self) -> None:
+        return self._is_canceled
+
+    def cancel(self, *kargs) -> None:
+        self._is_canceled = True
+        print("Stopping...")
+
+    def wait(self, duration: int) -> bool:
+        for _ in range(duration):
+            time.sleep(1)
+            if (self.is_canceled()):
+                return False
+
+        return True
 
 
 class Grader:
@@ -96,18 +122,25 @@ class Grader:
         self._grader_port = get_available_port()
         self._grading_container = None
         self._team_container = None
+        self._network = None
         self._network_name = f"{NETWORK_NAME_BASE}_{run_id}"
         self._grading_container_name = f"{GRADER_NAME_BASE}_{run_id}"
         self._team_container_name = f"{TEAM_NAME_BASE}_{run_id}"
 
-    def prepare(self) -> bool:
+    def prepare(self, token: StopToken) -> bool:
         print("Pulling containers...")
         self._client.images.pull(GRADING_IMAGE_NAME)
+
+        if token.is_canceled():
+            return False
 
         try:
             self._client.images.pull(self._team_image_name)
         except Exception as e:
             print(f"Unable to pull {self._team_image_name}: {e}")
+            return False
+
+        if token.is_canceled():
             return False
 
         self._cleanup()
@@ -116,11 +149,12 @@ class Grader:
         self._network = self._client.networks.create(
             self._network_name, driver="bridge")
         self._grading_container = self._client.containers.run(GRADING_IMAGE_NAME, name=self._grading_container_name,
-                                                              detach=True, network=self._network.name, hostname=self._grading_container_name, ports={"5000": self._grader_port})
+                                                              detach=True, network=self._network.name, hostname=GRADER_NAME_BASE, ports={"5000": self._grader_port})
 
-        time.sleep(STOP_TIMEOUT)
+        if not token.wait(STOP_TIMEOUT):
+            return False
+
         response = requests.get(f"http://localhost:{self._grader_port}/status")
-
         if not response.ok and not response.content.startswith(b"No game available"):
             raise Exception("Failed to connect to grading server")
 
@@ -141,18 +175,32 @@ class Grader:
 
     def stop(self) -> None:
         self.reset()
-        self._grading_container.stop(timeout=STOP_TIMEOUT)
-        self._network.remove()
 
-    def grade(self) -> int | None:
-        self._team_container = self._client.containers.run(
-            self._team_image_name, detach=True, network=self._network.name, command=f"{self._grading_container_name}:5000")
+        if self._grading_container is not None:
+            self._grading_container.stop(timeout=STOP_TIMEOUT)
 
+        if self._network is not None:
+            self._network.remove()
+
+    def grade(self, token: StopToken) -> int | None:
         try:
-            self._team_container.wait(timeout=GAME_TIMEOUT)
-        except:
-            print("Bot timed out")
+            self._team_container = self._client.containers.run(
+                self._team_image_name, name=self._team_container_name, remove=True, detach=True, network=self._network.name, command=f"{GRADER_NAME_BASE}:5000")
+        except Exception as e:
+            print(f"Unable to launch bot container: {e}")
             return None
+
+        for _ in range(GAME_TIMEOUT):
+            if token.is_canceled():
+                return None
+            time.sleep(1)
+
+            try:
+                self._team_container.reload()
+            except:
+                break
+            if self._team_container.status != "running":
+                break
 
         try:
             response = requests.get(
@@ -167,6 +215,7 @@ class Grader:
 
         game_response = response.json()
         if not game_response["game_over"]:
+            print(f"Game exceeded {GAME_TIMEOUT}s")
             return None
 
         return game_response["score"]
@@ -175,7 +224,12 @@ class Grader:
         if self._team_container is None:
             return
 
-        self._team_container.reload()
+        try:
+            self._team_container.reload()
+        except:
+            self._team_container = None
+            return
+
         if self._team_container.status == "running":
             print("Container not correctly stopped")
 
@@ -183,7 +237,32 @@ class Grader:
         self._team_container = None
 
 
-def main() -> None:
+def grade(grader: Grader, token: StopToken) -> None:
+    total_score = 0
+    total_run = 0
+
+    for i in range(RUN_COUNT):
+        if token.is_canceled():
+            return
+
+        score = grader.grade(token)
+        grader.reset()
+
+        if score is None:
+            score = TIMEOUT_SCORE
+            print("RUN FAILED")
+
+        total_score += score
+        total_run += 1
+
+        print(f"Score run {i+1}: {score}")
+
+    average_score = total_score/max(total_run, 1)
+    print(f"Average score after {total_run} runs: {average_score}")
+
+
+def main() -> int:
+    token = StopToken()
     client: DockerClient
 
     try:
@@ -195,7 +274,7 @@ def main() -> None:
             "Else you need to install Docker: https://docs.docker.com/get-started/get-docker/.\n" \
             "Note: If you are using Windows, the WSL 2 Docker installation method is preferred."
         print(noob_instructions)
-        exit(1)
+        return 1
 
     team_image_name: str
     if len(sys.argv) < 2:
@@ -204,30 +283,16 @@ def main() -> None:
     else:
         team_image_name = sys.argv[1]
 
-    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGINT, token.cancel)
     grader = Grader(client, team_image_name)
-    if not grader.prepare():
-        exit(1)
 
-    total_score = 0
-    for i in range(RUN_COUNT):
-        if should_stop:
-            break
-
-        score = grader.grade()
-        grader.reset()
-
-        formatted_score = "RUN FAILED"
-        if score is not None:
-            total_score += score
-            formatted_score = score
-
-        print(f"Score run {i+1}: {formatted_score}")
-
-    print(f"Average score after {RUN_COUNT} runs: {total_score/RUN_COUNT}")
+    if grader.prepare(token) and not token.is_canceled():
+        grade(grader, token)
 
     grader.stop()
 
+    return 1 if token.is_canceled() else 0
+
 
 if __name__ == "__main__":
-    main()
+    exit(main())
