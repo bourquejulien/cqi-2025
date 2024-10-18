@@ -3,66 +3,77 @@
 import logging
 import random
 import json
+import atexit
+import logging
+import threading
 
-import requests
+from src.game_runner import Runner
 
-from flask import Flask, Response, request
-from flask_caching import Cache
+from threading import Thread
+from aiohttp import web
+from aiohttp.web import Response, json_response, Application, Request
 
-cache = Cache(config={"CACHE_TYPE": "SimpleCache"})
-app: Flask = Flask(__name__)
-cache.init_app(app)
+game_runner: Runner
+handler_thread: Thread
 
-START_ENDPOINT = "/start"
-OFFENSE_ENDPOINT = "/offense"
-DEFENSE_ENDPOINT = "/defense"
-END_ENDPOINT = "/end_game"
 
-class GameHandler:
-    bot1_url: str
-    bot2_url: str
+async def get_status(request: Request):
+    status = game_runner.status()
+    return json_response({"status": status})
 
-    def __init__(self, bot1_url: str, bot2_url: str) -> None:
-        self.bot1_url = bot1_url
-        self.bot2_url = bot2_url
 
-    def launch_game(self):
-        
-        requests.post(self.bot1_url + START_ENDPOINT, json={"is_offense": True})
-        requests.post(self.bot2_url + START_ENDPOINT, json={"is_offense": False})
+async def run_game(request: Request):
+    OFFENSE = "offense_url"
+    DEFENSE = "defense_url"
+    query_param = request.rel_url.query
 
-        response1 = requests.post(self.bot1_url + OFFENSE_ENDPOINT, {})
-        response2 = requests.post(self.bot2_url + DEFENSE_ENDPOINT, {})
+    if OFFENSE not in query_param or DEFENSE not in query_param:
+        return Response(text="Wrong parameters", status=400)
 
-        requests.post(self.bot1_url + END_ENDPOINT, {})
-        requests.post(self.bot2_url + END_ENDPOINT, {})
+    offense_bot_url = request.rel_url.query[OFFENSE]
+    defense_bot_url = request.rel_url.query[DEFENSE]
+    game_runner.launch_game(offense_bot_url, defense_bot_url)
 
-@app.route("/status", methods=["GET"])
-def get_status():
-    
-    return {"status": "🤨"}
+    return json_response({"status": "started"}, status=200)
 
-@app.route("/run_game", methods=["POST"])
-def run_game():
 
-    bot1_url = "http://localhost:5000"
-    bot2_url = "http://localhost:5001"
+async def force_end_game(request: Request):
+    if not game_runner.force_end_game():
+        return Response(text="No game running", status=400)
 
-    handler = GameHandler(bot1_url, bot2_url)
-    handler.launch_game()
-    
-    return Response(
-            response={
-                "status": "started"
-            },
-            status=200
-        )
-    
-def start_gunicorn():
-    gunicorn_logger = logging.getLogger("gunicorn.error")
-    app.logger.handlers = gunicorn_logger.handlers
-    app.logger.setLevel(gunicorn_logger.level)
+    return json_response({"status": "stopped"}, status=200)
+
+
+def initialize(app: Application) -> None:
+    global game_runner, handler_thread
+    game_runner = Runner(app.logger)
+    handler_thread = threading.Thread(target=game_runner.run, args=())
+    handler_thread.start()
+    atexit.register(stop)
+
+
+def stop() -> None:
+    print("Stopping...")
+    game_runner.stop()
+    handler_thread.join()
+
+
+def setup_routes() -> Application:
+    logging.basicConfig(level=logging.DEBUG)
+    app = web.Application()
+    app.router.add_get('/status', get_status)
+    app.router.add_post('/run_game', run_game)
+    app.router.add_post('/force_end_game', force_end_game)
+
     return app
 
-if __name__ == "__main__":
-    app.run("0.0.0.0", 8000, debug=True)
+
+def main() -> None:
+    app = setup_routes()
+    initialize(app)
+
+    web.run_app(app, host="0.0.0.0", port=5000)
+
+
+if __name__ == '__main__':
+    main()
