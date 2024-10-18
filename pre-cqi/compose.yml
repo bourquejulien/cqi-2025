@@ -1,6 +1,6 @@
 services:
   bot:
-    image: brqu/latestoflatest:latest
+    image: brqu/pre-cqi-prog-2025:latest
     build:
       context: .
       target: final
