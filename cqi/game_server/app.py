@@ -2,23 +2,32 @@
 
 import logging
 import random
+import asyncio
 import json
 import atexit
 import logging
 import threading
 
-from src.game_runner import Runner
-
+from typing import Callable, Coroutine, Iterable, TypeVar
 from threading import Thread
 from aiohttp import web
 from aiohttp.web import Response, json_response, Application, Request
 
+from src.game_runner import Runner
+
 game_runner: Runner
 handler_thread: Thread
 
+T = TypeVar('T')
+
+
+async def run_async(func: Callable[[Iterable], T], *args) -> T:
+    loop = asyncio.get_running_loop()
+    return await loop.run_in_executor(None, func, *args)
+
 
 async def get_status(request: Request):
-    status = game_runner.status()
+    status = await run_async(game_runner.status)
     return json_response({"status": status})
 
 
@@ -32,13 +41,15 @@ async def run_game(request: Request):
 
     offense_bot_url = request.rel_url.query[OFFENSE]
     defense_bot_url = request.rel_url.query[DEFENSE]
-    game_runner.launch_game(offense_bot_url, defense_bot_url)
+
+    await run_async(game_runner.launch_game, offense_bot_url, defense_bot_url)
 
     return json_response({"status": "started"}, status=200)
 
 
 async def force_end_game(request: Request):
-    if not game_runner.force_end_game():
+    game_running = await run_async(game_runner.force_end_game)
+    if not game_running:
         return Response(text="No game running", status=400)
 
     return json_response({"status": "stopped"}, status=200)
@@ -49,7 +60,6 @@ def initialize(app: Application) -> None:
     game_runner = Runner(app.logger)
     handler_thread = threading.Thread(target=game_runner.run, args=())
     handler_thread.start()
-    atexit.register(stop)
 
 
 def stop() -> None:
@@ -72,8 +82,11 @@ def main() -> None:
     app = setup_routes()
     initialize(app)
 
-    web.run_app(app, host="0.0.0.0", port=5000)
+    try:
+        web.run_app(app, host="0.0.0.0", port=5000)
+    finally:
+        stop()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
