@@ -92,62 +92,63 @@ class Board:
         # Verifier si le placement est valide
         for i in range(piece.size):
             for j in range(piece.size):
-                if shape[i][j] != 0:
+                if shape[i][j] == 0:
+                    continue
                     
-                    # Part of the piece is off the board
-                    if x + i >= self.width or y + j >= self.height:
+                # Part of the piece is off the board
+                if x + i >= self.width or y + j >= self.height:
+                    return False
+                if x + i < 0 or y + j < 0:
+                    return False
+                
+                # Check if the piece overlaps with the board or another piece
+                if self.board[x + i][y + j] != 0:
+                    return False
+                
+                # Check if the piece touches directly a piece of the same color right
+                if x + i + 1 < self.width:
+                    if self.board[x + i + 1][y + j] == shape[i][j]:
                         return False
-                    if x + i < 0 or y + j < 0:
+                elif first_piece:
+                    valid_placement = True
+
+                # Check if the piece touches directly a piece of the same color left
+                if x + i - 1 >= 0:
+                    if self.board[x + i - 1][y + j] == shape[i][j]:
                         return False
-                    
-                    # Check if the piece overlaps with the board or another piece
-                    if self.board[x + i][y + j] != 0:
+                elif first_piece:
+                    valid_placement = True
+
+                # Check if the piece touches directly a piece of the same color down
+                if y + j + 1 < self.height:
+                    if self.board[x + i][y + j + 1] == shape[i][j]:
                         return False
+                elif first_piece:
+                    valid_placement = True
+
+                # Check if the piece touches directly a piece of the same color up
+                if y + j - 1 >= 0:
+                    if self.board[x + i][y + j - 1] == shape[i][j]:
+                        return False
+                elif first_piece:
+                    valid_placement = True
+                
+                if not valid_placement:
+                    if x + i + 1 < self.width and y + j + 1 < self.height:
+                        if self.board[x + i + 1][y + j + 1] == shape[i][j]:
+                            valid_placement = True
+
+                    if x + i + 1 < self.width and y + j - 1 >= 0:
+                        if self.board[x + i + 1][y + j - 1] == shape[i][j]:
+                            valid_placement = True
                     
-                    # Check if the piece touches directly a piece of the same color right
-                    if x + i + 1 < self.width:
-                        if self.board[x + i + 1][y + j] == shape[i][j]:
-                            return False
-                    elif first_piece:
-                        valid_placement = True
-
-                    # Check if the piece touches directly a piece of the same color left
-                    if x + i - 1 >= 0:
-                        if self.board[x + i - 1][y + j] == shape[i][j]:
-                            return False
-                    elif first_piece:
-                        valid_placement = True
-
-                    # Check if the piece touches directly a piece of the same color down
-                    if y + j + 1 < self.height:
-                        if self.board[x + i][y + j + 1] == shape[i][j]:
-                            return False
-                    elif first_piece:
-                        valid_placement = True
-
-                    # Check if the piece touches directly a piece of the same color up
-                    if y + j - 1 >= 0:
-                        if self.board[x + i][y + j - 1] == shape[i][j]:
-                            return False
-                    elif first_piece:
-                        valid_placement = True
+                    if x + i - 1 >= 0 and y + j + 1 < self.height:
+                        if self.board[x + i - 1][y + j + 1] == shape[i][j]:
+                            valid_placement = True
                     
-                    if not valid_placement:
-                        if x + i + 1 < self.width and y + j + 1 < self.height:
-                            if self.board[x + i + 1][y + j + 1] == shape[i][j]:
-                                valid_placement = True
-
-                        if x + i + 1 < self.width and y + j - 1 >= 0:
-                            if self.board[x + i + 1][y + j - 1] == shape[i][j]:
-                                valid_placement = True
-                        
-                        if x + i - 1 >= 0 and y + j + 1 < self.height:
-                            if self.board[x + i - 1][y + j + 1] == shape[i][j]:
-                                valid_placement = True
-                        
-                        if x + i - 1 >= 0 and y + j - 1 >= 0:
-                            if self.board[x + i - 1][y + j - 1] == shape[i][j]:
-                                valid_placement = True
+                    if x + i - 1 >= 0 and y + j - 1 >= 0:
+                        if self.board[x + i - 1][y + j - 1] == shape[i][j]:
+                            valid_placement = True
         
         return valid_placement
                         

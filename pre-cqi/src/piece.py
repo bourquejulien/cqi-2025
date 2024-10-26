@@ -56,10 +56,8 @@ class Piece:
 
         for i in range(self.size):
             for j in range(self.size):
-                if shape[i][j] == 0:
-                    img.paste("#000000", (i * TILE_SIZE, j * TILE_SIZE, (i + 1) * TILE_SIZE, (j + 1) * TILE_SIZE))
-                else:
-                    img.paste(color, (i * TILE_SIZE, j * TILE_SIZE, (i + 1) * TILE_SIZE, (j + 1) * TILE_SIZE))
+                paste_color = "#000000" if shape[i][j] == 0 else color
+                img.paste(paste_color, (i * TILE_SIZE, j * TILE_SIZE, (i + 1) * TILE_SIZE, (j + 1) * TILE_SIZE))
             
         return img
 

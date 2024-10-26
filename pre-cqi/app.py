@@ -117,7 +117,7 @@ def move():
     if game.game_over:
         cache.set("game", game)
         return GameResponse(game, "You lost, game is over" if game.real_player.playing else "Wrong move, game is over")
-    
+
     # Make the bots play
     for _ in range(len(game.players) - 1):
         move = bot.bot_play(game.current_player, game.board)

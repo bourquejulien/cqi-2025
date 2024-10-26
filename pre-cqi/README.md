@@ -25,5 +25,5 @@ docker compose up --build
 ## Déploiement
 
 ```bash
-docker buildx build --push --platform linux/amd64,linux/arm64 -t brqu/latestoflatest:latest .
+docker buildx build --push --platform linux/amd64,linux/arm64 -t brqu/pre-cqi-prog-2025:latest .
 ```

@@ -43,10 +43,15 @@ def _get_move_positions(piece: Piece, board: Board, positions: list[tuple[int, i
     for x, y in positions:
         for i in range(piece.size):
             for j in range(piece.size):
+                posx = x - i
+                posy = y - j
+
+                if posx < 0 or posy < 0 or piece.shape[i, j] == None:
+                    continue
+
                 for orientation in Piece.Orientation.__members__.values():
-                    if board.check_piece(piece, Piece.Orientation(orientation), x - i, y - j, False):
-                        return Move(x - i, y - j, orientation, piece.id)
-    
+                    if board.check_piece(piece, Piece.Orientation(orientation), posx, posy, False):
+                        return Move(posx, posy, orientation, piece.id)
     return None
 
 def _random_play(player: Player, board: Board) -> Move:
@@ -65,7 +70,9 @@ def _greedy_play(player: Player, board: Board) -> Move:
     positions = _edge_tiles(player, board)
 
     # Iterate over piece in reverse order (i.e. from largest to smallest)
-    for piece in player.pieces[::-1]:
+    pieces = player.pieces.copy()
+    pieces.sort(key=lambda piece: -piece.size)
+    for piece in pieces:
         move = _get_move_positions(piece, board, positions)
         if move is not None:
             return move
@@ -77,6 +84,5 @@ def bot_play(player: Player, board: Board) -> Move:
         # On first move, use predefined locations
         return _get_first_move(player, board)
 
-    # Player 3 is greedy, the other bots are random
-    run_bot = _greedy_play if player.id == 3 else _random_play
+    run_bot = _greedy_play if random.randint(1, 100) > 50 else _random_play
     return run_bot(player, board)

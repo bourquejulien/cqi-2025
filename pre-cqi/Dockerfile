@@ -11,7 +11,9 @@ COPY ./app.py .
 COPY ./start.sh .
 
 # Obfuscate the start script and the python code
-RUN shc -S -B -r -f start.sh -o start && pyarmor gen .
+RUN shc -S -B -r -f start.sh -o start && \
+    pyarmor cfg restrict_module=0 && \
+    pyarmor gen --obf-code 0 --obf-module 0 .
 
 FROM python:3.12-alpine3.20 AS final
 
@@ -33,7 +35,7 @@ RUN addgroup \
 WORKDIR /app
 
 COPY ./requirements.txt ./requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt && rm requirements.txt
 
 COPY --from=base /app/dist .
 COPY --from=base ./app/start .
