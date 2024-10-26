@@ -1,10 +1,10 @@
 #!/bin/env python3
 
 import logging
-import random
 import asyncio
 import json
-import atexit
+import os
+import sys
 import logging
 import threading
 
@@ -18,7 +18,12 @@ from src.game_runner import Runner
 game_runner: Runner
 handler_thread: Thread
 
-T = TypeVar('T')
+T = TypeVar("T")
+
+
+ENV_PORT = "PORT"
+ENV_MODE = "MODE"
+DEFAULT_PORT = 5000
 
 
 async def run_async(func: Callable[[Iterable], T], *args) -> T:
@@ -68,22 +73,35 @@ def stop() -> None:
     handler_thread.join()
 
 
-def setup_routes() -> Application:
-    logging.basicConfig(level=logging.DEBUG)
-    app = web.Application()
-    app.router.add_get('/status', get_status)
-    app.router.add_post('/run_game', run_game)
-    app.router.add_post('/force_end_game', force_end_game)
+def setup_web_server(is_debug: bool) -> Application:
+    extra_format = " %(module)s-%(funcName)s:" if is_debug else ":"
+    logging.basicConfig(level=logging.DEBUG if is_debug else logging.INFO,
+                        format=f"%(asctime)s %(levelname)s{extra_format} %(message)s",
+                        datefmt="%d-%m-%Y %H:%M:%S"
+                        )
+
+    app = web.Application(logger=logging.getLogger())
+
+    app.router.add_get("/status", get_status)
+    app.router.add_post("/run_game", run_game)
+    app.router.add_post("/force_end_game", force_end_game)
 
     return app
 
 
 def main() -> None:
-    app = setup_routes()
+    port = int(os.environ[ENV_PORT]) \
+        if ENV_PORT in os.environ \
+        else DEFAULT_PORT
+    is_debug = ENV_MODE not in os.environ or os.environ[ENV_MODE] == "debug"
+
+    app = setup_web_server(is_debug=is_debug)
     initialize(app)
 
+    host = "0.0.0.0"
     try:
-        web.run_app(app, host="0.0.0.0", port=5000)
+        app.logger.info("Starting game server on %s", f"{host}:{port}")
+        web.run_app(app, host=host, port=port)
     finally:
         stop()
 
