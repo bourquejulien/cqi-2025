@@ -32,6 +32,8 @@ async def start(request: Request):
 
 
 async def next_move(request: Request):
+    result_json = await request.json()
+    print(result_json["map"])
     return Response(
         text="OK",
         status=200

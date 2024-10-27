@@ -35,7 +35,7 @@ class Runner:
                 self._handle_game()
             time.sleep(1)
 
-        self.end_game()
+        self.force_end_game()
         self.game_handler = None
 
     def stop(self):
@@ -45,9 +45,9 @@ class Runner:
         with self.lock:
             self.game_handler = GameHandler(offense_bot_url, defense_bot_url, self.logger)
 
-    def end_game(self) -> bool:
+    def force_end_game(self) -> bool:
         with self.lock:
-            if self.game_handler is None:
+            if not self.is_running:
                 return False
 
             self.game_handler.end_game()
@@ -61,5 +61,8 @@ class Runner:
     def _handle_game(self) -> None:
         if self.game_handler is None:
             return
+        
+        if not self.game_handler.is_started:
+            self.game_handler.start_game()
 
         self.game_handler.play()

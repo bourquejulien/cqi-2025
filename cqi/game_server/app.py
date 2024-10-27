@@ -55,7 +55,7 @@ async def run_game(request: Request):
 
 
 async def end_game(request: Request):
-    game_running = await run_async(game_runner.end_game)
+    game_running = await run_async(game_runner.force_end_game)
     if not game_running:
         return Response(text="No game running", status=400)
 
@@ -100,7 +100,7 @@ def test(app: Application) -> None:
     if not game_runner.status().is_over:
         app.logger.warning("Game not over")
 
-    game_runner.end_game()
+    game_runner.force_end_game()
 
     game_runner.launch_game(bot_2_url, bot_1_url)
     time.sleep(5)
