@@ -1,0 +1,24 @@
+services:
+  game-server:
+    environment:
+      - MODE=test
+      - BOT_1_URL=http://bot_1:5001
+      - BOT_2_URL=http://bot_2:5002
+  bot-1:
+    hostname: bot_1
+    build:
+      context: ./bot
+      target: final
+    networks:
+      - game-network
+    environment:
+      - PORT=5001
+  bot-2:
+    hostname: bot_2
+    build:
+      context: ./bot
+      target: final
+    networks:
+      - game-network
+    environment:
+      - PORT=5002

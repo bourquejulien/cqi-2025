@@ -8,4 +8,12 @@ source ./venv/bin.active
 pip install -r requirements.txt
 ```
 
-**TODO**
+## Lançement du serveur de jeu
+```bash
+docker compose -f compose.test.yml up --build
+```
+
+## Lançement du serveur des tests
+```bash
+docker compose -f compose.base.yml -f compose.test.yml up --build
+```

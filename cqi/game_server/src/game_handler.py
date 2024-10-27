@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 import requests
 import numpy as np
 
@@ -6,10 +7,13 @@ from logging import Logger
 from .map import Map
 
 START_ENDPOINT = "/start"
-OFFENSE_ENDPOINT = "/offense"
-DEFENSE_ENDPOINT = "/defense"
+NEXT_ENDPOINT = "/next_move"
 END_ENDPOINT = "/end_game"
 
+
+@dataclass
+class GameStatus:
+    map: list
 
 class GameHandler:
     logger: Logger
@@ -25,6 +29,10 @@ class GameHandler:
         self.defense_bot_url = defense_bot_url
 
         self.map = Map.create_map()
+    
+    @property
+    def is_over(self) -> bool:
+        return False
 
     def play(self):
         requests.post(self.offense_bot_url + START_ENDPOINT,
@@ -32,14 +40,14 @@ class GameHandler:
         requests.post(self.defense_bot_url + START_ENDPOINT,
                       json={"is_offense": False})
 
-        response1 = requests.post(self.offense_bot_url + OFFENSE_ENDPOINT, {})
-        response2 = requests.post(self.defense_bot_url + DEFENSE_ENDPOINT, {})
+        response1 = requests.post(self.offense_bot_url + NEXT_ENDPOINT, {})
+        response2 = requests.post(self.defense_bot_url + NEXT_ENDPOINT, {})
 
         requests.post(self.offense_bot_url + END_ENDPOINT, {})
         requests.post(self.defense_bot_url + END_ENDPOINT, {})
 
-    def force_end_game(self):
+    def end_game(self):
         ...
 
-    def get_status(self) -> dict:
-        return {"map": repr(self.map)}
+    def get_status(self) -> GameStatus:
+        return GameStatus(self.map.to_list())

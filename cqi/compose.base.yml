@@ -1,0 +1,14 @@
+services:
+  game-server:
+    image: brqu/cqi-game-server:latest
+    build:
+      context: ./game_server
+      target: final
+    ports:
+      - "5000:5000"
+    networks:
+      - game-network
+
+networks:
+  game-network:
+    driver: bridge

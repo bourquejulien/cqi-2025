@@ -1,10 +1,16 @@
+from dataclasses import dataclass
 import time
 
 from threading import RLock
 from logging import Logger
 
-from src.game_handler import GameHandler
+from src.game_handler import GameHandler, GameStatus
 
+@dataclass
+class RunnerStatus:
+    is_running: bool
+    is_over: bool
+    game_status: GameStatus | None
 
 class Runner:
     lock: RLock
@@ -29,7 +35,8 @@ class Runner:
                 self._handle_game()
             time.sleep(1)
 
-        self.force_end_game()
+        self.end_game()
+        self.game_handler = None
 
     def stop(self):
         self.should_stop = True
@@ -38,22 +45,18 @@ class Runner:
         with self.lock:
             self.game_handler = GameHandler(offense_bot_url, defense_bot_url, self.logger)
 
-    def force_end_game(self) -> bool:
+    def end_game(self) -> bool:
         with self.lock:
             if self.game_handler is None:
                 return False
 
-            self.game_handler.force_end_game()
-            self.game_handler = None
-        
-        return True
+            self.game_handler.end_game()
 
-    def status(self) -> dict:
+    def status(self) -> RunnerStatus:
         with self.lock:
-            return {
-                "isRunning": self.is_running,
-                "gameStatus": self.game_handler.get_status() if self.is_running else None,
-            }
+            return RunnerStatus(self.is_running,
+                                self.game_handler.is_over if self.is_running else False,
+                                self.game_handler.get_status() if self.is_running else None)
 
     def _handle_game(self) -> None:
         if self.game_handler is None:

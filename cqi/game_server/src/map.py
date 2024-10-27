@@ -29,6 +29,9 @@ class Map:
     def __repr__(self) -> str:
         return repr(self.map)
     
+    def to_list(self) -> list:
+        return self.map.tolist()
+    
     def to_img_64(self) -> bytes:
         """Creates a base64 image of the map"""
         image = Image.new("RGB", (self.width, self.height), color = "white")
