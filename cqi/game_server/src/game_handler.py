@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from enum import Enum
 import requests
 import random
 from logging import Logger
@@ -15,6 +16,12 @@ END_ENDPOINT = "/end_game"
 @dataclass
 class GameStatus:
     map: list
+
+class Orientation(Enum):
+    UP = "up"
+    RIGHT = "right"
+    DOWN = "down"
+    LEFT = "left"
 
 class GameHandler:
     logger: Logger
@@ -80,6 +87,29 @@ class GameHandler:
 
     def _play_offense(self):
         response = requests.post(self.offense_bot_url + NEXT_ENDPOINT, json={"map": self.map.to_img_64(self.offense_player.position, 3).decode()})
+        data = response.json
+
+        values = [item.value for item in Orientation]
+        if data["next_move"] not in values:
+            return
+        
+        previous_offense_position = self.offense_player.position
+        
+        match(data["next_move"]):
+            case "up":
+                self.offense_player.position.y += 1
+            case "down":
+                self.offense_player.position.y -= 1
+            case "right":
+                self.offense_player.position.x += 1
+            case "left":
+                self.offense_player.position.x -= 1
+
+        width_map_bounds = self.offense_player.position.x < self.map.width or self.offense_player.position.x > self.map.width
+        heigth_map_bounds = self.offense_player.position.y < self.map.height or self.offense_player.position.y > self.map.height
+
+        if width_map_bounds or heigth_map_bounds:
+            self.offense_player.position = previous_offense_position
 
     def get_status(self) -> GameStatus:
         return GameStatus(self.map.to_list())

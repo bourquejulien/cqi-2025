@@ -9,11 +9,13 @@ pip install -r requirements.txt
 ```
 
 ## Lançement du serveur de jeu
+
 ```bash
-docker compose -f compose.test.yml up --build
+docker compose -f compose.base.yml up --build
 ```
 
 ## Lançement du serveur des tests
+
 ```bash
 docker compose -f compose.base.yml -f compose.test.yml up --build
 ```
