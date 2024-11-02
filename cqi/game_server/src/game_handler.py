@@ -1,12 +1,11 @@
 from dataclasses import dataclass
 import requests
 import random
-import numpy as np
-
 from logging import Logger
 
-from .map import Map
+from .map import Map, Position
 from .offense_player import OffensePlayer
+from .defense_player import DefensePlayer
 
 START_ENDPOINT = "/start"
 NEXT_ENDPOINT = "/next_move"
@@ -25,6 +24,8 @@ class GameHandler:
 
     map: Map
     offense_player: OffensePlayer | None
+    defense_player: DefensePlayer | None
+    goal: Position
 
     def __init__(self, offense_bot_url: str, defense_bot_url: str, logger: Logger) -> None:
         self.logger = logger
@@ -32,8 +33,9 @@ class GameHandler:
         self.defense_bot_url = defense_bot_url
 
         self.map = Map.create_map(random.randint(20, 40), random.randint(20, 40))
-        self.offense_player = None
+        self.goal = self.map.set_goal(self.goal)
 
+        self.offense_player = None
     
     @property
     def is_started(self) -> bool:
@@ -54,6 +56,7 @@ class GameHandler:
 
     def start_game(self):
         self.offense_player = OffensePlayer(self.map)
+        self.defense_player = DefensePlayer(self.map)
         requests.post(self.offense_bot_url + START_ENDPOINT,
                 json={"is_offense": True})
         requests.post(self.defense_bot_url + START_ENDPOINT,
@@ -62,10 +65,21 @@ class GameHandler:
     
     def _play_defense(self):
         response = requests.post(self.defense_bot_url + NEXT_ENDPOINT, json={"map": self.map.to_img_64(self.offense_player.position).decode()})
-    
+
+        # TODO - Preserve the old map
+
+        # TODO - Play the move
+
+        # Validate the move still allows the player to reach the goal
+        if not self.map.path_exists(self.offense_player.position, self.goal):
+            # TODO - Revert the move
+            ...
+
+        # TODO - Update the score
+        ...
+
     def _play_offense(self):
         response = requests.post(self.offense_bot_url + NEXT_ENDPOINT, json={"map": self.map.to_img_64(self.offense_player.position, 3).decode()})
-
 
     def get_status(self) -> GameStatus:
         return GameStatus(self.map.to_list())
