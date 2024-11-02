@@ -4,24 +4,19 @@ import requests
 import random
 from logging import Logger
 
-from .map import Map, Position
+from .map import Map, Position, ElementType
 from .offense_player import OffensePlayer
 from .defense_player import DefensePlayer
 
 START_ENDPOINT = "/start"
 NEXT_ENDPOINT = "/next_move"
 END_ENDPOINT = "/end_game"
+ORIENTATION = ["UP", "DOWN", "RIGHT", "LEFT"]
 
 
 @dataclass
 class GameStatus:
     map: list
-
-class Orientation(Enum):
-    UP = "up"
-    RIGHT = "right"
-    DOWN = "down"
-    LEFT = "left"
 
 class GameHandler:
     logger: Logger
@@ -33,6 +28,7 @@ class GameHandler:
     offense_player: OffensePlayer | None
     defense_player: DefensePlayer | None
     goal: Position
+    move_count: int
 
     def __init__(self, offense_bot_url: str, defense_bot_url: str, logger: Logger) -> None:
         self.logger = logger
@@ -43,6 +39,7 @@ class GameHandler:
         self.goal = self.map.set_goal(self.goal)
 
         self.offense_player = None
+        self.move_count = 50
     
     @property
     def is_started(self) -> bool:
@@ -89,26 +86,33 @@ class GameHandler:
         response = requests.post(self.offense_bot_url + NEXT_ENDPOINT, json={"map": self.map.to_img_64(self.offense_player.position, 3).decode()})
         data = response.json
 
-        values = [item.value for item in Orientation]
+        self.move_count -= 1
+        if self.move_count < 0:
+            return
+
+        values = [item.value for item in ORIENTATION]
         if data["next_move"] not in values:
             return
         
         previous_offense_position = self.offense_player.position
         
         match(data["next_move"]):
-            case "up":
+            case "UP":
                 self.offense_player.position.y += 1
-            case "down":
+            case "DOWN":
                 self.offense_player.position.y -= 1
-            case "right":
+            case "RIGHT":
                 self.offense_player.position.x += 1
-            case "left":
+            case "LEFT":
                 self.offense_player.position.x -= 1
 
         width_map_bounds = self.offense_player.position.x < self.map.width or self.offense_player.position.x > self.map.width
         heigth_map_bounds = self.offense_player.position.y < self.map.height or self.offense_player.position.y > self.map.height
 
         if width_map_bounds or heigth_map_bounds:
+            self.offense_player.position = previous_offense_position
+
+        if self.offense_player.position.x and self.offense_player.position.y != ElementType.BACKGROUND.value or ElementType.GOAL.value:
             self.offense_player.position = previous_offense_position
 
     def get_status(self) -> GameStatus:
