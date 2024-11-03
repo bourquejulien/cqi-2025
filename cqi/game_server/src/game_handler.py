@@ -114,9 +114,11 @@ class GameHandler:
 
         self.move_count -= 1
         if self.move_count < 0:
+            self.logger.info("No more move available")
             return
 
         if data["move"] not in ORIENTATION:
+            self.logger.info(f"Offense bot returned invalid move: {data["move"]}")
             return
 
         previous_offense_position = self.offense_player.position
@@ -135,10 +137,17 @@ class GameHandler:
         heigth_map_bounds = self.offense_player.position.y < self.map.height or self.offense_player.position.y > self.map.height
 
         if width_map_bounds or heigth_map_bounds:
+            self.logger.info(f"Offense move out of bounds: ({self.offense_player.position.x}, {self.offense_player.position.y}) map is {self.map.width}x{self.map.height}")
             self.offense_player.position = previous_offense_position
+            return
 
         if self.offense_player.position.x and self.offense_player.position.y != ElementType.BACKGROUND.value or ElementType.GOAL.value:
+            self.logger.info(f"Offense move not on a valid map element: ({self.offense_player.position.x}, {self.offense_player.position.y}) is a {self.map.map[self.offense_player.position.x, self.offense_player.position.y]}")
             self.offense_player.position = previous_offense_position
+            return
+        
+        self.map.map[previous_offense_position.x, previous_offense_position.y] = ElementType.BACKGROUND.value
+        self.map.map[self.offense_player.position.x, self.offense_player.position.y] = ElementType.PLAYER_OFFENSE.value
 
     def get_status(self) -> GameStatus:
         return GameStatus(self.map.to_list())
