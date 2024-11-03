@@ -3,12 +3,12 @@ from typing import Self
 import numpy as np
 
 from dataclasses import dataclass
-from .base import OffenseMove, Position
+from .base import ElementType, OffenseMove, Position
 
 @dataclass(eq=True, frozen=True)
 class Tile:
     position: Position
-    id: int
+    element: ElementType
 
     @property
     def x(self) -> int:
@@ -26,7 +26,7 @@ class Map:
     def get(self, x: int, y: int)-> Tile | None:
         size_x, size_y = self.map.shape
         if 0 <= x < size_x and 0 <= y < size_y:
-            return Tile(Position(x, y), self.map[x, y])
+            return Tile(Position(x, y), ElementType(self.map[x, y]))
         return None
     
     def get_nearby_tiles(self, x: int, y: int)-> list[tuple[Tile, OffenseMove]]:
@@ -37,7 +37,7 @@ class Map:
 
         tiles.append((self.get(x - 1, y), OffenseMove.LEFT))
         tiles.append((self.get(x + 1, y), OffenseMove.RIGHT))
-        tiles.append((self.get(x, y - 1), OffenseMove.DOWN))
-        tiles.append((self.get(x, y + 1), OffenseMove.UP))
+        tiles.append((self.get(x, y + 1), OffenseMove.DOWN))
+        tiles.append((self.get(x, y - 1), OffenseMove.UP))
 
         return [(tile, move) for tile, move in tiles if tile is not None]

@@ -16,17 +16,23 @@ class Event:
 
 class DumbOffenseBot:
     last_event: Event | None
+    block_size: tuple[int, int]
 
     def __init__(self) -> None:
         self.last_event = None
+        self.block_size = None
 
     def _parse_map(self, img: str) -> tuple[Map, Position, Position] | None:
         data = helpers.parse_base64(img)
 
-        if not (block_size := helpers.get_block_size(data, ElementType.PLAYER_OFFENSE.to_color())):
-            return None
+        if self.block_size is None:
+            block_size = helpers.get_block_size(
+                data, ElementType.PLAYER_OFFENSE.to_color())
+            if block_size is None:
+                return None
+            self.block_size = block_size
 
-        data = helpers.parse_data(data, block_size)
+        data = helpers.parse_data(data, self.block_size)
 
         map = data[0]
         current_pos = data[1][ElementType.PLAYER_OFFENSE]
@@ -84,7 +90,7 @@ class DumbOffenseBot:
             return None
         map, current_pos, goal_pos = data
 
-        available_moves = map.get_nearby_tiles(*current_pos)
+        available_moves = [tile for tile in map.get_nearby_tiles(*current_pos) if tile[0].element == ElementType.BACKGROUND]
 
         if len(available_moves) == 0:
             return None
