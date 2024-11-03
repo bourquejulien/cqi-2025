@@ -13,13 +13,14 @@ ENV_PORT = "PORT"
 ENV_MODE = "MODE"
 DEFAULT_PORT = 5001
 
+should_play_offense = True
 dumb_bot = DumbBot()
 
 
 def play_offense(payload: dict) -> Response:
     data = payload["map"]
     move = dumb_bot.play(data)
-    logging.info(payload, move)
+
     if move is None:
         return Response(
             text="Unable to play",
@@ -37,11 +38,9 @@ def play_defense(payload: dict) -> Response:
 
 
 async def start(request: Request):
+    global should_play_offense
     data = request.json
-    if data["is_offense"] == True:
-        ...
-    else:
-        ...
+    should_play_offense = data["is_offense"]
 
     return Response(
         text="OK",
@@ -51,7 +50,11 @@ async def start(request: Request):
 
 async def next_move(request: Request):
     payload = await request.json()
-    return play_offense(payload)
+
+    if should_play_offense:
+        return play_offense(payload)
+    else:
+        return play_defense(payload)
 
 
 async def end_game(request: Request):
