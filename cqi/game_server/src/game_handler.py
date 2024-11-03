@@ -104,7 +104,7 @@ class GameHandler:
 
         try:
             data = response.json()
-            assert isinstance(data["next_move"], str)
+            assert isinstance(data["move"], str)
         except AssertionError as e:
             self.logger.exception("The next move is not in the right format", e)
 
@@ -113,12 +113,12 @@ class GameHandler:
             return
 
         values = [item.value for item in ORIENTATION]
-        if data["next_move"] not in values:
+        if data["move"] not in values:
             return
         
         previous_offense_position = self.offense_player.position
         
-        match(data["next_move"]):
+        match(data["move"]):
             case "UP":
                 self.offense_player.position.y += 1
             case "DOWN":
