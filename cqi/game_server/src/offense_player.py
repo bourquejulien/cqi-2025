@@ -5,10 +5,6 @@ from game_server_common.base import ElementType
 
 from .map import Map, Position
 
-@dataclass
-class Move:
-    ...
-
 class OffensePlayer:
     map: Map
     position: Position
@@ -17,6 +13,3 @@ class OffensePlayer:
         self.map = map
         self.position = Position(0, random.randint(0, map.height))
         self.map.map[self.position.x, self.position.y] = ElementType.PLAYER_OFFENSE.value
-    
-    def move(self, move: Move) -> bool:
-        ...
