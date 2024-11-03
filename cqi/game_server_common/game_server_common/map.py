@@ -3,7 +3,7 @@ from typing import Self
 import numpy as np
 
 from dataclasses import dataclass
-from .base import Move, Position
+from .base import OffenseMove, Position
 
 @dataclass(eq=True, frozen=True)
 class Tile:
@@ -29,15 +29,15 @@ class Map:
             return Tile(Position(x, y), self.map[x, y])
         return None
     
-    def get_nearby_tiles(self, x: int, y: int)-> list[tuple[Tile, Move]]:
+    def get_nearby_tiles(self, x: int, y: int)-> list[tuple[Tile, OffenseMove]]:
         if self.get(x, y) == None:
             return []
         
         tiles: list[Tile | None] = []
 
-        tiles.append((self.get(x - 1, y), Move.LEFT))
-        tiles.append((self.get(x + 1, y), Move.RIGHT))
-        tiles.append((self.get(x, y - 1), Move.DOWN))
-        tiles.append((self.get(x, y + 1), Move.UP))
+        tiles.append((self.get(x - 1, y), OffenseMove.LEFT))
+        tiles.append((self.get(x + 1, y), OffenseMove.RIGHT))
+        tiles.append((self.get(x, y - 1), OffenseMove.DOWN))
+        tiles.append((self.get(x, y + 1), OffenseMove.UP))
 
         return [(tile, move) for tile, move in tiles if tile is not None]

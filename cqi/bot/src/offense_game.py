@@ -5,17 +5,17 @@ import game_server_common.helpers as helpers
 from dataclasses import dataclass
 from typing import Self
 from game_server_common.map import Map, Tile
-from game_server_common.base import ElementType, Position, Move
+from game_server_common.base import ElementType, Position, OffenseMove
 
 
 @dataclass
 class Event:
     position: Position
-    played_moves: list[Move]
+    played_moves: list[OffenseMove]
     last: Self | None
 
 
-class DumbBot:
+class DumbOffenseBot:
     last_event: Event | None
 
     def __init__(self) -> None:
@@ -38,7 +38,7 @@ class DumbBot:
         
         return map, current_pos[0], goal_pos[0] if len(goal_pos) > 0 else None
 
-    def _play_on_backtrack(self, moves: list[tuple[Tile, Move]], current_pos: Position) -> Move | None:
+    def _play_on_backtrack(self, moves: list[tuple[Tile, OffenseMove]], current_pos: Position) -> OffenseMove | None:
         if not any([self.last_event.last is not None and self.last_event.last == tile.position for tile, _ in moves]):
             self.last_event = Event(current_pos, [], None)
             return None
@@ -51,24 +51,24 @@ class DumbBot:
         moves.clear()
         moves.extend(filtered_moves)
 
-    def _play_best_move(self, moves: list[tuple[Tile, Move]], current_pos: Position, goal_pos: Position | None) -> Move:
+    def _play_best_move(self, moves: list[tuple[Tile, OffenseMove]], current_pos: Position, goal_pos: Position | None) -> OffenseMove:
         is_backtrack = (not self.last_event == None) and self.last_event.position == current_pos
 
-        playable_moves: list[tuple[Tile, Move]] = moves.copy()
+        playable_moves: list[tuple[Tile, OffenseMove]] = moves.copy()
         if is_backtrack:
             if move := self._play_on_backtrack(playable_moves, current_pos):
                 return move
         else:
             self.last_event = Event(current_pos, [], self.last_event)
 
-        chosen_move: tuple[Tile, Move] | None = None
+        chosen_move: tuple[Tile, OffenseMove] | None = None
         if goal_pos is not None:
             chosen_move = min([(tile.position.to(goal_pos), move)
                               for tile, move in playable_moves], key=lambda x: x[0])[1]
         else:
-            all_moves = [Move.RIGHT, Move.UP]
+            all_moves = [OffenseMove.RIGHT, OffenseMove.UP]
             random.shuffle(all_moves)
-            all_moves.extend([Move.DOWN, Move.LEFT])
+            all_moves.extend([OffenseMove.DOWN, OffenseMove.LEFT])
 
             for move in all_moves:
                 if move in [move for _, move in playable_moves]:
@@ -78,7 +78,7 @@ class DumbBot:
         self.last_event.played_moves.append(chosen_move)
         return chosen_move
 
-    def play(self, img: str) -> Move | None:
+    def play(self, img: str) -> OffenseMove | None:
         if not (data := self._parse_map(img)):
             return None
         map, current_pos, goal_pos = data
