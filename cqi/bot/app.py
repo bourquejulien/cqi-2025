@@ -81,7 +81,7 @@ def setup_web_server(is_debug: bool) -> Application:
 
     app = web.Application(logger=logging.getLogger())
 
-    app.router.add_get("/start", start)
+    app.router.add_post("/start", start)
     app.router.add_post("/next_move", next_move)
     app.router.add_post("/end_game", end_game)
 

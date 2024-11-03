@@ -62,6 +62,9 @@ class GameHandler:
     def start_game(self):
         self.offense_player = OffensePlayer(self.map)
         self.defense_player = DefensePlayer(self.map)
+
+        self.logger.info("start_game")
+
         requests.post(self.offense_bot_url + START_ENDPOINT,
                       json={"is_offense": True})
         requests.post(self.defense_bot_url + START_ENDPOINT,
