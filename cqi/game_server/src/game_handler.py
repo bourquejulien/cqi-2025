@@ -105,8 +105,9 @@ class GameHandler:
         try:
             data = response.json()
             assert isinstance(data["move"], str)
-        except AssertionError as e:
-            self.logger.exception("The next move is not in the right format", e)
+        except Exception as e:
+            self.logger.error(f"Error parsing response from offense bot: {e}")
+            return
 
         self.move_count -= 1
         if self.move_count < 0:
