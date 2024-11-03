@@ -21,6 +21,7 @@ random_defense = RandomDefenseBot()
 def play_offense(payload: dict) -> Response:
     data = payload["map"]
     move = dumb_bot.play(data)
+    logging.info("%s", move)
 
     logging.info("Moved played: %s", move)
 

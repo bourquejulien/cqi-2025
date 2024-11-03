@@ -30,10 +30,9 @@ class DefensePlayer:
         
         self.map.map[move.position.x, move.position.y] = move.element.value
 
-        logging.info("Validating that path to goal exists")
         if not self.map.path_exists(player, goal):
             logging.info(f"Defense move of {self.map.map[move.position.x, move.position.y]} to ({move.position.x}, {move.position.y}) causes no path from player to goal")
-            self.map.map[move.position.x, move.position.y] = ElementType.BACKGROUND.value
+            self.map.map[move.position.x, move.position.y] = ElementType.BACKGROUND.value  
 
         logging.info("Defense move valid")
         self.n_walls -= 1
