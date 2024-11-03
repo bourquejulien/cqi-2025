@@ -12,8 +12,8 @@ from .defense_player import DefensePlayer, DefenseMove
 START_ENDPOINT = "/start"
 NEXT_ENDPOINT = "/next_move"
 END_ENDPOINT = "/end_game"
-N_WALLS = 10
-MAX_MOVES = 100
+N_WALLS = 5
+MAX_MOVES = 25
 
 
 @dataclass
@@ -38,7 +38,8 @@ class GameHandler:
         self.offense_bot_url = offense_bot_url
         self.defense_bot_url = defense_bot_url
 
-        self.map = Map.create_map(random.randint(20, 40), random.randint(20, 40))
+        self.map = Map.create_map(5, 5)
+        #self.map = Map.create_map(random.randint(20, 40), random.randint(20, 40))
         self.goal = self.map.set_goal()
 
         self.offense_player = None
