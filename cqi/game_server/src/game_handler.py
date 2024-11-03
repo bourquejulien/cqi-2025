@@ -2,6 +2,7 @@ from dataclasses import dataclass
 import requests
 import random
 from logging import Logger
+import logging
 
 from .map import Map, Position, ElementType
 from .offense_player import OffensePlayer
@@ -35,8 +36,7 @@ class GameHandler:
         self.offense_bot_url = offense_bot_url
         self.defense_bot_url = defense_bot_url
 
-        self.map = Map.create_map(
-            random.randint(20, 40), random.randint(20, 40))
+        self.map = Map.create_map(random.randint(20, 40), random.randint(20, 40))
         self.goal = self.map.set_goal()
 
         self.offense_player = None
@@ -53,6 +53,7 @@ class GameHandler:
     def play(self):
         self._play_defense()
         self._play_offense()
+        logging.info(self.map.to_img_64(Position(0, 0)).decode())
 
     def end_game(self):
         requests.post(self.offense_bot_url + END_ENDPOINT, {})
@@ -96,8 +97,7 @@ class GameHandler:
             self.logger.error(f"Error parsing response from defense bot: {e}\n{response}")
             return
 
-        self.defense_player.move(logger=self.logger,
-                                 move=move,
+        self.defense_player.move(move=move,
                                  player=self.offense_player.position,
                                  goal=self.goal)
 

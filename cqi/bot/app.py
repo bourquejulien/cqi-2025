@@ -34,7 +34,7 @@ def play_offense(payload: dict) -> Response:
 def play_defense(payload: dict) -> Response:
     data = payload["map"]
     move, position = random_defense.play(data)
-    logging.info("%s, %s, %s", payload, move, position)
+    logging.info("%s, %s", move, position)
     if move is None or position is None:
         return Response(
             text="Unable to play",

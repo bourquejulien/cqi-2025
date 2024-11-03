@@ -5,6 +5,7 @@ from game_server_common.map import Map as CommonMap
 
 from PIL import Image
 from io import BytesIO
+import logging
 
 import random
 import numpy as np
@@ -60,16 +61,15 @@ class Map(CommonMap):
         return goal
 
     def path_exists(self, start: Position, end: Position) -> bool:
+        path_map = self.map.copy()
+
         queue = []
         queue.append(start)
+        path_map[start.x, start.y] = ElementType.VISITED.value
 
         valid_path = False
         while(len(queue) > 0):
             point: Position = queue.pop(0)
-
-            # Only mark background as visited
-            if self.map[point.x, point.y] == ElementType.BACKGROUND.value:                
-                self.map[point.x, point.y] = ElementType.VISITED.value
 
             if point.x == end.x and point.y == end.y:
                 valid_path = True
@@ -79,11 +79,9 @@ class Map(CommonMap):
             next_points = [Position(point.x + 1, point.y), Position(point.x - 1, point.y), Position(point.x, point.y + 1), Position(point.x, point.y - 1)]
             for next_point in next_points:
                 if next_point.x >= 0 and next_point.x < self.width and next_point.y >= 0 and next_point.y < self.height:
-                    if self.map[next_point.x, next_point.y] == ElementType.BACKGROUND.value or self.map[next_point.x, next_point.y] == ElementType.GOAL.value:
+                    if path_map[next_point.x, next_point.y] == ElementType.BACKGROUND.value or path_map[next_point.x, next_point.y] == ElementType.GOAL.value:
+                        path_map[next_point.x, next_point.y] = ElementType.VISITED.value
                         queue.append(next_point)
-
-        # On restore les valeurs de la carte
-        self.map[self.map == ElementType.VISITED.value] = ElementType.BACKGROUND.value
 
         return valid_path
 
