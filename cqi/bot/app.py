@@ -22,6 +22,8 @@ def play_offense(payload: dict) -> Response:
     data = payload["map"]
     move = dumb_bot.play(data)
 
+    logging.info("Moved played: %s", move)
+
     if move is None:
         return Response(
             text="Unable to play",

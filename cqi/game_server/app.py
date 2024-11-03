@@ -96,7 +96,7 @@ def test(app: Application) -> None:
     
     DURATION = 15
     for _ in range(DURATION):
-        if game_runner.status().is_over:
+        if game_runner.status().is_over or not game_runner.status().is_running:
             break
 
         time.sleep(1)

@@ -59,7 +59,7 @@ class Runner:
                                 self.game_handler.get_status() if self.is_running else None)
 
     def _handle_game(self) -> None:
-        if self.game_handler is None:
+        if self.game_handler is None or self.game_handler.is_over:
             return
         
         if not self.game_handler.is_started:

@@ -48,11 +48,14 @@ class GameHandler:
 
     @property
     def is_over(self) -> bool:
-        return False
+        if self.goal is None or self.offense_player is None:
+            return False
+        return self.goal == self.offense_player.position
 
     def play(self):
         self._play_defense()
         self._play_offense()
+
         logging.info(self.map.to_img_64(Position(0, 0)).decode())
 
     def end_game(self):
