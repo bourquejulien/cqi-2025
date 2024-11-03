@@ -7,7 +7,6 @@ import json
 import os
 import time
 import sys
-import logging
 import threading
 
 from typing import Callable, Coroutine, Iterable, TypeVar

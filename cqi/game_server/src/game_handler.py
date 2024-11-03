@@ -6,7 +6,7 @@ from logging import Logger
 
 from .map import Map, Position, ElementType
 from .offense_player import OffensePlayer
-from .defense_player import DefensePlayer
+from .defense_player import DefensePlayer, DefenseMove
 
 START_ENDPOINT = "/start"
 NEXT_ENDPOINT = "/next_move"
@@ -17,6 +17,7 @@ ORIENTATION = ["UP", "DOWN", "RIGHT", "LEFT"]
 @dataclass
 class GameStatus:
     map: list
+
 
 class GameHandler:
     logger: Logger
@@ -35,7 +36,8 @@ class GameHandler:
         self.offense_bot_url = offense_bot_url
         self.defense_bot_url = defense_bot_url
 
-        self.map = Map.create_map(random.randint(20, 40), random.randint(20, 40))
+        self.map = Map.create_map(
+            random.randint(20, 40), random.randint(20, 40))
         self.goal = self.map.set_goal(self.goal)
 
         self.offense_player = None
@@ -53,7 +55,6 @@ class GameHandler:
         self._play_defense()
         self._play_offense()
 
-
     def end_game(self):
         requests.post(self.offense_bot_url + END_ENDPOINT, {})
         requests.post(self.defense_bot_url + END_ENDPOINT, {})
@@ -62,25 +63,41 @@ class GameHandler:
         self.offense_player = OffensePlayer(self.map)
         self.defense_player = DefensePlayer(self.map)
         requests.post(self.offense_bot_url + START_ENDPOINT,
-                json={"is_offense": True})
+                      json={"is_offense": True})
         requests.post(self.defense_bot_url + START_ENDPOINT,
                       json={"is_offense": False})
 
-    
     def _play_defense(self):
-        response = requests.post(self.defense_bot_url + NEXT_ENDPOINT, json={"map": self.map.to_img_64(self.offense_player.position).decode()})
+        response: requests.Response = requests.post(self.defense_bot_url + NEXT_ENDPOINT, json={
+                                                    "map": self.map.to_img_64(self.offense_player.position).decode()})
 
-        # TODO - Preserve the old map
+        # Parse response
+        try:
+            response_json = response.json()
 
-        # TODO - Play the move
+            x = response_json["x"]
+            assert isinstance(x, int)
 
-        # Validate the move still allows the player to reach the goal
-        if not self.map.path_exists(self.offense_player.position, self.goal):
-            # TODO - Revert the move
-            ...
+            y = response_json["y"]
+            assert isinstance(y, int)
 
-        # TODO - Update the score
-        ...
+            if response_json["element"] == "WALL":
+                element = ElementType.WALL
+            else:
+                self.logger.info(
+                    f"Defense bot returned invalid element: {response_json['element']}")
+                return
+
+            move = DefenseMove(Position(x, y), element)
+
+        except Exception as e:
+            self.logger.error(f"Error parsing response from defense bot: {e}")
+            return
+
+        self.defense_player.move(logger=self.logger,
+                                 move=move,
+                                 player=self.offense_player.position,
+                                 goal=self.goal)
 
     def _play_offense(self):
         response = requests.post(self.offense_bot_url + NEXT_ENDPOINT, json={"map": self.map.to_img_64(self.offense_player.position, 3).decode()})
