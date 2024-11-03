@@ -22,7 +22,6 @@ class Map:
     map: np.ndarray
     def __init__(self, map: np.ndarray) -> None:
         self.map = map
-        pass
 
     def get(self, x: int, y: int)-> Tile | None:
         size_x, size_y = self.map.shape

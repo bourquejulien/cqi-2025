@@ -1,5 +1,8 @@
 #!/bin/env python3
 
+from game_server_common.base import *
+from game_server_common.map import Map as CommonMap
+
 from enum import Enum
 from dataclasses import dataclass
 from PIL import Image
@@ -9,40 +12,14 @@ import random
 import numpy as np
 import base64
 
-@dataclass
-class Position:
-    x: int
-    y: int
-
-@dataclass
-class Tile:
-    x: int
-    y: int
-    id: int
-
 TILE_SIZE = 20
 
-class ElementType(Enum):
-    VISITED = -1
-    BACKGROUND = 0
-    WALL = 1
-    PLAYER_OFFENSE = 2
-    GOAL = 3
-
-ELEMENT_TYPE_TO_COLOR = {
-    ElementType.BACKGROUND: "#FFFFFF",
-    ElementType.WALL: "#000000",
-    ElementType.PLAYER_OFFENSE: "#FF0000",
-    ElementType.GOAL: "#FFD700"
-}
-
-class Map:
-    map: np.ndarray
+class Map(CommonMap):
     width: int
     height: int
 
     def __init__(self, map: np.ndarray) -> None:
-        self.map = map
+        super(map)
         self.width = map.shape[0]
         self.height = map.shape[1]
 
@@ -57,10 +34,10 @@ class Map:
     
     def to_img_64(self, offense_position: Position, goal: Position, visibility_range: int = None) -> bytes:
         """Creates a base64 image of the map"""
-        image = Image.new("RGB", (self.width * TILE_SIZE, self.height * TILE_SIZE), color = ELEMENT_TYPE_TO_COLOR.get(ElementType.BACKGROUND))
+        image = Image.new("RGB", (self.width * TILE_SIZE, self.height * TILE_SIZE), color = ElementType.BACKGROUND.to_color())
 
         def img_paste(x :int, y: int, type: ElementType):
-            image.paste(ELEMENT_TYPE_TO_COLOR.get(type), (x * TILE_SIZE, y * TILE_SIZE, (x + 1) * TILE_SIZE, (y + 1) * TILE_SIZE))
+            image.paste(type.to_color(), (x * TILE_SIZE, y * TILE_SIZE, (x + 1) * TILE_SIZE, (y + 1) * TILE_SIZE))
         
         for x in range(self.width):
             for y in range(self.height):
