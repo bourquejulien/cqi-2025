@@ -4,6 +4,7 @@ import random
 from logging import Logger
 import logging
 
+from game_server_common.base import OffenseMove
 from .map import Map, Position, ElementType
 from .offense_player import OffensePlayer
 from .defense_player import DefensePlayer, DefenseMove
@@ -11,7 +12,6 @@ from .defense_player import DefensePlayer, DefenseMove
 START_ENDPOINT = "/start"
 NEXT_ENDPOINT = "/next_move"
 END_ENDPOINT = "/end_game"
-ORIENTATION = ["UP", "DOWN", "RIGHT", "LEFT"]
 N_WALLS = 10
 
 
@@ -117,32 +117,36 @@ class GameHandler:
             self.logger.info("No more move available")
             return
 
-        if data["move"] not in ORIENTATION:
+        if data["move"] not in [item.value for item in OffenseMove]:
             self.logger.info(f"Offense bot returned invalid move: {data["move"]}")
             return
 
         previous_offense_position = self.offense_player.position
 
+        offset: Position = Position(0, 0)
         match(data["move"]):
-            case "UP":
-                self.offense_player.position.y += 1
-            case "DOWN":
-                self.offense_player.position.y -= 1
-            case "RIGHT":
-                self.offense_player.position.x += 1
-            case "LEFT":
-                self.offense_player.position.x -= 1
+            case OffenseMove.UP.value:
+                offset: Position = Position(0, 1)
+            case OffenseMove.DOWN.value:
+                offset: Position = Position(0, -1)
+            case OffenseMove.RIGHT.value:
+                offset: Position = Position(1, 0)
+            case OffenseMove.LEFT.value:
+                offset: Position = Position(-1, 0)
 
-        width_map_bounds = self.offense_player.position.x < self.map.width or self.offense_player.position.x > self.map.width
-        heigth_map_bounds = self.offense_player.position.y < self.map.height or self.offense_player.position.y > self.map.height
+        self.offense_player.position = Position(self.offense_player.position.x + offset.x, self.offense_player.position.y + offset.y)
+
+        width_map_bounds = self.offense_player.position.x >= self.map.width or self.offense_player.position.x < 0
+        heigth_map_bounds = self.offense_player.position.y >= self.map.height or self.offense_player.position.y < 0
 
         if width_map_bounds or heigth_map_bounds:
             self.logger.info(f"Offense move out of bounds: ({self.offense_player.position.x}, {self.offense_player.position.y}) map is {self.map.width}x{self.map.height}")
             self.offense_player.position = previous_offense_position
             return
 
-        if self.offense_player.position.x and self.offense_player.position.y != ElementType.BACKGROUND.value or ElementType.GOAL.value:
-            self.logger.info(f"Offense move not on a valid map element: ({self.offense_player.position.x}, {self.offense_player.position.y}) is a {self.map.map[self.offense_player.position.x, self.offense_player.position.y]}")
+        next_tile = self.map.map[self.offense_player.position.x, self.offense_player.position.y]
+        if next_tile not in [ElementType.BACKGROUND.value, ElementType.GOAL.value]:
+            self.logger.info(f"Offense move not on a valid map element: ({self.offense_player.position.x}, {self.offense_player.position.y}) is a {next_tile}")
             self.offense_player.position = previous_offense_position
             return
         
