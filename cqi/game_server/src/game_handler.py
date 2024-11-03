@@ -12,6 +12,7 @@ START_ENDPOINT = "/start"
 NEXT_ENDPOINT = "/next_move"
 END_ENDPOINT = "/end_game"
 ORIENTATION = ["UP", "DOWN", "RIGHT", "LEFT"]
+N_WALLS = 10
 
 
 @dataclass
@@ -61,14 +62,14 @@ class GameHandler:
 
     def start_game(self):
         self.offense_player = OffensePlayer(self.map)
-        self.defense_player = DefensePlayer(self.map)
+        self.defense_player = DefensePlayer(self.map, n_walls=N_WALLS)
 
         self.logger.info("start_game")
 
         requests.post(self.offense_bot_url + START_ENDPOINT,
                       json={"is_offense": True})
         requests.post(self.defense_bot_url + START_ENDPOINT,
-                      json={"is_offense": False})
+                      json={"is_offense": False, "n_walls": N_WALLS})
 
     def _play_defense(self):
         response: requests.Response = requests.post(self.defense_bot_url + NEXT_ENDPOINT, json={
