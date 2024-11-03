@@ -75,7 +75,6 @@ class GameHandler:
         response: requests.Response = requests.post(self.defense_bot_url + NEXT_ENDPOINT, json={
                                                     "map": self.map.to_img_64(self.offense_player.position).decode()})
 
-        # Parse response
         try:
             response_json = response.json()
 
