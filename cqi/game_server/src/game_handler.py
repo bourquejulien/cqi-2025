@@ -38,7 +38,7 @@ class GameHandler:
 
         self.map = Map.create_map(
             random.randint(20, 40), random.randint(20, 40))
-        self.goal = self.map.set_goal(self.goal)
+        self.goal = self.map.set_goal()
 
         self.offense_player = None
         self.move_count = 50

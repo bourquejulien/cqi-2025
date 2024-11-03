@@ -59,7 +59,7 @@ class Map(CommonMap):
         image.save(buffered, format="PNG")
         return base64.b64encode(buffered.getvalue())
 
-    def set_goal(self, goal: Position) -> Position:
+    def set_goal(self) -> Position:
         goal: Position = Position(self.width - 1, random.randint(0, self.height - 1)) 
         self.map[goal.x, goal.y] = ElementType.GOAL.value
         return goal
