@@ -20,10 +20,11 @@ random_defense = RandomDefenseBot()
 
 def play_offense(payload: dict) -> Response:
     data = payload["map"]
+
     move = dumb_bot.play(data)
     logging.info("%s", move)
 
-    logging.info("Moved played: %s", move)
+    logging.info("Data: %s, Moved played: %s",data, move)
 
     if move is None:
         return Response(

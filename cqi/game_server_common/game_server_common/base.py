@@ -5,16 +5,6 @@ from enum import Enum
 from typing import Iterator, Self
 
 
-
-class DefenseMove(Enum):
-    WALL = "WALL"
-class OffenseMove(Enum):
-    LEFT = "left"
-    RIGHT = "right"
-    UP = "up"
-    DOWN = "down"
-
-
 @dataclass(eq=True, frozen=True)
 class Position:
     x: int
@@ -23,9 +13,34 @@ class Position:
     def to(self, other: Self):
         return math.sqrt((self.x - other.x) ** 2 + (self.y - other.y) ** 2)
 
+    def __add__(self, other: Self):
+        return Position(self.x + other.x, self.y + other.y)
+
     def __iter__(self) -> Iterator[int]:
         yield self.x
         yield self.y
+
+
+class DefenseMove(Enum):
+    WALL = "WALL"
+
+
+class OffenseMove(Enum):
+    LEFT = "left"
+    RIGHT = "right"
+    UP = "up"
+    DOWN = "down"
+
+    def to_position(move: Self) -> Position:
+        match(move):
+            case OffenseMove.UP:
+                return Position(0, -1)
+            case OffenseMove.DOWN:
+                return Position(0, 1)
+            case OffenseMove.RIGHT:
+                return Position(1, 0)
+            case OffenseMove.LEFT:
+                return Position(-1, 0)
 
 
 class ElementType(Enum):
