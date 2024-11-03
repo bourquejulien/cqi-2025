@@ -11,7 +11,7 @@ class DefensePlayer:
     map: Map
     n_walls: int
 
-    def __init__(self, map: Map, n_walls: int = 10) -> None:
+    def __init__(self, map: Map, n_walls: int) -> None:
         self.map = map
         self.n_walls = n_walls
 
@@ -24,7 +24,7 @@ class DefensePlayer:
             logging.info(f"Defense move to non-background: ({move.position.x}, {move.position.y}) is a {self.map.map[move.position.x, move.position.y]}")
             return
         
-        if move.element == ElementType.WALL.value and self.n_walls <= 0:
+        if move.element == ElementType.WALL and self.n_walls <= 0:
             logging.info(f"Defense move of wall to ({move.position.x}, {move.position.y}) with no walls left")
             return
         
