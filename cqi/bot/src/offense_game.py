@@ -93,9 +93,7 @@ class DumbOffenseBot:
             return None
         map, map_pos, goal_pos = data
 
-        available_moves = [tile for tile in map.get_nearby_tiles(
-            *map_pos) if tile[0].element in [ElementType.BACKGROUND, ElementType.GOAL]]
-        print(available_moves)
+        available_moves = [tile for tile in map.get_nearby_tiles(*map_pos) if tile[0].element in [ElementType.BACKGROUND, ElementType.GOAL]]
 
         if len(available_moves) == 0:
             return None
