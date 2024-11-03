@@ -1,21 +1,40 @@
 #!/bin/env python3
 
 import logging
-import asyncio
-import json
 import os
-import sys
 import logging
-import threading
 
-from typing import Callable, Iterable, TypeVar
 from aiohttp import web
 from aiohttp.web import Response, json_response, Application, Request
+
+from src.base import Move
+from src.offense_game import DumbBot
 
 
 ENV_PORT = "PORT"
 ENV_MODE = "MODE"
 DEFAULT_PORT = 5001
+
+dumb_bot = DumbBot()
+
+
+def play_offense(payload: dict) -> Response:
+    data = payload["map"]
+    move = dumb_bot.play(data)
+    if move is None:
+        return Response(
+            text="Unable to play",
+            status=400
+        )
+
+    return json_response({"move": move.value})
+
+
+def play_defense(payload: dict) -> Response:
+    return Response(
+        text="OK",
+        status=200
+    )
 
 
 async def start(request: Request):
@@ -32,12 +51,8 @@ async def start(request: Request):
 
 
 async def next_move(request: Request):
-    result_json = await request.json()
-    print(result_json["map"])
-    return Response(
-        text="OK",
-        status=200
-    )
+    payload = await request.json()
+    return play_offense(payload)
 
 
 async def end_game(request: Request):
