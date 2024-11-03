@@ -5,15 +5,15 @@ import base64
 import io
 import PIL
 from PIL import Image
-from .base import *
 
+from .base import *
 from .map import Map
 
 
 def parse_base64(data: str) -> np.ndarray:
     decoded = base64.b64decode(data)
     image = Image.open(io.BytesIO(decoded))
-    return np.array(image)
+    return np.array(image).swapaxes(0,1).astype(np.int32)
 
 def rgb_to_element(r: int, g: int, b: int) -> ElementType | None:
     hex_color = "#{:02x}{:02x}{:02x}".format(r, g, b).upper()
@@ -57,7 +57,7 @@ def parse_data(data: np.ndarray, block_size: tuple[int, int]) -> tuple[Map, dict
     size = (data.shape[0] // block_size[0], data.shape[1] // block_size[1])
 
     element_positions = {ElementType.GOAL: [], ElementType.PLAYER_OFFENSE: []}
-    output_map = np.zeros(size)
+    output_map = np.zeros(size).astype(np.int32)
     
     for i in range(size[0]):
         for j in range(size[1]):

@@ -93,15 +93,13 @@ def test(app: Application) -> None:
     bot_2_url = os.environ["BOT_2_URL"]
 
     game_runner.launch_game(bot_1_url, bot_2_url)
-    time.sleep(5)
+    
+    DURATION = 15
+    for _ in range(DURATION):
+        if game_runner.status().is_over:
+            break
 
-    if not game_runner.status().is_over:
-        app.logger.warning("Game not over")
-
-    game_runner.force_end_game()
-
-    game_runner.launch_game(bot_2_url, bot_1_url)
-    time.sleep(5)
+        time.sleep(1)
 
     if not game_runner.status().is_over:
         app.logger.warning("Game not over")
