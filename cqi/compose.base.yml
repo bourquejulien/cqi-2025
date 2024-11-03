@@ -2,7 +2,10 @@ services:
   game-server:
     image: brqu/cqi-game-server:latest
     build:
-      context: ./game_server
+      args:
+        USE_PYARMOR: false
+      context: .
+      dockerfile: ./game_server/Dockerfile
       target: final
     ports:
       - "5000:5000"

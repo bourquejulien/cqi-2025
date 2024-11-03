@@ -7,7 +7,10 @@ services:
   bot-1:
     hostname: bot_1
     build:
-      context: ./bot
+      args:
+        USE_PYARMOR: false
+      context: .
+      dockerfile: ./bot/Dockerfile
       target: final
     networks:
       - game-network
@@ -16,7 +19,10 @@ services:
   bot-2:
     hostname: bot_2
     build:
-      context: ./bot
+      args:
+        USE_PYARMOR: false
+      context: .
+      dockerfile: ./bot/Dockerfile
       target: final
     networks:
       - game-network

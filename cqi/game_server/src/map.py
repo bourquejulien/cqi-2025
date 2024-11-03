@@ -19,7 +19,7 @@ class Map(CommonMap):
     height: int
 
     def __init__(self, map: np.ndarray) -> None:
-        super(map)
+        super().__init__(map)
         self.width = map.shape[0]
         self.height = map.shape[1]
 

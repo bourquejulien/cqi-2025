@@ -9,7 +9,6 @@ from aiohttp.web import Response, json_response, Application, Request
 
 from src.offense_game import DumbBot
 
-
 ENV_PORT = "PORT"
 ENV_MODE = "MODE"
 DEFAULT_PORT = 5001
