@@ -1,11 +1,11 @@
 import random
 import numpy as np
-import src.helpers as helpers
+import game_server_common.helpers as helpers
 
 from dataclasses import dataclass
 from typing import Self
-from .map import Map, Tile
-from .base import ElementType, Position, Move
+from game_server_common.map import Map, Tile
+from game_server_common.base import ElementType, Position, Move
 
 
 @dataclass

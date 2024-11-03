@@ -7,7 +7,6 @@ import logging
 from aiohttp import web
 from aiohttp.web import Response, json_response, Application, Request
 
-from src.base import Move
 from src.offense_game import DumbBot
 
 

@@ -1,0 +1,15 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "game_server_common"
+version = "0.0.1"
+description = "Common package for game server"
+readme = "README.md"
+requires-python = ">=3.10"
+
+dependencies = [
+  "numpy>=2.1.1",
+  "pillow>=11"
+]
