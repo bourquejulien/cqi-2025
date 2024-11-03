@@ -113,8 +113,7 @@ class GameHandler:
         if self.move_count < 0:
             return
 
-        values = [item.value for item in ORIENTATION]
-        if data["move"] not in values:
+        if data["move"] not in ORIENTATION:
             return
         
         previous_offense_position = self.offense_player.position
