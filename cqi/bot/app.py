@@ -34,7 +34,7 @@ def play_offense(payload: dict) -> Response:
 def play_defense(payload: dict) -> Response:
     data = payload["map"]
     move, position = random_defense.play(data)
-    logging.info(payload, move)
+    logging.info("%s, %s, %s", payload, move, position)
     if move is None or position is None:
         return Response(
             text="Unable to play",
@@ -47,7 +47,6 @@ async def start(request: Request):
     global should_play_offense
     data = await request.json()
     should_play_offense = data["is_offense"]
-    logging.info("Should play offense: %s", should_play_offense)
 
     return Response(
         text="OK",
