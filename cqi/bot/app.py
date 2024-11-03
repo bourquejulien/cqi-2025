@@ -22,8 +22,6 @@ blocker_defense = BlockerDefenseBot()
 def play_offense(payload: dict) -> Response:
     data = payload["map"]
     move = dumb_bot.play(data)
-    logging.info("%s", move)
-
     logging.info("Moved played: %s", move)
 
     if move is None:

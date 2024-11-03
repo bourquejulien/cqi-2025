@@ -122,7 +122,7 @@ class GameHandler:
             return
 
         self.move_count -= 1
-        logging.info(self.move_count)
+        logging.info(f"Remaining number of moves: {self.move_count}")
         if self.move_count < 0:
             self.logger.info("No more move available")
             return
@@ -156,9 +156,12 @@ class GameHandler:
 
         next_tile = self.map.map[self.offense_player.position.x, self.offense_player.position.y]
         if next_tile not in [ElementType.BACKGROUND.value, ElementType.GOAL.value]:
-            self.logger.info(f"Offense move not on a valid map element: ({self.offense_player.position.x}, {self.offense_player.position.y}) is a {next_tile}")
+            self.logger.info(f"Offense move not on a valid map element: ({self.offense_player.position.x}, {self.offense_player.position.y}) is a {ElementType(next_tile)}")
             self.offense_player.position = previous_offense_position
             return
+        
+        self.logger.info(f"Previous offense position: {previous_offense_position}")
+        self.logger.info(f"Goal position: {self.goal}")
         
         self.logger.info("Offense move valid")
         self.map.map[previous_offense_position.x, previous_offense_position.y] = ElementType.BACKGROUND.value
