@@ -1,4 +1,3 @@
-from dataclasses import dataclass
 import random
 
 from game_server_common.base import ElementType

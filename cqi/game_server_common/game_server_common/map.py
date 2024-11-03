@@ -1,5 +1,3 @@
-from enum import Enum
-from typing import Self
 import numpy as np
 
 from dataclasses import dataclass

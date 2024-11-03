@@ -1,4 +1,3 @@
-from enum import Enum
 import PIL.ImageColor
 import numpy as np
 import base64
