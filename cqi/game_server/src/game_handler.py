@@ -153,8 +153,10 @@ class GameHandler:
             self.offense_player.position = previous_offense_position
             return
         
+        self.logger.info("Offense move valid")
         self.map.map[previous_offense_position.x, previous_offense_position.y] = ElementType.BACKGROUND.value
         self.map.map[self.offense_player.position.x, self.offense_player.position.y] = ElementType.PLAYER_OFFENSE.value
+        self.logger.info(f"Offense new position is: {self.offense_player.position.x, self.offense_player.position.y}")
 
     def get_status(self) -> GameStatus:
         return GameStatus(self.map.to_list())
