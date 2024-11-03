@@ -93,7 +93,7 @@ class GameHandler:
             move = DefenseMove(Position(x, y), element)
 
         except Exception as e:
-            self.logger.error(f"Error parsing response from defense bot: {e}\n{response}\n{response_json}")
+            self.logger.error(f"Error parsing response from defense bot: {e}\n{response}")
             return
 
         self.defense_player.move(logger=self.logger,

@@ -6,6 +6,7 @@ from game_server_common.base import ElementType, Position, DefenseMove
 
 
 class RandomDefenseBot:
+
     def _parse_map(self, img: str) -> Map | None:
         data = helpers.parse_base64(img)
 
@@ -21,6 +22,8 @@ class RandomDefenseBot:
             return None
 
         # Chose a random tile that has nothing on it
-        position: Position = Position(*np.random.choice(map.map[map.map == ElementType.BACKGROUND]))
+        xidx, yidx = np.where(map.map == ElementType.BACKGROUND.value)
+        idx = np.random.choice(np.arange(len(xidx)))
+        position: Position = Position(xidx[idx], yidx[idx])
 
         return DefenseMove.WALL, position
