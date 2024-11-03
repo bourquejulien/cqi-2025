@@ -84,7 +84,12 @@ class GameHandler:
 
     def _play_offense(self):
         response = requests.post(self.offense_bot_url + NEXT_ENDPOINT, json={"map": self.map.to_img_64(self.offense_player.position, 3).decode()})
-        data = response.json
+
+        try:
+            data = response.json()
+            assert isinstance(data["next_move"], str)
+        except AssertionError as e:
+            self.logger.exception("The next move is not in the right format", e)
 
         self.move_count -= 1
         if self.move_count < 0:
