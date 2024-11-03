@@ -7,15 +7,16 @@ import logging
 from aiohttp import web
 from aiohttp.web import Response, json_response, Application, Request
 
-from src.offense_game import DumbBot
+from src.offense_game import DumbOffenseBot
+from src.defense_game import RandomDefenseBot
 
 ENV_PORT = "PORT"
 ENV_MODE = "MODE"
 DEFAULT_PORT = 5001
 
 should_play_offense = True
-dumb_bot = DumbBot()
-
+dumb_bot = DumbOffenseBot()
+random_defense = RandomDefenseBot()
 
 def play_offense(payload: dict) -> Response:
     data = payload["map"]
@@ -31,11 +32,16 @@ def play_offense(payload: dict) -> Response:
 
 
 def play_defense(payload: dict) -> Response:
-    return Response(
-        text="OK",
-        status=200
-    )
+    data = payload["map"]
+    move, position = random_defense.play(data)
+    logging.info(payload, move)
+    if move is None or position is None:
+        return Response(
+            text="Unable to play",
+            status=400
+        )
 
+    return json_response({"x": position.x, "y": position.y, "element": move.value})
 
 async def start(request: Request):
     global should_play_offense

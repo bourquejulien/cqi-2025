@@ -5,7 +5,10 @@ from enum import Enum
 from typing import Iterator, Self
 
 
-class Move(Enum):
+
+class DefenseMove(Enum):
+    WALL = "WALL"
+class OffenseMove(Enum):
     LEFT = "left"
     RIGHT = "right"
     UP = "up"
