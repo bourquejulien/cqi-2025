@@ -13,6 +13,7 @@ START_ENDPOINT = "/start"
 NEXT_ENDPOINT = "/next_move"
 END_ENDPOINT = "/end_game"
 N_WALLS = 10
+MAX_MOVES = 100
 
 
 @dataclass
@@ -41,7 +42,7 @@ class GameHandler:
         self.goal = self.map.set_goal()
 
         self.offense_player = None
-        self.move_count = 50
+        self.move_count = MAX_MOVES
 
     @property
     def is_started(self) -> bool:
@@ -51,6 +52,10 @@ class GameHandler:
     def is_over(self) -> bool:
         if self.goal is None or self.offense_player is None:
             return False
+        
+        if self.move_count <= 0:
+            return True
+        
         return self.goal == self.offense_player.position
 
     def play(self):
@@ -116,6 +121,7 @@ class GameHandler:
             return
 
         self.move_count -= 1
+        logging.info(self.move_count)
         if self.move_count < 0:
             self.logger.info("No more move available")
             return
@@ -129,9 +135,9 @@ class GameHandler:
         offset: Position = Position(0, 0)
         match(data["move"]):
             case OffenseMove.UP.value:
-                offset: Position = Position(0, 1)
-            case OffenseMove.DOWN.value:
                 offset: Position = Position(0, -1)
+            case OffenseMove.DOWN.value:
+                offset: Position = Position(0, 1)
             case OffenseMove.RIGHT.value:
                 offset: Position = Position(1, 0)
             case OffenseMove.LEFT.value:

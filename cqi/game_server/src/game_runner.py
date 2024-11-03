@@ -33,8 +33,7 @@ class Runner:
         while not self.should_stop:
             with self.lock:
                 self._handle_game()
-            time.sleep(1)
-
+                
         self.force_end_game()
         self.game_handler = None
 

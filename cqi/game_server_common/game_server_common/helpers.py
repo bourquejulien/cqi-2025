@@ -12,7 +12,7 @@ from .map import Map
 def parse_base64(data: str) -> np.ndarray:
     decoded = base64.b64decode(data)
     image = Image.open(io.BytesIO(decoded))
-    return np.array(image).swapaxes(0,1).astype(np.int32)
+    return np.array(image).astype(np.int32)
 
 def rgb_to_element(r: int, g: int, b: int) -> ElementType | None:
     hex_color = "#{:02x}{:02x}{:02x}".format(r, g, b).upper()
