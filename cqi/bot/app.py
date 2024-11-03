@@ -39,8 +39,9 @@ def play_defense(payload: dict) -> Response:
 
 async def start(request: Request):
     global should_play_offense
-    data = request.json
+    data = await request.json()
     should_play_offense = data["is_offense"]
+    logging.info("Should play offense: %s", should_play_offense)
 
     return Response(
         text="OK",

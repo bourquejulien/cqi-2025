@@ -63,7 +63,7 @@ class DumbBot:
 
         chosen_move: tuple[Tile, Move] | None = None
         if goal_pos is not None:
-            chosen_move = min([(tile.position.to(goal_pos), (tile, move))
+            chosen_move = min([(tile.position.to(goal_pos), move)
                               for tile, move in playable_moves], key=lambda x: x[0])[1]
         else:
             all_moves = [Move.RIGHT, Move.UP]

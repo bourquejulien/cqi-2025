@@ -40,4 +40,4 @@ class Map:
         tiles.append((self.get(x, y - 1), Move.DOWN))
         tiles.append((self.get(x, y + 1), Move.UP))
 
-        return [tile for tile in tiles if tile is not None]
+        return [(tile, move) for tile, move in tiles if tile is not None]

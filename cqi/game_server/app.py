@@ -123,8 +123,6 @@ def main() -> None:
     mode = "debug" if ENV_MODE not in os.environ else os.environ[ENV_MODE]
     is_debug = mode in ["debug", "test"]
 
-    logging.info(mode)
-
     app = setup_web_server(is_debug=is_debug)
     initialize(app)
 
