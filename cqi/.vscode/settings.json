@@ -1,0 +1,8 @@
+{
+    "cSpell.words": [
+        "aiohttp"
+    ],
+    "python.analysis.extraPaths": [
+        "./game_server_common"
+    ]
+}
