@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 import random
-import base64
 
 from game_server_common.base import ElementType
 
@@ -21,4 +20,3 @@ class OffensePlayer:
     
     def move(self, move: Move) -> bool:
         ...
-    

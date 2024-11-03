@@ -1,9 +1,6 @@
-import random
 import numpy as np
 import game_server_common.helpers as helpers
 
-from dataclasses import dataclass
-from typing import Self
 from game_server_common.map import Map
 from game_server_common.base import ElementType, Position, DefenseMove
 
@@ -27,5 +24,3 @@ class RandomDefenseBot:
         position: Position = Position(*np.random.choice(map.map[map.map == ElementType.BACKGROUND]))
 
         return DefenseMove.WALL, position
-
-

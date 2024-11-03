@@ -3,13 +3,11 @@
 from dataclasses import asdict
 import logging
 import asyncio
-import json
 import os
 import time
-import sys
 import threading
 
-from typing import Callable, Coroutine, Iterable, TypeVar
+from typing import Callable, Iterable, TypeVar
 from threading import Thread
 from aiohttp import web
 from aiohttp.web import Response, json_response, Application, Request
@@ -77,7 +75,8 @@ def stop() -> None:
 def setup_web_server(is_debug: bool) -> Application:
     extra_format = " %(module)s-%(funcName)s:" if is_debug else ":"
     logging.basicConfig(level=logging.DEBUG if is_debug else logging.INFO,
-                        format=f"%(asctime)s %(levelname)s{extra_format} %(message)s",
+                        format=f"%(asctime)s %(levelname)s{
+                            extra_format} %(message)s",
                         datefmt="%d-%m-%Y %H:%M:%S")
 
     app = web.Application(logger=logging.getLogger())
@@ -108,6 +107,7 @@ def test(app: Application) -> None:
         app.logger.warning("Game not over")
 
     game_runner.stop()
+
 
 def run(app: Application) -> None:
     port = int(os.environ[ENV_PORT]) \

@@ -3,8 +3,6 @@
 from game_server_common.base import *
 from game_server_common.map import Map as CommonMap
 
-from enum import Enum
-from dataclasses import dataclass
 from PIL import Image
 from io import BytesIO
 

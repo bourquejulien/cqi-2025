@@ -1,5 +1,4 @@
 import random
-import numpy as np
 import game_server_common.helpers as helpers
 
 from dataclasses import dataclass
@@ -35,7 +34,7 @@ class DumbOffenseBot:
 
         if len(current_pos) == 0:
             return None
-        
+
         return map, current_pos[0], goal_pos[0] if len(goal_pos) > 0 else None
 
     def _play_on_backtrack(self, moves: list[tuple[Tile, OffenseMove]], current_pos: Position) -> OffenseMove | None:
@@ -43,7 +42,8 @@ class DumbOffenseBot:
             self.last_event = Event(current_pos, [], None)
             return None
 
-        filtered_moves = [(tile, move) for tile, move in moves if move not in self.last_event.played_moves and tile.position != self.last_event.last.position]
+        filtered_moves = [
+            (tile, move) for tile, move in moves if move not in self.last_event.played_moves and tile.position != self.last_event.last.position]
         if len(filtered_moves) == 0:
             self.last_event = self.last_event.last
             return [move for tile, move in moves if tile.position == self.last_event.last.position][0]
@@ -52,7 +52,8 @@ class DumbOffenseBot:
         moves.extend(filtered_moves)
 
     def _play_best_move(self, moves: list[tuple[Tile, OffenseMove]], current_pos: Position, goal_pos: Position | None) -> OffenseMove:
-        is_backtrack = (not self.last_event == None) and self.last_event.position == current_pos
+        is_backtrack = (not self.last_event ==
+                        None) and self.last_event.position == current_pos
 
         playable_moves: list[tuple[Tile, OffenseMove]] = moves.copy()
         if is_backtrack:

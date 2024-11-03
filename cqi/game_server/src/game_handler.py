@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from enum import Enum
 import requests
 import random
 from logging import Logger
@@ -42,7 +41,7 @@ class GameHandler:
 
         self.offense_player = None
         self.move_count = 50
-    
+
     @property
     def is_started(self) -> bool:
         return self.offense_player is not None
@@ -103,7 +102,8 @@ class GameHandler:
                                  goal=self.goal)
 
     def _play_offense(self):
-        response = requests.post(self.offense_bot_url + NEXT_ENDPOINT, json={"map": self.map.to_img_64(self.offense_player.position, 3).decode()})
+        response = requests.post(self.offense_bot_url + NEXT_ENDPOINT, json={
+                                 "map": self.map.to_img_64(self.offense_player.position, 3).decode()})
 
         try:
             data = response.json()
@@ -118,9 +118,9 @@ class GameHandler:
 
         if data["move"] not in ORIENTATION:
             return
-        
+
         previous_offense_position = self.offense_player.position
-        
+
         match(data["move"]):
             case "UP":
                 self.offense_player.position.y += 1
