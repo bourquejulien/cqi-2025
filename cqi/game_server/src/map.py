@@ -32,7 +32,7 @@ class Map(CommonMap):
     def to_list(self) -> list:
         return self.map.tolist()
     
-    def to_img_64(self, offense_position: Position, goal: Position, visibility_range: int = None) -> bytes:
+    def to_img_64(self, offense_position: Position, visibility_range: int = None) -> bytes:
         """Creates a base64 image of the map"""
         image = Image.new("RGB", (self.width * TILE_SIZE, self.height * TILE_SIZE), color = ElementType.BACKGROUND.to_color())
 
@@ -44,9 +44,6 @@ class Map(CommonMap):
                 element_type = ElementType(self.map[x, y])
                 if element_type is not ElementType.BACKGROUND:
                     img_paste(x, y, element_type)
-
-        img_paste(offense_position.x, offense_position.y, ElementType.PLAYER_OFFENSE)
-        img_paste(goal.x, goal.y, ElementType.GOAL)
 
         if visibility_range is not None:
             left = max(0, offense_position.x - visibility_range)
