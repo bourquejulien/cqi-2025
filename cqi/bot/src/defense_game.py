@@ -24,6 +24,6 @@ class RandomDefenseBot:
         # Chose a random tile that has nothing on it
         xidx, yidx = np.where(map.map == ElementType.BACKGROUND.value)
         idx = np.random.choice(np.arange(len(xidx)))
-        position: Position = Position(xidx[idx], yidx[idx])
+        position: Position = Position(int(xidx[idx]), int(yidx[idx]))
 
         return DefenseMove.WALL, position
