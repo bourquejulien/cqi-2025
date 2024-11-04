@@ -58,6 +58,7 @@ class Runner:
 
     def _handle_game(self) -> None:
         if self.game_handler is None or self.game_handler.is_over:
+            time.sleep(0.5)
             return
         
         if not self.game_handler.is_started:

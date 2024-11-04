@@ -5,6 +5,7 @@ import logging
 import asyncio
 import os
 import time
+import signal
 import threading
 
 from typing import Callable, Iterable, TypeVar
@@ -67,7 +68,7 @@ def initialize(app: Application) -> None:
 
 
 def stop() -> None:
-    print("Stopping...")
+    logging.info("Stopping...")
     game_runner.stop()
     handler_thread.join()
 
@@ -92,19 +93,23 @@ def test(app: Application) -> None:
     bot_1_url = os.environ["BOT_1_URL"]
     bot_2_url = os.environ["BOT_2_URL"]
 
+    should_stop = False
+    def stop(*_):
+        global should_stop
+        should_stop = True
+    signal.signal(signal.SIGINT, stop)
+    signal.signal(signal.SIGTERM, stop)
+
     game_runner.launch_game(bot_1_url, bot_2_url)
-    
+
     DURATION = 15
     for _ in range(DURATION):
-        if game_runner.status().is_over or not game_runner.status().is_running:
+        if should_stop or game_runner.status().is_over or not game_runner.status().is_running:
             break
-
         time.sleep(1)
 
     if not game_runner.status().is_over:
         app.logger.warning("Game not over")
-
-    game_runner.stop()
 
 
 def run(app: Application) -> None:

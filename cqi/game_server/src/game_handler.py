@@ -43,11 +43,12 @@ class GameHandler:
         self.goal = self.map.set_goal()
 
         self.offense_player = None
+        self.defense_player = None
         self.move_count = MAX_MOVES
 
     @property
     def is_started(self) -> bool:
-        return self.offense_player is not None
+        return self.offense_player is not None and self.defense_player is not None
 
     @property
     def is_over(self) -> bool:
@@ -114,37 +115,24 @@ class GameHandler:
         response = requests.post(self.offense_bot_url + NEXT_ENDPOINT, json={
                                  "map": self.map.to_img_64(self.offense_player.position, 3).decode()})
 
+        move: OffenseMove
         try:
             data = response.json()
-            assert isinstance(data["move"], str)
+            move = OffenseMove(data["move"])
         except Exception as e:
             self.logger.error(f"Error parsing response from offense bot: {e}")
             return
 
-        self.move_count -= 1
-        logging.info(f"Remaining number of moves: {self.move_count}")
-        if self.move_count < 0:
+        if self.move_count <= 0:
             self.logger.info("No more move available")
             return
 
-        if data["move"] not in [item.value for item in OffenseMove]:
-            self.logger.info(f"Offense bot returned invalid move: {data["move"]}")
-            return
+        self.move_count -= 1
+        logging.info(f"Remaining number of moves: {self.move_count}")
 
+        offset = move.to_position()
         previous_offense_position = self.offense_player.position
-
-        offset: Position = Position(0, 0)
-        match(data["move"]):
-            case OffenseMove.UP.value:
-                offset: Position = Position(0, -1)
-            case OffenseMove.DOWN.value:
-                offset: Position = Position(0, 1)
-            case OffenseMove.RIGHT.value:
-                offset: Position = Position(1, 0)
-            case OffenseMove.LEFT.value:
-                offset: Position = Position(-1, 0)
-
-        self.offense_player.position = Position(self.offense_player.position.x + offset.x, self.offense_player.position.y + offset.y)
+        self.offense_player.position = self.offense_player.position + offset
 
         width_map_bounds = self.offense_player.position.x >= self.map.width or self.offense_player.position.x < 0
         heigth_map_bounds = self.offense_player.position.y >= self.map.height or self.offense_player.position.y < 0

@@ -15,6 +15,9 @@ class Position:
 
     def __add__(self, other: Self):
         return Position(self.x + other.x, self.y + other.y)
+    
+    def __sub__(self, other: Self):
+        return Position(self.x - other.x, self.y - other.y)
 
     def __iter__(self) -> Iterator[int]:
         yield self.x
