@@ -14,15 +14,45 @@ class Entry:
     played_moves: set[OffenseMove]
 
 
+@dataclass
+class Limits:
+    left: int | None
+    right: int | None
+    top: int | None
+    bottom: int | None
+
+
 class DumbOffenseBot:
     map: dict[Position, Entry]
     block_size: tuple[int, int]
     current_position: Position
+    limits: Limits
 
     def __init__(self) -> None:
         self.map = dict()
         self.block_size = None
         self.current_position = Position(0, 0)
+        self.limits = Limits(None, None, None, None)
+
+    def _move_priority(self) -> list[OffenseMove]:
+        if self.limits.right is None or (self.limits.right - self.current_position.x) > 2:
+            moves = [OffenseMove.UP, OffenseMove.DOWN]
+            random.shuffle(moves)
+            moves.insert(0, OffenseMove.RIGHT)
+            moves.append(OffenseMove.LEFT)
+            return moves
+
+        if self.limits.top is None:
+            return [OffenseMove.UP, OffenseMove.RIGHT, OffenseMove.LEFT, OffenseMove.DOWN]
+
+        if self.limits.bottom is None:
+            return [OffenseMove.DOWN, OffenseMove.RIGHT, OffenseMove.LEFT, OffenseMove.UP]
+
+        is_closer_to_top = abs(
+            self.limits.top - self.current_position.y) < (self.limits.bottom - self.current_position.y)
+        if is_closer_to_top:
+            return [OffenseMove.DOWN, OffenseMove.RIGHT, OffenseMove.LEFT, OffenseMove.UP]
+        return [OffenseMove.UP, OffenseMove.RIGHT, OffenseMove.LEFT, OffenseMove.DOWN]
 
     def _parse_map(self, img: str) -> tuple[Map, Position, Position] | None:
         data = helpers.parse_base64(img)
@@ -66,34 +96,50 @@ class DumbOffenseBot:
         available_moves = moves.copy()
 
         if entry := self.map.get(self.current_position):
-            available_moves = self._process_entry(entry, moves)
+            available_moves = self._process_entry(entry, available_moves)
         else:
             entry = Entry({move for _, move in moves}, set())
             self.map[self.current_position] = entry
+
+        logging.info(available_moves)
 
         chosen_move: tuple[Tile, OffenseMove] | None = None
         if goal_pos is not None:
             chosen_move = min([(tile.position.to(goal_pos), move)
                               for tile, move in available_moves], key=lambda x: x[0])[1]
         else:
-            all_moves = [OffenseMove.RIGHT, OffenseMove.UP]
-            random.shuffle(all_moves)
-            all_moves.extend([OffenseMove.DOWN, OffenseMove.LEFT])
+            moves = self._move_priority()
 
-            for move in all_moves:
+            for move in moves:
                 if move in [move for _, move in available_moves]:
                     chosen_move = move
                     break
-        
+
         entry.played_moves.add(chosen_move)
         return chosen_move
+
+    def _set_map_limits(self, nearby_tiles: list[tuple[Tile, OffenseMove]]):
+        available_moves = {move for _, move in nearby_tiles}
+
+        if OffenseMove.LEFT not in available_moves:
+            self.limits.left = self.current_position.x
+        if OffenseMove.RIGHT not in available_moves:
+            self.limits.right = self.current_position.x
+        if OffenseMove.UP not in available_moves:
+            self.limits.top = self.current_position.y
+        if OffenseMove.DOWN not in available_moves:
+            self.limits.bottom = self.current_position.y
 
     def play(self, img: str) -> OffenseMove | None:
         if not (data := self._parse_map(img)):
             return None
         map, map_pos, goal_pos = data
 
-        available_moves = [tile for tile in map.get_nearby_tiles(*map_pos) if tile[0].element in [ElementType.BACKGROUND, ElementType.GOAL]]
+        nearby_tiles = map.get_nearby_tiles(*map_pos)
+        self._set_map_limits(nearby_tiles)
+        available_moves = [tile for tile in nearby_tiles if tile[0].element in [
+            ElementType.BACKGROUND, ElementType.GOAL]]
+        logging.info(available_moves)
 
         if len(available_moves) == 0:
             return None
