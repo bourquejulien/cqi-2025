@@ -51,9 +51,9 @@ class DumbOffenseBot:
     def _process_entry(self, entry: Entry, moves: list[tuple[Tile, OffenseMove]]) -> tuple[Tile, OffenseMove]:
         offense_moves = {move for _, move in moves}
 
-        should_discard_history = offense_moves == entry.available_moves
+        should_discard_history = offense_moves != entry.available_moves
         available_moves = [
-            move for move in moves if moves[1] not in entry.played_moves]
+            move for move in moves if move[1] not in entry.played_moves]
 
         if should_discard_history or len(available_moves) == 0:
             entry.available_moves = offense_moves

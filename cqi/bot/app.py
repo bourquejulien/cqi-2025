@@ -23,7 +23,7 @@ def play_offense(payload: dict) -> Response:
     data = payload["map"]
 
     move = dumb_bot.play(data)
-    logging.info("Moved played: %s", move)
+    logging.info("map: %s, Moved played: %s", data, move)
 
     if move is None:
         return Response(
@@ -36,13 +36,15 @@ def play_offense(payload: dict) -> Response:
 
 def play_defense(payload: dict) -> Response:
     data = payload["map"]
-    move, position = blocker_defense.play(data)
-    logging.info("%s, %s", move, position)
-    if move is None or position is None:
+    result = blocker_defense.play(data)
+    if result is None:
         return Response(
             text="Unable to play",
             status=400
         )
+    
+    move, position = result
+    logging.info("%s, %s", move, position)
 
     return json_response({"x": position.x, "y": position.y, "element": move.value})
 

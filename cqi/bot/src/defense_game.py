@@ -27,11 +27,11 @@ class BlockerDefenseBot:
 
         return data[0]
 
-    def play(self, img: str) -> tuple[DefenseMove, Position]:
+    def play(self, img: str) -> tuple[DefenseMove, Position] | None:
         # Play once every 2 turns
         self.n_turn += 1
         if self.n_turn % 2 == 0:
-            return
+            return None
         
         if not (map := self._parse_map(img)):
             return None
