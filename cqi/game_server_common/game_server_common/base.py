@@ -19,6 +19,9 @@ class Position:
     def __sub__(self, other: Self):
         return Position(self.x - other.x, self.y - other.y)
 
+    def __repr__(self) -> str:
+        return f"({self.x}, {self.y})"
+
     def __iter__(self) -> Iterator[int]:
         yield self.x
         yield self.y

@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 import requests
 import random
-from logging import Logger
 import logging
 
 from game_server_common.base import OffenseMove
@@ -95,7 +94,7 @@ class GameHandler:
                 element = ElementType.WALL
             else:
                 logging.info(
-                    f"Defense bot returned invalid element: {response_json['element']}")
+                    f"Defense bot returned invalid element: {response_json["element"]}")
                 return
 
             move = DefenseMove(Position(x, y), element)
@@ -111,6 +110,9 @@ class GameHandler:
     def _play_offense(self):
         response = requests.post(self.offense_bot_url + NEXT_ENDPOINT, json={
                                  "map": self.map.to_img_64(self.offense_player.position, 3).decode()})
+        
+        self.move_count -= 1
+        logging.info(f"Remaining number of moves: {self.move_count}")
 
         move: OffenseMove
         try:
@@ -124,24 +126,19 @@ class GameHandler:
             logging.info("No more move available")
             return
 
-        self.move_count -= 1
-        logging.info(f"Remaining number of moves: {self.move_count}")
-
         offset = move.to_position()
         previous_offense_position = self.offense_player.position
         self.offense_player.position = self.offense_player.position + offset
 
-        width_map_bounds = self.offense_player.position.x >= self.map.width or self.offense_player.position.x < 0
-        heigth_map_bounds = self.offense_player.position.y >= self.map.height or self.offense_player.position.y < 0
+        next_tile = self.map.get(self.offense_player.position.x, self.offense_player.position.y)
 
-        if width_map_bounds or heigth_map_bounds:
-            logging.info(f"Offense move out of bounds: ({self.offense_player.position.x}, {self.offense_player.position.y}) map is {self.map.width}x{self.map.height}")
+        if next_tile is None:
+            logging.info(f"Offense move out of bounds: {self.offense_player.position} map is {self.map.width}x{self.map.height}")
             self.offense_player.position = previous_offense_position
             return
-
-        next_tile = self.map.map[self.offense_player.position.x, self.offense_player.position.y]
-        if next_tile not in [ElementType.BACKGROUND.value, ElementType.GOAL.value]:
-            logging.info(f"Offense move not on a valid map element: ({self.offense_player.position.x}, {self.offense_player.position.y}) is a {ElementType(next_tile)}")
+        
+        if next_tile.element not in [ElementType.BACKGROUND, ElementType.GOAL]:
+            logging.info(f"Offense move not on a valid map element: {self.offense_player.position} is a {next_tile}")
             self.offense_player.position = previous_offense_position
             return
         
@@ -149,9 +146,9 @@ class GameHandler:
         logging.info(f"Goal position: {self.goal}")
         
         logging.info("Offense move valid")
-        self.map.map[previous_offense_position.x, previous_offense_position.y] = ElementType.BACKGROUND.value
-        self.map.map[self.offense_player.position.x, self.offense_player.position.y] = ElementType.PLAYER_OFFENSE.value
-        logging.info(f"Offense new position is: {self.offense_player.position.x, self.offense_player.position.y}")
+        self.map.set(previous_offense_position.x, previous_offense_position.y, ElementType.BACKGROUND)
+        self.map.set(self.offense_player.position.x, self.offense_player.position.y, ElementType.PLAYER_OFFENSE)
+        logging.info(f"Offense new position is: {self.offense_player.position}")
 
     def get_status(self) -> GameStatus:
         return GameStatus(self.map.to_list())

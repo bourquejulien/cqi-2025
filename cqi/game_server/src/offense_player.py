@@ -11,4 +11,4 @@ class OffensePlayer:
     def __init__(self, map: Map) -> None:
         self.map = map
         self.position = Position(0, random.randint(0, map.height - 1))
-        self.map.map[self.position.x, self.position.y] = ElementType.PLAYER_OFFENSE.value
+        self.map.set(self.position.x, self.position.y, ElementType.PLAYER_OFFENSE)

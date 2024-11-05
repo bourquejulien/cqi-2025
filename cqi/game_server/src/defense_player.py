@@ -16,23 +16,24 @@ class DefensePlayer:
         self.n_walls = n_walls
 
     def move(self, move: DefenseMove, player: Position, goal: Position):
-        if move.position.x < 0 or move.position.x >= self.map.width or move.position.y < 0 or move.position.y >= self.map.height:
-            logging.info(f"Defense move out of bounds: ({move.position.x}, {move.position.y}) map is {self.map.width}x{self.map.height}")
+        tile = self.map.get(move.position.x, move.position.y)
+        if tile is None:
+            logging.info(f"Defense move out of bounds: {move.position} map is {self.map.width}x{self.map.height}")
             return
         
-        if self.map.map[move.position.x, move.position.y] != ElementType.BACKGROUND.value:
-            logging.info(f"Defense move to non-background: ({move.position.x}, {move.position.y}) is a {self.map.map[move.position.x, move.position.y]}")
+        if tile.element != ElementType.BACKGROUND:
+            logging.info(f"Defense move to non-background: {move.position} is a {tile}")
             return
         
         if move.element == ElementType.WALL and self.n_walls <= 0:
-            logging.info(f"Defense move of wall to ({move.position.x}, {move.position.y}) with no walls left")
+            logging.info(f"Defense move of wall to {move.position} with no walls left")
             return
         
-        self.map.map[move.position.x, move.position.y] = move.element.value
+        self.map.set(move.position.x, move.position.y, move.element)
 
         if not self.map.path_exists(player, goal):
-            logging.info(f"Defense move of {self.map.map[move.position.x, move.position.y]} to ({move.position.x}, {move.position.y}) causes no path from player to goal")
-            self.map.map[move.position.x, move.position.y] = ElementType.BACKGROUND.value  
+            logging.info(f"Defense move of {tile} to {move.position} causes no path from player to goal")
+            self.map.set(move.position.x, move.position.y, ElementType.BACKGROUND)  
 
         logging.info("Defense move valid")
         self.n_walls -= 1
