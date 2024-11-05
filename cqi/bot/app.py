@@ -7,22 +7,23 @@ import logging
 from aiohttp import web
 from aiohttp.web import Response, json_response, Application, Request
 
-from src.offense_game import DumbOffenseBot
-from src.defense_game import RandomDefenseBot, BlockerDefenseBot
+from src.offense.offense_bot import DumbOffenseBot
+from src.defense.bots import RandomDefenseBot, BlockerDefenseBot
+from src.defense.defense import Defense
 
 ENV_PORT = "PORT"
 ENV_MODE = "MODE"
 DEFAULT_PORT = 5001
 
 should_play_offense = True
-dumb_bot = DumbOffenseBot()
-random_defense = RandomDefenseBot()
-blocker_defense = BlockerDefenseBot()
+offense_bot: DumbOffenseBot | None = None
+defense: Defense | None = None
+
 
 def play_offense(payload: dict) -> Response:
     data = payload["map"]
 
-    move = dumb_bot.play(data)
+    move = offense_bot.play(data)
     logging.info("map: %s, Moved played: %s", data, move)
 
     if move is None:
@@ -36,22 +37,28 @@ def play_offense(payload: dict) -> Response:
 
 def play_defense(payload: dict) -> Response:
     data = payload["map"]
-    result = blocker_defense.play(data)
+    result = defense.play(data)
     if result is None:
         return Response(
             text="Unable to play",
             status=400
         )
-    
+
     move, position = result
     logging.info("%s, %s", move, position)
 
     return json_response({"x": position.x, "y": position.y, "element": move.value})
 
+
 async def start(request: Request):
-    global should_play_offense
+    global should_play_offense, offense_bot, defense
     data = await request.json()
     should_play_offense = data["is_offense"]
+
+    if should_play_offense:
+        offense_bot = DumbOffenseBot()
+    else:
+        defense = Defense(BlockerDefenseBot())
 
     return Response(
         text="OK",
