@@ -55,12 +55,17 @@ def get_block_size(data: np.array, color: str) -> tuple[int, int] | None:
 def parse_data(data: np.ndarray, block_size: tuple[int, int]) -> tuple[Map, dict[ElementType, list[Position]]]:
     size = (data.shape[0] // block_size[0], data.shape[1] // block_size[1])
 
+    half_block_width = block_size[0] // 2
+    half_block_height = block_size[1] //2
+
     element_positions = {ElementType.GOAL: [], ElementType.PLAYER_OFFENSE: []}
     output_map = np.zeros(size).astype(np.int32)
     
     for i in range(size[0]):
         for j in range(size[1]):
-            id = rgb_to_element(*data[i * block_size[0], j * block_size[1]])
+            x = (i * block_size[0]) + half_block_width
+            y = (j * block_size[1]) + half_block_height
+            id = rgb_to_element(*data[x, y])
             output_map[i, j] = id.value
             
             element = ElementType(id)
