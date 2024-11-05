@@ -22,8 +22,6 @@ class GameStatus:
 
 
 class GameHandler:
-    logger: Logger
-
     offense_bot_url: str
     defense_bot_url: str
 
@@ -33,8 +31,7 @@ class GameHandler:
     goal: Position
     move_count: int
 
-    def __init__(self, offense_bot_url: str, defense_bot_url: str, logger: Logger) -> None:
-        self.logger = logger
+    def __init__(self, offense_bot_url: str, defense_bot_url: str) -> None:
         self.offense_bot_url = offense_bot_url
         self.defense_bot_url = defense_bot_url
 
@@ -74,7 +71,7 @@ class GameHandler:
         self.offense_player = OffensePlayer(self.map)
         self.defense_player = DefensePlayer(self.map, n_walls=N_WALLS)
 
-        self.logger.info("start_game")
+        logging.info("start_game")
 
         requests.post(self.offense_bot_url + START_ENDPOINT,
                       json={"is_offense": True})
@@ -97,14 +94,14 @@ class GameHandler:
             if response_json["element"] == "WALL":
                 element = ElementType.WALL
             else:
-                self.logger.info(
+                logging.info(
                     f"Defense bot returned invalid element: {response_json['element']}")
                 return
 
             move = DefenseMove(Position(x, y), element)
 
         except Exception as e:
-            self.logger.error(f"Error parsing response from defense bot: {e}\n{response}")
+            logging.error(f"Error parsing response from defense bot: {e}\n{response}")
             return
 
         self.defense_player.move(move=move,
@@ -120,11 +117,11 @@ class GameHandler:
             data = response.json()
             move = OffenseMove(data["move"])
         except Exception as e:
-            self.logger.error(f"Error parsing response from offense bot: {e}")
+            logging.error(f"Error parsing response from offense bot: {e}")
             return
 
         if self.move_count <= 0:
-            self.logger.info("No more move available")
+            logging.info("No more move available")
             return
 
         self.move_count -= 1
@@ -138,23 +135,23 @@ class GameHandler:
         heigth_map_bounds = self.offense_player.position.y >= self.map.height or self.offense_player.position.y < 0
 
         if width_map_bounds or heigth_map_bounds:
-            self.logger.info(f"Offense move out of bounds: ({self.offense_player.position.x}, {self.offense_player.position.y}) map is {self.map.width}x{self.map.height}")
+            logging.info(f"Offense move out of bounds: ({self.offense_player.position.x}, {self.offense_player.position.y}) map is {self.map.width}x{self.map.height}")
             self.offense_player.position = previous_offense_position
             return
 
         next_tile = self.map.map[self.offense_player.position.x, self.offense_player.position.y]
         if next_tile not in [ElementType.BACKGROUND.value, ElementType.GOAL.value]:
-            self.logger.info(f"Offense move not on a valid map element: ({self.offense_player.position.x}, {self.offense_player.position.y}) is a {ElementType(next_tile)}")
+            logging.info(f"Offense move not on a valid map element: ({self.offense_player.position.x}, {self.offense_player.position.y}) is a {ElementType(next_tile)}")
             self.offense_player.position = previous_offense_position
             return
         
-        self.logger.info(f"Previous offense position: {previous_offense_position}")
-        self.logger.info(f"Goal position: {self.goal}")
+        logging.info(f"Previous offense position: {previous_offense_position}")
+        logging.info(f"Goal position: {self.goal}")
         
-        self.logger.info("Offense move valid")
+        logging.info("Offense move valid")
         self.map.map[previous_offense_position.x, previous_offense_position.y] = ElementType.BACKGROUND.value
         self.map.map[self.offense_player.position.x, self.offense_player.position.y] = ElementType.PLAYER_OFFENSE.value
-        self.logger.info(f"Offense new position is: {self.offense_player.position.x, self.offense_player.position.y}")
+        logging.info(f"Offense new position is: {self.offense_player.position.x, self.offense_player.position.y}")
 
     def get_status(self) -> GameStatus:
         return GameStatus(self.map.to_list())

@@ -53,16 +53,23 @@ async def run_game(request: Request):
 
 
 async def end_game(request: Request):
-    game_running = await run_async(game_runner.force_end_game)
+    game_running = await run_async(game_runner._force_end_game)
     if not game_running:
         return Response(text="No game running", status=400)
 
     return json_response({"status": "stopped"}, status=200)
 
 
-def initialize(app: Application) -> None:
+def initialize(is_debug: bool) -> None:
     global game_runner, handler_thread
-    game_runner = Runner(app.logger)
+
+    extra_format = " %(module)s-%(funcName)s:" if is_debug else ":"
+    logging.basicConfig(level=logging.DEBUG if is_debug else logging.INFO,
+                        format=f"%(asctime)s %(levelname)s{
+                            extra_format} %(message)s",
+                        datefmt="%d-%m-%Y %H:%M:%S")
+
+    game_runner = Runner()
     handler_thread = threading.Thread(target=game_runner.run, args=())
     handler_thread.start()
 
@@ -73,13 +80,7 @@ def stop() -> None:
     handler_thread.join()
 
 
-def setup_web_server(is_debug: bool) -> Application:
-    extra_format = " %(module)s-%(funcName)s:" if is_debug else ":"
-    logging.basicConfig(level=logging.DEBUG if is_debug else logging.INFO,
-                        format=f"%(asctime)s %(levelname)s{
-                            extra_format} %(message)s",
-                        datefmt="%d-%m-%Y %H:%M:%S")
-
+def setup_web_server() -> Application:
     app = web.Application(logger=logging.getLogger())
 
     app.router.add_get("/status", get_status)
@@ -89,11 +90,13 @@ def setup_web_server(is_debug: bool) -> Application:
     return app
 
 
-def test(app: Application) -> None:
+def test() -> None:
     bot_1_url = os.environ["BOT_1_URL"]
     bot_2_url = os.environ["BOT_2_URL"]
 
+    global should_stop
     should_stop = False
+
     def stop(*_):
         global should_stop
         should_stop = True
@@ -109,16 +112,17 @@ def test(app: Application) -> None:
         time.sleep(1)
 
     if not game_runner.status().is_over:
-        app.logger.warning("Game not over")
+        logging.warning("Game not over")
 
 
-def run(app: Application) -> None:
+def run() -> None:
     port = int(os.environ[ENV_PORT]) \
         if ENV_PORT in os.environ \
         else DEFAULT_PORT
     host = "0.0.0.0"
 
-    app.logger.info("Starting game server on %s", f"{host}:{port}")
+    app = setup_web_server()
+    logging.info("Starting game server on %s", f"{host}:{port}")
     web.run_app(app, host=host, port=port)
 
 
@@ -126,12 +130,11 @@ def main() -> None:
     mode = "debug" if ENV_MODE not in os.environ else os.environ[ENV_MODE]
     is_debug = mode in ["debug", "test"]
 
-    app = setup_web_server(is_debug=is_debug)
-    initialize(app)
+    initialize(is_debug)
 
     launch = test if mode == "test" else run
     try:
-        launch(app)
+        launch()
     finally:
         stop()
 
