@@ -50,6 +50,7 @@ class OffenseMove(Enum):
 
 
 class ElementType(Enum):
+    UNKNOW = -2
     VISITED = -1
     BACKGROUND = 0
     WALL = 1
@@ -61,6 +62,7 @@ class ElementType(Enum):
 
 
 ELEMENT_TYPE_TO_COLOR = {
+    ElementType.UNKNOW: "#DFDFDF",
     ElementType.BACKGROUND: "#FFFFFF",
     ElementType.WALL: "#000000",
     ElementType.PLAYER_OFFENSE: "#FF0000",

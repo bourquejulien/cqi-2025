@@ -11,8 +11,8 @@ from .defense_player import DefensePlayer, DefenseMove
 START_ENDPOINT = "/start"
 NEXT_ENDPOINT = "/next_move"
 END_ENDPOINT = "/end_game"
-N_WALLS = 20
-MAX_MOVES = 100
+N_WALLS = 5
+MAX_MOVES = 50
 
 
 @dataclass

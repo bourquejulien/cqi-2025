@@ -3,7 +3,7 @@ import logging
 import game_server_common.helpers as helpers
 
 from dataclasses import dataclass
-from typing import Self
+import numpy as np
 from game_server_common.map import Map, Tile
 from game_server_common.base import ElementType, Position, OffenseMove, OffenseMove
 
@@ -28,11 +28,62 @@ class DumbOffenseBot:
     current_position: Position
     limits: Limits
 
+    # feilds for aggregate map
+    prev_move: OffenseMove | None
+    aggregate_map: Map | None
+    map_position: Position | None
+
     def __init__(self) -> None:
         self.map = dict()
         self.block_size = None
         self.current_position = Position(0, 0)
         self.limits = Limits(None, None, None, None)
+
+        self.prev_move = None
+        self.aggregate_map = None
+        self.map_position = None
+
+    # Assumes that the player makes a valid move each turn
+    def _aggregate_map(self, new_map: Map, player_rel_pos: Position) -> None:
+        if self.prev_move is None or self.aggregate_map is None:
+            self.aggregate_map = new_map
+            self.map_position = player_rel_pos
+            return
+        
+        # Calculate the offset of the new map relative to the old map using the previous move direction
+        offset: Position = Position(0, 0)
+        if self.prev_move == OffenseMove.UP:
+            offset = Position(0, -1)
+        elif self.prev_move == OffenseMove.DOWN:
+            offset = Position(0, 1)
+        elif self.prev_move == OffenseMove.LEFT:
+            offset = Position(-1, 0)
+        elif self.prev_move == OffenseMove.RIGHT:
+            offset = Position(1, 0)
+
+        map_offset = (self.map_position + offset) - player_rel_pos  # Offset to go from new_map to old_map
+
+        origin_new = Position(0, 0) + map_offset
+        end_new = Position(new_map.map.shape[0], new_map.map.shape[1]) + map_offset
+
+        aggregate_width = max(end_new.x, self.aggregate_map.map.shape[0]) - min(origin_new.x, 0)
+        aggregate_height = max(end_new.y, self.aggregate_map.map.shape[1]) - min(origin_new.y, 0)
+        aggregate_map = np.full((aggregate_width, aggregate_height), ElementType.UNKNOW.value)
+
+        # Compute 0,0 of old map in aggregate map
+        old_x_offset = 0 if origin_new.x >= 0 else abs(origin_new.x)
+        old_y_offset = 0 if origin_new.y >= 0 else abs(origin_new.y)
+        aggregate_map[old_x_offset:old_x_offset + self.aggregate_map.map.shape[0], old_y_offset:old_y_offset + self.aggregate_map.map.shape[1]] = self.aggregate_map.map
+
+        # Compute 0,0 of new map in aggregate map
+        new_x_offset = map_offset.x + old_x_offset
+        new_y_offset = map_offset.y + old_y_offset
+        aggregate_map[new_x_offset:new_x_offset + new_map.map.shape[0], new_y_offset:new_y_offset + new_map.map.shape[1]] = new_map.map
+
+        self.aggregate_map = Map(aggregate_map)
+        player_x, player_y = np.where(
+            self.aggregate_map.map == ElementType.PLAYER_OFFENSE.value)
+        self.map_position = Position(int(player_x[0]), int(player_y[0]))
 
     def _move_priority(self) -> list[OffenseMove]:
         if self.limits.right is None or (self.limits.right - self.current_position.x) > 2:
@@ -135,6 +186,9 @@ class DumbOffenseBot:
             return None
         map, map_pos, goal_pos = data
 
+        self._aggregate_map(map, map_pos)
+        logging.info(f"Full map: {self.aggregate_map.to_img_64().decode()}")
+
         nearby_tiles = map.get_nearby_tiles(*map_pos)
         self._set_map_limits(nearby_tiles)
         available_moves = [tile for tile in nearby_tiles if tile[0].element in [
@@ -148,4 +202,5 @@ class DumbOffenseBot:
         if move != None:
             self._set_current_position(move)
 
+        self.prev_move = move
         return move

@@ -24,7 +24,7 @@ def play_offense(payload: dict) -> Response:
     data = payload["map"]
 
     move = offense_bot.play(data)
-    logging.info("map: %s, Moved played: %s", data, move)
+    logging.info("Moved played: %s", move)
 
     if move is None:
         return Response(
