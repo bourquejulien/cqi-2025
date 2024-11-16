@@ -7,6 +7,7 @@ import logging
 from aiohttp import web
 from aiohttp.web import Response, json_response, Application, Request
 
+from src.offense.shortest_path_bot import ShortestPathBot
 from src.offense.offense_bot import DumbOffenseBot
 from src.defense.bots import RandomDefenseBot, BlockerDefenseBot
 from src.defense.defense import Defense
@@ -56,7 +57,7 @@ async def start(request: Request):
     should_play_offense = data["is_offense"]
 
     if should_play_offense:
-        offense_bot = DumbOffenseBot()
+        offense_bot = ShortestPathBot()
     else:
         defense = Defense(BlockerDefenseBot())
 
