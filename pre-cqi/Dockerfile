@@ -41,7 +41,7 @@ COPY --from=base /app/dist .
 COPY --from=base ./app/start .
 
 # Prevent user cqi from accessing the app files, make the start binary run as root
-RUN chmod -R 770 /app && chmod 4771 /app/start
-USER cqi
+# RUN chmod -R 770 /app && chmod 4771 /app/start
+USER root
 
 ENTRYPOINT [ "/app/start" ]
