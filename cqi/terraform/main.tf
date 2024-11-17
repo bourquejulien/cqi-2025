@@ -5,6 +5,22 @@ module "teams" {
   team_name = each.value
 }
 
+data "aws_secretsmanager_random_password" "internal_key" {
+  password_length     = 20
+  include_space       = false
+}
+
+resource "aws_secretsmanager_secret" "internal_key" {
+  name                           = "internal_key"
+  recovery_window_in_days        = 0
+  force_overwrite_replica_secret = true
+}
+
+resource "aws_secretsmanager_secret_version" "internal_key" {
+  secret_id     = aws_secretsmanager_secret.internal_key.id
+  secret_string = data.aws_secretsmanager_random_password.internal_key.random_password
+}
+
 resource "aws_security_group" "game_server_sg" {
   name_prefix = "game_server_sg_"
 

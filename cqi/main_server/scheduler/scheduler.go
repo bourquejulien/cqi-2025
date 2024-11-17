@@ -2,6 +2,7 @@ package scheduler
 
 import (
 	"context"
+	"cqiprog/infra"
 	"time"
 )
 
@@ -19,11 +20,12 @@ type Scheduler struct {
 	ongoingMatches    []Match
 	plannedMatches    []Match
 	cancel            *context.CancelFunc
+	infra             *infra.Infra
 }
 
-func New() (*Scheduler, error) {
+func New(infra *infra.Infra) (*Scheduler, error) {
 	ctx, cancel := context.WithCancel(context.Background())
-	schduler := Scheduler{false, make([]Match, 0), make([]Match, 0), &cancel}
+	schduler := Scheduler{false, make([]Match, 0), make([]Match, 0), &cancel, infra}
 
 	go daemon(&schduler, ctx)
 

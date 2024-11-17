@@ -1,9 +1,5 @@
-resource "random_id" "team_id" {
-  byte_length = 8
-}
-
 resource "aws_ecr_repository" "team_repo" {
-  name = "${lower(var.team_name)}_${random_id.team_id.hex}"
+  name = lower(var.team_name)
 }
 
 resource "aws_iam_user" "team_user" {
@@ -40,8 +36,8 @@ resource "aws_iam_access_key" "team_user_access_key" {
 }
 
 resource "aws_secretsmanager_secret" "user_secret" {
-  name = "${lower(var.team_name)}_secret"
-  recovery_window_in_days = 0
+  name                           = "${lower(var.team_name)}_secret"
+  recovery_window_in_days        = 0
   force_overwrite_replica_secret = true
 }
 

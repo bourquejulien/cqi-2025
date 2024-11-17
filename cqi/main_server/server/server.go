@@ -17,6 +17,8 @@ type Server struct {
 	Data      *data.Data
 	Scheduler *scheduler.Scheduler
 
+	InternalKey string
+
 	router *chi.Mux
 	server http.Server
 }
@@ -94,6 +96,17 @@ func (p *Server) getInternalStats(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Hello, World!")
 }
 
+func (p *Server) validateToken(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		token := r.Header.Get("Authorization")
+		if token != p.InternalKey {
+			http.Error(w, "Forbidden", http.StatusForbidden)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+
 func (p *Server) Init() {
 	router := chi.NewRouter()
 	router.Use(middleware.Logger)
@@ -106,6 +119,7 @@ func (p *Server) Init() {
 		r.Get("/stats", p.getStats)
 
 		r.Route("/internal", func(r chi.Router) {
+			r.Use(p.validateToken)
 			r.Route("/match", func(r chi.Router) {
 				r.Post("/reset", p.resetMatchResults)
 				r.Post("/pop", p.popMatch)

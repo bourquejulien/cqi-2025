@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"cqiprog/data"
+	"cqiprog/infra"
 	"cqiprog/scheduler"
 	"cqiprog/server"
 	"fmt"
@@ -57,6 +58,12 @@ func main() {
 		port = "8000"
 	}
 
+	infra, err := infra.New(context.Background())
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	if connectionString == "" {
 		connectionString = "user=postgres password=postgres dbname=postgres sslmode=disable host=localhost"
 	}
@@ -69,7 +76,7 @@ func main() {
 
 	defer data.Close(context.Background())
 
-	scheduler, err := scheduler.New()
+	scheduler, err := scheduler.New(infra)
 
 	if err != nil {
 		log.Fatal(err)
@@ -77,7 +84,13 @@ func main() {
 
 	defer scheduler.Close()
 
-	server := server.Server{Data: data, Scheduler: scheduler}
+	internalKey, err := infra.GetInternalKey(context.Background())
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	server := server.Server{Data: data, Scheduler: scheduler, InternalKey: internalKey}
 
 	err = ListenAndServe(&server, port)
 	if err != nil {

@@ -1,6 +1,26 @@
 [
-    {
-        "id": "poly",
-        "name": "Polytechnique Montréal"
-    }
+  {
+    "id": "poly",
+    "name": "Polytechnique Montréal"
+  },
+  {
+    "id": "ets",
+    "name": "École de technologie supérieure"
+  },
+  {
+    "id": "sherbrooke",
+    "name": "Université de Sherbrooke"
+  },
+  {
+    "id": "laval",
+    "name": "Université Laval"
+  },
+  {
+    "id": "mcgill",
+    "name": "Université McGill"
+  },
+  {
+    "id": "concordia",
+    "name": "Université Concordia"
+  }
 ]

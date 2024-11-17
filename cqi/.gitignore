@@ -3,3 +3,4 @@ dist/
 *.bug
 game_server_common.egg-info/
 build/
+.env
