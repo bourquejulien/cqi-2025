@@ -49,7 +49,7 @@ class Map(CommonMap):
             right = min(self.width, offense_position.x + visibility_range)
             upper = max(0, offense_position.y - visibility_range)
             lower = min(self.height, offense_position.y + visibility_range)
-            image = image.crop(tuple([value * TILE_SIZE for value in [left, upper, right, lower]]))
+            image = image.crop(tuple([value * TILE_SIZE for value in [left, upper, right + 1, lower + 1]]))
 
         buffered = BytesIO()
         image.save(buffered, format="PNG")
