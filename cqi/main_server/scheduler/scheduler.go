@@ -26,9 +26,19 @@ type Match struct {
 	LaunchTime *time.Time
 }
 
+type GameResult struct {
+	Id         string  `json:"id"`
+	WinnerId   *string `json:"winner_id"`
+	IsError    bool    `json:"is_error"`
+	Team1Score float32 `json:"team1_score"`
+	Team2Score float32 `json:"team2_score"`
+	ErrorData  *string `json:"error_data"`
+	GameData   *string `json:"game_data"`
+}
+
 type Scheduler struct {
 	isAutoplayEnabled bool
-	ongoingMatches    []*Match
+	ongoingMatches    map[string]*Match
 	plannedMatches    []*Match
 	cancel            *context.CancelFunc
 	infra             *infra.Infra
@@ -38,7 +48,7 @@ type Scheduler struct {
 
 func New(infra *infra.Infra, data *data.Data) (*Scheduler, error) {
 	ctx, cancel := context.WithCancel(context.Background())
-	schduler := Scheduler{false, make([]*Match, 0, MAX_PLANNED_MATCHES*2), make([]*Match, 0, MAX_PLANNED_MATCHES*2), &cancel, infra, data, sync.Mutex{}}
+	schduler := Scheduler{false, make(map[string]*Match), make([]*Match, 0, MAX_PLANNED_MATCHES*2), &cancel, infra, data, sync.Mutex{}}
 
 	go daemon(&schduler, ctx)
 
@@ -49,10 +59,39 @@ func (s *Scheduler) SetAutoplay(isEnabled bool) {
 	s.isAutoplayEnabled = isEnabled
 }
 
-func (s* Scheduler) AddResult(ctx context.Context) {
-	
+func (s *Scheduler) AddResult(gameResult *GameResult, ctx context.Context) bool {
+	s.lock.Lock()
+	defer s.lock.Unlock()
 
+	match, ok := s.ongoingMatches[gameResult.Id]
 
+	if !ok {
+		return false
+	}
+
+	delete(s.ongoingMatches, gameResult.Id)
+
+	gameData := data.DbGame{
+		Id:         gameResult.Id,
+		StartTime:  *match.LaunchTime,
+		EndTime:    time.Now(),
+		Team1Id:    match.Team1Id,
+		Team2Id:    match.Team2Id,
+		WinnerId:   gameResult.WinnerId,
+		IsError:    gameResult.IsError,
+		Team1Score: gameResult.Team1Score,
+		Team2Score: gameResult.Team2Score,
+		ErrorData:  gameResult.ErrorData,
+		GameData:   gameResult.GameData,
+	}
+	err := s.data.AddGame(&gameData, ctx)
+
+	if err != nil {
+		log.Println(err)
+		return false
+	}
+
+	return true
 }
 
 func (s *Scheduler) ForceAddMatch(team1Id string, team2Id string, ctx context.Context) bool {
@@ -91,7 +130,7 @@ func (s *Scheduler) PopMatch(n int, ctx context.Context) []Match {
 	launchTime := time.Now()
 	for i, match := range s.plannedMatches[:n] {
 		match.LaunchTime = &launchTime
-		s.ongoingMatches = append(s.ongoingMatches, match)
+		s.ongoingMatches[match.Id] = match
 
 		matches[i] = *match
 	}
@@ -104,7 +143,7 @@ func (s *Scheduler) PopMatch(n int, ctx context.Context) []Match {
 func (s *Scheduler) Reset() {
 	s.lock.Lock()
 	defer s.lock.Unlock()
-	s.ongoingMatches = make([]*Match, MAX_PLANNED_MATCHES*2)
+	s.ongoingMatches = make(map[string]*Match)
 }
 
 func (s *Scheduler) Close() {

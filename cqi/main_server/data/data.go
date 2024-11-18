@@ -48,8 +48,8 @@ func (d *Data) ListGames(context context.Context, limit, page int) ([]*DbGame, e
 	return d.scoreDB.getGamesWithPagination(context, limit, page)
 }
 
-func (d *Data) AddGame(context context.Context, limit, page int) ([]*DbGame, error) {
-	return d.scoreDB.getGamesWithPagination(context, limit, page)
+func (d *Data) AddGame(game *DbGame, ctx context.Context) error {
+	return d.scoreDB.addGame(game, ctx)
 }
 
 func (d *Data) GetTeamIds() []string {

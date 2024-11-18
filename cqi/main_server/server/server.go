@@ -23,90 +23,6 @@ type Server struct {
 	server http.Server
 }
 
-func (p *Server) listGames(w http.ResponseWriter, r *http.Request) {
-	limit, err := strconv.Atoi(r.URL.Query().Get("limit"))
-	if err != nil {
-		http.Error(w, "Invalid limit parameter", http.StatusBadRequest)
-		return
-	}
-
-	page, err := strconv.Atoi(r.URL.Query().Get("page"))
-	if err != nil {
-		http.Error(w, "Invalid page parameter", http.StatusBadRequest)
-		return
-	}
-
-	games, err := p.Data.ListGames(r.Response.Request.Context(), limit, page)
-	if err != nil {
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
-
-	render.JSON(w, r, games)
-}
-
-func (p *Server) getGame(w http.ResponseWriter, r *http.Request) {
-	id := r.URL.Query().Get("id")
-	if id == "" {
-		http.Error(w, "Invalid id parameter", http.StatusBadRequest)
-		return
-	}
-
-	game, err := p.Data.GetGame(r.URL.Query().Get("id"), r.Response.Request.Context())
-
-	if err != nil {
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
-
-	render.JSON(w, r, game)
-}
-
-func (p *Server) getStats(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Hello, World!")
-}
-
-func (p *Server) resetMatchResults(w http.ResponseWriter, r *http.Request) {
-	p.Scheduler.Reset()
-}
-
-func (p *Server) popMatch(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Hello, World!")
-}
-
-func (p *Server) addMatchResults(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Hello, World!")
-}
-
-func (p *Server) manageAutoplay(w http.ResponseWriter, r *http.Request) {
-	isEnabled, err := strconv.ParseBool(r.URL.Query().Get("enabled"))
-	if err != nil {
-		http.Error(w, "Invalid enabled parameter", http.StatusBadRequest)
-		return
-	}
-
-	p.Scheduler.SetAutoplay(isEnabled)
-}
-
-func (p *Server) forceQueueMatch(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Hello, World!")
-}
-
-func (p *Server) getInternalStats(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Hello, World!")
-}
-
-func (p *Server) validateToken(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		token := r.Header.Get("Authorization")
-		if token != p.InternalKey {
-			http.Error(w, "Forbidden", http.StatusForbidden)
-			return
-		}
-		next.ServeHTTP(w, r)
-	})
-}
-
 func (p *Server) Init() {
 	router := chi.NewRouter()
 	router.Use(middleware.Logger)
@@ -146,4 +62,125 @@ func (p *Server) Start(port int) error {
 
 func (p *Server) Stop(ctx context.Context) error {
 	return p.server.Shutdown(ctx)
+}
+
+func (p *Server) listGames(w http.ResponseWriter, r *http.Request) {
+	limit, err := strconv.Atoi(r.URL.Query().Get("limit"))
+	if err != nil {
+		http.Error(w, "Invalid limit parameter", http.StatusBadRequest)
+		return
+	}
+
+	page, err := strconv.Atoi(r.URL.Query().Get("page"))
+	if err != nil {
+		http.Error(w, "Invalid page parameter", http.StatusBadRequest)
+		return
+	}
+
+	games, err := p.Data.ListGames(r.Context(), limit, page)
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	render.JSON(w, r, games)
+}
+
+func (p *Server) getGame(w http.ResponseWriter, r *http.Request) {
+	id := r.URL.Query().Get("id")
+	if id == "" {
+		http.Error(w, "Invalid id parameter", http.StatusBadRequest)
+		return
+	}
+
+	game, err := p.Data.GetGame(r.URL.Query().Get("id"), r.Context())
+
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	render.JSON(w, r, game)
+}
+
+func (p *Server) getStats(w http.ResponseWriter, r *http.Request) {
+	// TODO
+	stats := Stats{}
+	render.JSON(w, r, stats)
+}
+
+func (p *Server) resetMatchResults(w http.ResponseWriter, r *http.Request) {
+	p.Scheduler.Reset()
+}
+
+func (p *Server) popMatch(w http.ResponseWriter, r *http.Request) {
+	n, err := strconv.Atoi(r.URL.Query().Get("n"))
+
+	if err != nil {
+		http.Error(w, "Invalid n parameter", http.StatusBadRequest)
+		return
+	}
+
+	matches := p.Scheduler.PopMatch(n, r.Context())
+
+	resultMatches := make([]Match, len(matches))
+	for i, match := range matches {
+		resultMatches[i] = Match{
+			Id:         match.Id,
+			Team1Id:    match.Team1Id,
+			Team2Id:    match.Team2Id,
+			ImageTeam1: match.ImageTeam1,
+			ImageTeam2: match.ImageTeam2,
+		}
+	}
+
+	render.JSON(w, r, resultMatches)
+}
+
+func (p *Server) addMatchResults(w http.ResponseWriter, r *http.Request) {
+	var result scheduler.GameResult
+	if err := render.DecodeJSON(r.Body, &result); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	if !p.Scheduler.AddResult(&result, r.Context()) {
+		http.Error(w, "Invalid game response", http.StatusBadRequest)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
+func (p *Server) manageAutoplay(w http.ResponseWriter, r *http.Request) {
+	isEnabled, err := strconv.ParseBool(r.URL.Query().Get("enabled"))
+	if err != nil {
+		http.Error(w, "Invalid enabled parameter", http.StatusBadRequest)
+		return
+	}
+
+	p.Scheduler.SetAutoplay(isEnabled)
+}
+
+func (p *Server) forceQueueMatch(w http.ResponseWriter, r *http.Request) {
+	team1Id := r.URL.Query().Get("team1_id")
+	team2Id := r.URL.Query().Get("team2_id")
+
+	if team1Id == "" || team2Id == "" {
+		http.Error(w, "Invalid team1_id or team2_id parameter", http.StatusBadRequest)
+		return
+	}
+
+	p.Scheduler.ForceAddMatch(team1Id, team2Id, r.Context())
+}
+
+func (p *Server) validateToken(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		token := r.Header.Get("Authorization")
+		if token != p.InternalKey {
+			http.Error(w, "Forbidden", http.StatusForbidden)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
 }

@@ -16,7 +16,7 @@ const (
 )
 
 type DbGame struct {
-	id         string     `json:"id"`
+	Id         string     `json:"id"`
 	StartTime  time.Time  `json:"start_time"`
 	EndTime    time.Time  `json:"end_time"`
 	Team1Id    string     `json:"team1_id"`
@@ -69,7 +69,7 @@ func (p *Database) getGame(id string, ctx context.Context) (*DbGame, error) {
 	row := p.conn.QueryRow(ctx, "SELECT id, start_time, end_time, team1_id, team2_id, winner_id, is_error, team1_score, team2_score FROM games WHERE id = $1", id)
 
 	game := DbGame{}
-	err := row.Scan(&game.id, &game.StartTime, &game.EndTime, &game.Team1Id, &game.Team2Id, &game.WinnerId, &game.IsError, &game.Team1Score, &game.Team2Score)
+	err := row.Scan(&game.Id, &game.StartTime, &game.EndTime, &game.Team1Id, &game.Team2Id, &game.WinnerId, &game.IsError, &game.Team1Score, &game.Team2Score)
 	if err != nil {
 		return nil, err
 	}
@@ -95,7 +95,7 @@ func (p *Database) getGamesWithPagination(ctx context.Context, limit int, page i
 	games := []*DbGame{}
 	for rows.Next() {
 		game := DbGame{}
-		err := rows.Scan(&game.id, &game.StartTime, &game.EndTime, &game.Team1Id, &game.Team2Id, &game.WinnerId, &game.IsError, &game.Team1Score, &game.Team2Score)
+		err := rows.Scan(&game.Id, &game.StartTime, &game.EndTime, &game.Team1Id, &game.Team2Id, &game.WinnerId, &game.IsError, &game.Team1Score, &game.Team2Score)
 		if err != nil {
 			return nil, err
 		}
@@ -113,7 +113,7 @@ func (p *Database) addGame(game *DbGame, ctx context.Context) error {
 	defer p.lock.Unlock()
 
 	_, err := p.conn.Exec(ctx, "INSERT INTO games (id, start_time, end_time, team1_id, team2_id, winner_id, is_error, team1_score, team2_score, error_data, game_data) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)",
-		game.id, game.StartTime, game.EndTime, game.Team1Id, game.Team2Id, game.WinnerId, game.IsError, game.Team1Score, game.Team2Score, game.ErrorData, game.GameData)
+		game.Id, game.StartTime, game.EndTime, game.Team1Id, game.Team2Id, game.WinnerId, game.IsError, game.Team1Score, game.Team2Score, game.ErrorData, game.GameData)
 	if err != nil {
 		return err
 	}
@@ -153,7 +153,7 @@ func (p *cache) addGame(game *DbGame) {
 	p.lock.Lock()
 	defer p.lock.Unlock()
 
-	p.mapping[game.id] = game
+	p.mapping[game.Id] = game
 	p.list = append(p.list, game)
 
 	sort.Slice(p.list, func(i, j int) bool {
