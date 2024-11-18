@@ -21,8 +21,9 @@ type Infra struct {
 }
 
 type Image struct {
-	Tag    string
-	Digest string
+	Tag     string
+	Digest  string
+	FullUrl string
 }
 
 type TeamImage struct {
@@ -53,15 +54,27 @@ func (p *Infra) GetInternalKey(ctx context.Context) (string, error) {
 }
 
 func (p *Infra) ListImages(teamsIds []string, tags []string, ctx context.Context) ([]*TeamImage, error) {
-	input := &ecr.DescribeRepositoriesInput{RepositoryNames: teamsIds}
+	input := &ecr.DescribeRepositoriesInput{}
 
-	results, err := p.ecr.DescribeRepositories(ctx, input)
+	result, err := p.ecr.DescribeRepositories(ctx, input)
 	if err != nil {
 		return nil, fmt.Errorf("failed to describe repositories, %v", err)
 	}
 
-	teamImages := make([]*TeamImage, 0, len(results.Repositories))
-	for _, repo := range results.Repositories {
+	teamImages := make([]*TeamImage, 0, len(result.Repositories))
+	for _, repo := range result.Repositories {
+		isValid := false
+		for _, teamId := range teamsIds {
+			if *repo.RepositoryName == teamId {
+				isValid = true
+				break
+			}
+		}
+
+		if !isValid {
+			continue
+		}
+
 		listImagesInput := &ecr.ListImagesInput{RepositoryName: repo.RepositoryName}
 		images, err := p.ecr.ListImages(ctx, listImagesInput)
 
@@ -74,7 +87,8 @@ func (p *Infra) ListImages(teamsIds []string, tags []string, ctx context.Context
 		for _, image := range images.ImageIds {
 			for _, tag := range tags {
 				if *image.ImageTag == tag {
-					teamImage.Images = append(teamImage.Images, Image{Tag: *image.ImageTag, Digest: *image.ImageDigest})
+					fullUrl := *repo.RepositoryUri + ":" + *image.ImageTag
+					teamImage.Images = append(teamImage.Images, Image{Tag: *image.ImageTag, Digest: *image.ImageDigest, FullUrl: fullUrl})
 					break
 				}
 			}

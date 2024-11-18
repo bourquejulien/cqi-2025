@@ -194,10 +194,10 @@ func autoAddMatch(scheduler *Scheduler, ctx context.Context) {
 
 		match := Match{
 			Id:         uuid.NewString(),
-			Team1Id:    teamIds[team1Index],
-			Team2Id:    teamIds[team2Index],
-			ImageTeam1: DEFAULT_TAG,
-			ImageTeam2: DEFAULT_TAG,
+			Team1Id:    teamImages[team1Index].TeamId,
+			Team2Id:    teamImages[team2Index].TeamId,
+			ImageTeam1: teamImages[team1Index].Images[0].FullUrl,
+			ImageTeam2: teamImages[team2Index].Images[0].FullUrl,
 			LaunchTime: nil,
 		}
 

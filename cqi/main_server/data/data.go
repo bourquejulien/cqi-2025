@@ -11,8 +11,8 @@ import (
 var teams string
 
 type teamInfo struct {
-	id   int    `json:"id"`
-	name string `json:"name"`
+	ID   string `json:"id"`
+	Name string `json:"name"`
 }
 
 type Team struct {
@@ -27,6 +27,7 @@ type Data struct {
 func New(connectionString string) (*Data, error) {
 	data := Data{teams: []teamInfo{}}
 	err := json.Unmarshal([]byte(teams), &data.teams)
+
 	if err != nil {
 		log.Fatalf("Error unmarshalling teams data: %v", err)
 	}
@@ -55,7 +56,7 @@ func (d *Data) AddGame(game *DbGame, ctx context.Context) error {
 func (d *Data) GetTeamIds() []string {
 	teamIds := make([]string, len(d.teams))
 	for i, team := range d.teams {
-		teamIds[i] = team.name
+		teamIds[i] = team.ID
 	}
 	return teamIds
 }
