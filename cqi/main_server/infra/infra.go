@@ -52,7 +52,7 @@ func (p *Infra) GetInternalKey(ctx context.Context) (string, error) {
 	return *result.SecretString, nil
 }
 
-func (p *Infra) ListImages(teamsIds []string, ctx context.Context) ([]*TeamImage, error) {
+func (p *Infra) ListImages(teamsIds []string, tags []string, ctx context.Context) ([]*TeamImage, error) {
 	input := &ecr.DescribeRepositoriesInput{RepositoryNames: teamsIds}
 
 	results, err := p.ecr.DescribeRepositories(ctx, input)
@@ -60,7 +60,7 @@ func (p *Infra) ListImages(teamsIds []string, ctx context.Context) ([]*TeamImage
 		return nil, fmt.Errorf("failed to describe repositories, %v", err)
 	}
 
-	teamImages := make([]*TeamImage, len(results.Repositories))
+	teamImages := make([]*TeamImage, 0, len(results.Repositories))
 	for _, repo := range results.Repositories {
 		listImagesInput := &ecr.ListImagesInput{RepositoryName: repo.RepositoryName}
 		images, err := p.ecr.ListImages(ctx, listImagesInput)
@@ -69,10 +69,19 @@ func (p *Infra) ListImages(teamsIds []string, ctx context.Context) ([]*TeamImage
 			return nil, fmt.Errorf("failed to list images, %v", err)
 		}
 
-		teamImage := &TeamImage{TeamId: *repo.RepositoryName, Images: make([]Image, len(images.ImageIds))}
+		teamImage := &TeamImage{TeamId: *repo.RepositoryName, Images: make([]Image, 0, len(images.ImageIds))}
 
 		for _, image := range images.ImageIds {
-			teamImage.Images = append(teamImage.Images, Image{Tag: *image.ImageTag, Digest: *image.ImageDigest})
+			for _, tag := range tags {
+				if *image.ImageTag == tag {
+					teamImage.Images = append(teamImage.Images, Image{Tag: *image.ImageTag, Digest: *image.ImageDigest})
+					break
+				}
+			}
+		}
+
+		if len(teamImage.Images) == 0 {
+			continue
 		}
 
 		teamImages = append(teamImages, teamImage)

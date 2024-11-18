@@ -76,7 +76,7 @@ func main() {
 
 	defer data.Close(context.Background())
 
-	scheduler, err := scheduler.New(infra)
+	scheduler, err := scheduler.New(infra, data)
 
 	if err != nil {
 		log.Fatal(err)

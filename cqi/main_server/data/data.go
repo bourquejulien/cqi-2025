@@ -52,6 +52,14 @@ func (d *Data) AddGame(context context.Context, limit, page int) ([]*DbGame, err
 	return d.scoreDB.getGamesWithPagination(context, limit, page)
 }
 
+func (d *Data) GetTeamIds() []string {
+	teamIds := make([]string, len(d.teams))
+	for i, team := range d.teams {
+		teamIds[i] = team.name
+	}
+	return teamIds
+}
+
 func (d *Data) Close(ctx context.Context) {
 	d.scoreDB.close(ctx)
 }

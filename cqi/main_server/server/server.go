@@ -123,7 +123,7 @@ func (p *Server) Init() {
 			r.Route("/match", func(r chi.Router) {
 				r.Post("/reset", p.resetMatchResults)
 				r.Post("/pop", p.popMatch)
-				r.Post("/add", p.addMatchResults)
+				r.Post("/add_result", p.addMatchResults)
 			})
 			r.Post("/autoplay", p.manageAutoplay)
 			r.Post("/force_queue", p.forceQueueMatch)
