@@ -1,10 +1,10 @@
 plan:	
-	terraform plan -var-file=data.tfvars
+	terraform plan
 
 apply:
-	terraform apply -var-file=data.tfvars
+	terraform apply
 
 destroy:
-	terraform destroy -var-file=data.tfvars
+	terraform destroy
 
 .phony: plan apply destroy

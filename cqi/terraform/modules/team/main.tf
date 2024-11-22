@@ -1,5 +1,6 @@
 resource "aws_ecr_repository" "team_repo" {
   name = lower(var.team_name)
+  force_delete = true
 }
 
 resource "aws_iam_user" "team_user" {

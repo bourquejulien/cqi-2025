@@ -6,8 +6,8 @@ module "teams" {
 }
 
 data "aws_secretsmanager_random_password" "internal_key" {
-  password_length     = 20
-  include_space       = false
+  password_length = 20
+  include_space   = false
 }
 
 resource "aws_secretsmanager_secret" "internal_key" {
@@ -27,6 +27,13 @@ resource "aws_security_group" "game_server_sg" {
   ingress {
     from_port   = 80
     to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
@@ -56,18 +63,6 @@ resource "aws_instance" "game_server" {
 
   tags = {
     Name = "game_server"
-  }
-}
-
-resource "namecheap_domain_records" "game_server_record" {
-  domain = "cqiprog.info"
-  mode   = "OVERWRITE"
-
-  record {
-    hostname = "@"
-    type     = "A"
-    address  = aws_instance.game_server.public_ip
-    ttl      = 300 # 5 minutes
   }
 }
 
@@ -115,4 +110,18 @@ resource "aws_iam_role_policy_attachment" "ec2_role_policy_attachment" {
 resource "aws_iam_instance_profile" "ec2_instance_profile" {
   name = "ec2_instance_profile"
   role = aws_iam_role.ec2_role.name
+}
+
+data "aws_secretsmanager_secret" "namecheap_key" {
+  arn = "arn:aws:secretsmanager:us-east-1:481665101132:secret:namecheap_api_key-L2qGRe"
+}
+
+data "aws_secretsmanager_secret_version" "namecheap_key" {
+  secret_id = data.aws_secretsmanager_secret.namecheap_key.id
+}
+
+data "http" "set_namecheap_key" {
+  url = "https://dynamicdns.park-your-domain.com/update?host=${var.domain.host}&domain=${var.domain.name}&password=${data.aws_secretsmanager_secret_version.namecheap_key.secret_string}&ip=${aws_instance.game_server.public_ip}"
+  method   = "GET"
+  depends_on = [ aws_instance.game_server ]
 }

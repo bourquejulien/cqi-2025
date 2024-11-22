@@ -14,10 +14,14 @@ variable "team_names" {
   ]
 }
 
-variable "namecheap_username" {
-  type = string
-}
-
-variable "namecheap_key" {
-  type = string
+variable "domain" {
+  description = "The server domain"
+  type        = object({
+    name = string
+    host = string
+  })
+  default = {
+    host = "data"
+    name = "cqiprog.info"
+  }
 }
