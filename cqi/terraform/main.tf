@@ -53,16 +53,49 @@ resource "aws_security_group" "game_server_sg" {
   }
 }
 
+resource "aws_security_group" "game_runner_sg" {
+  name_prefix = "game_runner_sg_"
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
 resource "aws_instance" "game_server" {
   ami                         = "ami-0325498274077fac5" # Ubuntu 24.04 ARM64
   instance_type               = "t4g.nano"
   associate_public_ip_address = true
   vpc_security_group_ids      = [aws_security_group.game_server_sg.id]
+  key_name                    = aws_key_pair.default_ssh_key.key_name
 
   iam_instance_profile = aws_iam_instance_profile.ec2_instance_profile.name
 
   tags = {
     Name = "game_server"
+  }
+}
+
+resource "aws_instance" "game_runner" {
+  ami                         = "ami-0325498274077fac5" # Ubuntu 24.04 ARM64
+  instance_type               = "t4g.nano"
+  associate_public_ip_address = true
+  vpc_security_group_ids      = [aws_security_group.game_runner_sg.id]
+  key_name                    = aws_key_pair.default_ssh_key.key_name
+
+  iam_instance_profile = aws_iam_instance_profile.ec2_instance_profile.name
+
+  tags = {
+    Name = "game_runner"
   }
 }
 
@@ -120,8 +153,19 @@ data "aws_secretsmanager_secret_version" "namecheap_key" {
   secret_id = data.aws_secretsmanager_secret.namecheap_key.id
 }
 
-data "http" "set_namecheap_key" {
-  url = "https://dynamicdns.park-your-domain.com/update?host=${var.domain.host}&domain=${var.domain.name}&password=${data.aws_secretsmanager_secret_version.namecheap_key.secret_string}&ip=${aws_instance.game_server.public_ip}"
+data "http" "set_namecheap_domain" {
+  url = "https://dynamicdns.park-your-domain.com/update?host=${var.domain.game_server}&domain=${var.domain.address}&password=${data.aws_secretsmanager_secret_version.namecheap_key.secret_string}&ip=${aws_instance.game_server.public_ip}"
   method   = "GET"
   depends_on = [ aws_instance.game_server ]
+}
+
+data "http" "set_namecheap_key" {
+  url = "https://dynamicdns.park-your-domain.com/update?host=${var.domain.game_runner}&domain=${var.domain.address}&password=${data.aws_secretsmanager_secret_version.namecheap_key.secret_string}&ip=${aws_instance.game_runner.public_ip}"
+  method   = "GET"
+  depends_on = [ aws_instance.game_server ]
+}
+
+resource "aws_key_pair" "default_ssh_key" {
+  key_name   = var.ec2_ssh_key.name
+  public_key = var.ec2_ssh_key.public_key
 }
