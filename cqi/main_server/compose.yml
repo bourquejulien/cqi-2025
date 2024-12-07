@@ -1,0 +1,32 @@
+services:
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  main_server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: main_server
+    ports:
+      - "8000:8000"
+    environment:
+      AWS_CONFIG_FILE: /.aws/config
+      CONNECTION_STRING: "user=postgres password=postgres dbname=postgres sslmode=disable host=postgres"
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+    volumes:
+      - C:\Users\${USER}\.aws:/.aws
+
+volumes:
+  postgres_data:
