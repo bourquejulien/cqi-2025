@@ -1,99 +1,99 @@
 package main
 
 import (
-	"context"
-	"cqiprog/data"
-	"cqiprog/infra"
-	"cqiprog/scheduler"
-	"cqiprog/server"
-	"fmt"
-	"log"
-	"os"
-	"os/signal"
-	"syscall"
-	"time"
+    "context"
+    "cqiprog/data"
+    "cqiprog/infra"
+    "cqiprog/scheduler"
+    "cqiprog/server"
+    "fmt"
+    "log"
+    "os"
+    "os/signal"
+    "syscall"
+    "time"
 )
 
 func ListenAndServe(server *server.Server, port string) error {
-	serverCtx, serverStopCtx := context.WithCancel(context.Background())
+    serverCtx, serverStopCtx := context.WithCancel(context.Background())
 
-	sig := make(chan os.Signal, 1)
-	signal.Notify(sig, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
-	go func() {
-		<-sig
+    sig := make(chan os.Signal, 1)
+    signal.Notify(sig, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
+    go func() {
+        <-sig
 
-		shutdownCtx, _ := context.WithTimeout(serverCtx, 10*time.Second)
+        shutdownCtx, _ := context.WithTimeout(serverCtx, 10*time.Second)
 
-		go func() {
-			<-shutdownCtx.Done()
-			if shutdownCtx.Err() == context.DeadlineExceeded {
-				log.Fatal("graceful shutdown timed out.. forcing exit.")
-			}
-		}()
+        go func() {
+            <-shutdownCtx.Done()
+            if shutdownCtx.Err() == context.DeadlineExceeded {
+                log.Fatal("graceful shutdown timed out.. forcing exit.")
+            }
+        }()
 
-		err := server.Stop(shutdownCtx)
-		if err != nil {
-			log.Fatal(err)
-		}
-		serverStopCtx()
-	}()
+        err := server.Stop(shutdownCtx)
+        if err != nil {
+            log.Fatal(err)
+        }
+        serverStopCtx()
+    }()
 
-	server.Init()
+    server.Init()
 
-	fmt.Printf("Server started on port %s\n", port)
-	if err := server.Start(8000); err != nil {
-		return err
-	}
+    fmt.Printf("Server started on port %s\n", port)
+    if err := server.Start(8000); err != nil {
+        return err
+    }
 
-	<-serverCtx.Done()
+    <-serverCtx.Done()
 
-	return nil
+    return nil
 }
 
 func main() {
-	port := os.Getenv("PORT")
-	connectionString := os.Getenv("CONNECTION_STRING")
+    port := os.Getenv("PORT")
+    connectionString := os.Getenv("CONNECTION_STRING")
 
-	if port == "" {
-		port = "8000"
-	}
+    if port == "" {
+        port = "8000"
+    }
 
-	infra, err := infra.New(context.Background())
+    infra, err := infra.New(context.Background())
 
-	if err != nil {
-		log.Fatal(err)
-	}
+    if err != nil {
+        log.Fatal(err)
+    }
 
-	if connectionString == "" {
-		connectionString = "user=postgres password=postgres dbname=postgres sslmode=disable host=localhost"
-	}
+    if connectionString == "" {
+        connectionString = "user=postgres password=postgres dbname=postgres sslmode=disable host=localhost"
+    }
 
-	data, err := data.New(connectionString)
+    data, err := data.New(connectionString)
 
-	if err != nil {
-		log.Fatal(err)
-	}
+    if err != nil {
+        log.Fatal(err)
+    }
 
-	defer data.Close(context.Background())
+    defer data.Close(context.Background())
 
-	scheduler, err := scheduler.New(infra, data)
+    scheduler, err := scheduler.New(infra, data)
 
-	if err != nil {
-		log.Fatal(err)
-	}
+    if err != nil {
+        log.Fatal(err)
+    }
 
-	defer scheduler.Close()
+    defer scheduler.Close()
 
-	internalKey, err := infra.GetInternalKey(context.Background())
+    internalKey, err := infra.GetInternalKey(context.Background())
 
-	if err != nil {
-		log.Fatal(err)
-	}
+    if err != nil {
+        log.Fatal(err)
+    }
 
-	server := server.Server{Data: data, Scheduler: scheduler, InternalKey: internalKey}
+    server := server.Server{Data: data, Scheduler: scheduler, InternalKey: internalKey}
 
-	err = ListenAndServe(&server, port)
-	if err != nil {
-		log.Println(err)
-	}
+    err = ListenAndServe(&server, port)
+    if err != nil {
+        log.Println(err)
+    }
 }

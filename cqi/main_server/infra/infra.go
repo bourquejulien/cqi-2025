@@ -1,120 +1,120 @@
 package infra
 
 import (
-	"context"
-	"fmt"
+    "context"
+    "fmt"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/config"
-	"github.com/aws/aws-sdk-go-v2/service/ecr"
-	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
+    "github.com/aws/aws-sdk-go-v2/aws"
+    "github.com/aws/aws-sdk-go-v2/config"
+    "github.com/aws/aws-sdk-go-v2/service/ecr"
+    "github.com/aws/aws-sdk-go-v2/service/secretsmanager"
 )
 
 const (
-	INTERNAL_KEY_NAME string = "internal_key"
-	BOT_IMAGE_URL            = "ghcr.io/bourquejulien"
+    INTERNAL_KEY_NAME string = "internal_key"
+    BOT_IMAGE_URL            = "ghcr.io/bourquejulien"
 )
 
 type Infra struct {
-	config        aws.Config
-	ecr           *ecr.Client
-	secretManager *secretsmanager.Client
+    config        aws.Config
+    ecr           *ecr.Client
+    secretManager *secretsmanager.Client
 }
 
 type Image struct {
-	Tag     string
-	Digest  string
-	FullUrl string
+    Tag     string
+    Digest  string
+    FullUrl string
 }
 
 type TeamImage struct {
-	TeamId string
-	Images []Image
+    TeamId string
+    Images []Image
 }
 
 func New(ctx context.Context) (*Infra, error) {
-	config, err := config.LoadDefaultConfig(ctx, config.WithRegion("us-east-1"))
-	if err != nil {
-		return nil, fmt.Errorf("failed to load configuration, %v", err)
-	}
+    config, err := config.LoadDefaultConfig(ctx, config.WithRegion("us-east-1"))
+    if err != nil {
+        return nil, fmt.Errorf("failed to load configuration, %v", err)
+    }
 
-	client := ecr.NewFromConfig(config)
-	secretManager := secretsmanager.NewFromConfig(config)
+    client := ecr.NewFromConfig(config)
+    secretManager := secretsmanager.NewFromConfig(config)
 
-	return &Infra{config: config, ecr: client, secretManager: secretManager}, nil
+    return &Infra{config: config, ecr: client, secretManager: secretManager}, nil
 }
 
 func (p *Infra) GetInternalKey(ctx context.Context) (string, error) {
-	result, err := p.secretManager.GetSecretValue(ctx, &secretsmanager.GetSecretValueInput{SecretId: aws.String(INTERNAL_KEY_NAME)})
+    result, err := p.secretManager.GetSecretValue(ctx, &secretsmanager.GetSecretValueInput{SecretId: aws.String(INTERNAL_KEY_NAME)})
 
-	if err != nil {
-		return "", fmt.Errorf("failed to get secret value, %v", err)
-	}
+    if err != nil {
+        return "", fmt.Errorf("failed to get secret value, %v", err)
+    }
 
-	return *result.SecretString, nil
+    return *result.SecretString, nil
 }
 
 func (s *Infra) ListBotImages(ids []string) []*TeamImage {
-	teamImages := make([]*TeamImage, 0, len(ids))
-	for _, id := range ids {
-		imageUrl := fmt.Sprintf("%s/%s:latest", BOT_IMAGE_URL, id)
-		teamImages = append(teamImages, &TeamImage{TeamId: id, Images: []Image{{Tag: "latest", FullUrl: imageUrl}}})
-	}
+    teamImages := make([]*TeamImage, 0, len(ids))
+    for _, id := range ids {
+        imageUrl := fmt.Sprintf("%s/%s:latest", BOT_IMAGE_URL, id)
+        teamImages = append(teamImages, &TeamImage{TeamId: id, Images: []Image{{Tag: "latest", FullUrl: imageUrl}}})
+    }
 
-	return teamImages
+    return teamImages
 }
 
 func (p *Infra) ListImages(teamsIds []string, tags []string, ctx context.Context) ([]*TeamImage, error) {
-	if len(teamsIds) == 0 {
-		return make([]*TeamImage, 0), nil
-	}
+    if len(teamsIds) == 0 {
+        return make([]*TeamImage, 0), nil
+    }
 
-	input := &ecr.DescribeRepositoriesInput{}
+    input := &ecr.DescribeRepositoriesInput{}
 
-	result, err := p.ecr.DescribeRepositories(ctx, input)
-	if err != nil {
-		return nil, fmt.Errorf("failed to describe repositories, %v", err)
-	}
+    result, err := p.ecr.DescribeRepositories(ctx, input)
+    if err != nil {
+        return nil, fmt.Errorf("failed to describe repositories, %v", err)
+    }
 
-	teamImages := make([]*TeamImage, 0, len(result.Repositories))
-	for _, repo := range result.Repositories {
-		isValid := false
-		for _, teamId := range teamsIds {
-			if *repo.RepositoryName == teamId {
-				isValid = true
-				break
-			}
-		}
+    teamImages := make([]*TeamImage, 0, len(result.Repositories))
+    for _, repo := range result.Repositories {
+        isValid := false
+        for _, teamId := range teamsIds {
+            if *repo.RepositoryName == teamId {
+                isValid = true
+                break
+            }
+        }
 
-		if !isValid {
-			continue
-		}
+        if !isValid {
+            continue
+        }
 
-		listImagesInput := &ecr.ListImagesInput{RepositoryName: repo.RepositoryName}
-		images, err := p.ecr.ListImages(ctx, listImagesInput)
+        listImagesInput := &ecr.ListImagesInput{RepositoryName: repo.RepositoryName}
+        images, err := p.ecr.ListImages(ctx, listImagesInput)
 
-		if err != nil {
-			return nil, fmt.Errorf("failed to list images, %v", err)
-		}
+        if err != nil {
+            return nil, fmt.Errorf("failed to list images, %v", err)
+        }
 
-		teamImage := &TeamImage{TeamId: *repo.RepositoryName, Images: make([]Image, 0, len(images.ImageIds))}
+        teamImage := &TeamImage{TeamId: *repo.RepositoryName, Images: make([]Image, 0, len(images.ImageIds))}
 
-		for _, image := range images.ImageIds {
-			for _, tag := range tags {
-				if *image.ImageTag == tag {
-					fullUrl := *repo.RepositoryUri + ":" + *image.ImageTag
-					teamImage.Images = append(teamImage.Images, Image{Tag: *image.ImageTag, Digest: *image.ImageDigest, FullUrl: fullUrl})
-					break
-				}
-			}
-		}
+        for _, image := range images.ImageIds {
+            for _, tag := range tags {
+                if *image.ImageTag == tag {
+                    fullUrl := *repo.RepositoryUri + ":" + *image.ImageTag
+                    teamImage.Images = append(teamImage.Images, Image{Tag: *image.ImageTag, Digest: *image.ImageDigest, FullUrl: fullUrl})
+                    break
+                }
+            }
+        }
 
-		if len(teamImage.Images) == 0 {
-			continue
-		}
+        if len(teamImage.Images) == 0 {
+            continue
+        }
 
-		teamImages = append(teamImages, teamImage)
-	}
+        teamImages = append(teamImages, teamImage)
+    }
 
-	return teamImages, nil
+    return teamImages, nil
 }

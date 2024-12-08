@@ -1,69 +1,69 @@
 package data
 
 import (
-	"context"
-	_ "embed"
-	"encoding/json"
-	"log"
+    "context"
+    _ "embed"
+    "encoding/json"
+    "log"
 )
 
 //go:embed init_data/teams.json
 var teams string
 
 type teamInfo struct {
-	ID    string `json:"id"`
-	Name  string `json:"name"`
-	IsBot bool   `json:"isBot"`
+    ID    string `json:"id"`
+    Name  string `json:"name"`
+    IsBot bool   `json:"isBot"`
 }
 
 type Team struct {
-	teamInfo teamInfo
+    teamInfo teamInfo
 }
 
 type Data struct {
-	teams   []teamInfo
-	scoreDB *Database
+    teams   []teamInfo
+    scoreDB *Database
 }
 
 func New(connectionString string) (*Data, error) {
-	data := Data{teams: []teamInfo{}}
-	err := json.Unmarshal([]byte(teams), &data.teams)
+    data := Data{teams: []teamInfo{}}
+    err := json.Unmarshal([]byte(teams), &data.teams)
 
-	if err != nil {
-		log.Fatalf("Error unmarshalling teams data: %v", err)
-	}
+    if err != nil {
+        log.Fatalf("Error unmarshalling teams data: %v", err)
+    }
 
-	scoreDB, err := newDatabase(connectionString, context.Background())
-	if err != nil {
-		return nil, err
-	}
-	data.scoreDB = scoreDB
+    scoreDB, err := newDatabase(connectionString, context.Background())
+    if err != nil {
+        return nil, err
+    }
+    data.scoreDB = scoreDB
 
-	return &data, nil
+    return &data, nil
 }
 
 func (d *Data) GetGame(id string, context context.Context) (*DbGame, error) {
-	return d.scoreDB.getGame(id, context)
+    return d.scoreDB.getGame(id, context)
 }
 
 func (d *Data) ListGames(context context.Context, limit, page int) ([]*DbGame, error) {
-	return d.scoreDB.getGamesWithPagination(context, limit, page)
+    return d.scoreDB.getGamesWithPagination(context, limit, page)
 }
 
 func (d *Data) AddGame(game *DbGame, ctx context.Context) error {
-	return d.scoreDB.addGame(game, ctx)
+    return d.scoreDB.addGame(game, ctx)
 }
 
 func (d *Data) GetTeamIds(isBot bool) []string {
-	teamIds := make([]string, 0, len(d.teams))
-	for i, team := range d.teams {
-		if team.IsBot == isBot {
-			teamIds = append(teamIds, d.teams[i].ID)
-		}
-	}
-	return teamIds
+    teamIds := make([]string, 0, len(d.teams))
+    for i, team := range d.teams {
+        if team.IsBot == isBot {
+            teamIds = append(teamIds, d.teams[i].ID)
+        }
+    }
+    return teamIds
 }
 
 func (d *Data) Close(ctx context.Context) {
-	d.scoreDB.close(ctx)
+    d.scoreDB.close(ctx)
 }
