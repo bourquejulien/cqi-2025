@@ -13,6 +13,7 @@ NEXT_ENDPOINT = "/next_move"
 END_ENDPOINT = "/end_game"
 N_WALLS = 30
 MAX_MOVES = 150
+TIMEOUT = 10
 
 @dataclass
 class GameStatus:
@@ -72,13 +73,13 @@ class GameHandler:
         logging.info("start_game")
 
         requests.post(self.offense_bot_url + START_ENDPOINT,
-                      json={"is_offense": True})
+                      json={"is_offense": True}, timeout=TIMEOUT)
         requests.post(self.defense_bot_url + START_ENDPOINT,
-                      json={"is_offense": False, "n_walls": N_WALLS})
+                      json={"is_offense": False, "n_walls": N_WALLS}, timeout=TIMEOUT)
 
     def _play_defense(self):
         response: requests.Response = requests.post(self.defense_bot_url + NEXT_ENDPOINT, json={
-                                                    "map": self.map.to_img_64(self.offense_player.position).decode()})
+                                                    "map": self.map.to_img_64(self.offense_player.position).decode()}, timeout=TIMEOUT)
 
         try:
             response_json = response.json()
@@ -108,7 +109,7 @@ class GameHandler:
 
     def _play_offense(self):
         response = requests.post(self.offense_bot_url + NEXT_ENDPOINT, json={
-                                 "map": self.map.to_img_64(self.offense_player.position, 3).decode()})
+                                 "map": self.map.to_img_64(self.offense_player.position, 3).decode()}, timeout=TIMEOUT)
         
         self.move_count -= 1
         logging.info(f"Remaining number of moves: {self.move_count}")
