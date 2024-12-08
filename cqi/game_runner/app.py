@@ -105,14 +105,14 @@ def main() -> None:
             team1Offense.start(network=game_network_1.name)
             team2Defense.start(network=game_network_1.name)
             game_server_1.start(network=game_network_1.name)
-            requests.get(f'http://localhost:5000/run_game')
+            requests.post(f'http://localhost:5000/run_game', params={'offense_url': f'http://offense:5000', 'defense_url': f'http://defense:5000'})
 
 
             # Start game 2
             team1Defense.start(network=game_network_2.name)
             team2Offense.start(network=game_network_2.name)
             game_server_2.start(network=game_network_2.name)
-            requests.get(f'http://localhost:5001/run_game')
+            requests.post(f'http://localhost:5000/run_game', params={'offense_url': f'http://offense:5000', 'defense_url': f'http://defense:5000'})
 
             # Wait for games to finish
             while 1:
