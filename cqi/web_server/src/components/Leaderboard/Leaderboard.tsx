@@ -13,6 +13,7 @@ export interface LeaderboardData {
     gameData: GameDataBase[];
 }
 
+// @ts-expect-error TS6198
 const LeaderBoard = ({leaderBoardData, setCurrentPage, setItemPerPage}: {
     leaderBoardData: LeaderboardData,
     setCurrentPage: React.Dispatch<React.SetStateAction<number>>,

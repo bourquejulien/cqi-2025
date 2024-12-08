@@ -2,6 +2,7 @@ import {Grid} from "@mantine/core";
 import React from "react";
 import LeaderBoard from "../components/Leaderboard/Leaderboard.tsx";
 
+// @ts-expect-error TS6198
 function MainPage({gameId, setGameId}: {
     gameId: string | undefined;
     setGameId: React.Dispatch<React.SetStateAction<string | undefined>>
