@@ -2,28 +2,29 @@ variable "team_names" {
   description = "List of team names"
   type        = list(string)
   default = [
-    "Polytechnique",
-    "ETS",
-    # "Concordia",
-    # "McGill",
-    # "UQTR",
-    # "ULaval",
-    # "UQAM",
-    # "Sherbrooke",
-    # "UQAC",
+    "ets",
+    "poly",
+    "concordia",
+    "sherbrooke",
+    "chicout",
+    "rimouski",
+    "uqtr",
+    "laval",
+    "mcgill",
+    "mcgill2",
   ]
 }
 
 variable "domain" {
   description = "The server domain"
-  type        = object({
+  type = object({
     main_server = string
     game_runner = string
-    address = string
+    address     = string
   })
   default = {
     main_server = "server"
     game_runner = "runner"
-    address = "cqiprog.info"
+    address     = "cqiprog.info"
   }
 }

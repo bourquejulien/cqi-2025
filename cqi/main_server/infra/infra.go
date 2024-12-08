@@ -12,6 +12,7 @@ import (
 
 const (
 	INTERNAL_KEY_NAME string = "internal_key"
+	BOT_IMAGE_URL            = "ghcr.io/bourquejulien"
 )
 
 type Infra struct {
@@ -53,7 +54,21 @@ func (p *Infra) GetInternalKey(ctx context.Context) (string, error) {
 	return *result.SecretString, nil
 }
 
+func (s *Infra) ListBotImages(ids []string) []*TeamImage {
+	teamImages := make([]*TeamImage, 0, len(ids))
+	for _, id := range ids {
+		imageUrl := fmt.Sprintf("%s/%s:latest", BOT_IMAGE_URL, id)
+		teamImages = append(teamImages, &TeamImage{TeamId: id, Images: []Image{{Tag: "latest", FullUrl: imageUrl}}})
+	}
+
+	return teamImages
+}
+
 func (p *Infra) ListImages(teamsIds []string, tags []string, ctx context.Context) ([]*TeamImage, error) {
+	if len(teamsIds) == 0 {
+		return make([]*TeamImage, 0), nil
+	}
+
 	input := &ecr.DescribeRepositoriesInput{}
 
 	result, err := p.ecr.DescribeRepositories(ctx, input)

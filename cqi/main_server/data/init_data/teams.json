@@ -1,26 +1,62 @@
 [
   {
-    "id": "poly",
-    "name": "Polytechnique Montréal"
-  },
-  {
     "id": "ets",
-    "name": "École de technologie supérieure"
+    "name": "École de technologie supérieure",
+    "isBot": false
   },
   {
-    "id": "sherbrooke",
-    "name": "Université de Sherbrooke"
-  },
-  {
-    "id": "laval",
-    "name": "Université Laval"
-  },
-  {
-    "id": "mcgill",
-    "name": "Université McGill"
+    "id": "poly",
+    "name": "Polytechnique Montréal",
+    "isBot": false
   },
   {
     "id": "concordia",
-    "name": "Université Concordia"
+    "name": "Université Concordia",
+    "isBot": false
+  },
+  {
+    "id": "sherbrooke",
+    "name": "Université de Sherbrooke",
+    "isBot": false
+  },
+  {
+    "id": "chicout",
+    "name": "Université du Québec à Chicoutimi",
+    "isBot": false
+  },
+  {
+    "id": "rimouski",
+    "name": "Université du Québec à Rimouski",
+    "isBot": false
+  },
+  {
+    "id": "uqtr",
+    "name": "Universié du Québec à Trois-Rivières",
+    "isBot": false
+  },
+  {
+    "id": "laval",
+    "name": "Université Laval",
+    "isBot": false
+  },
+  {
+    "id": "mcgill",
+    "name": "Université McGill",
+    "isBot": false
+  },
+  {
+    "id": "mcgill2",
+    "name": "Université McGill - Macdonald Campus",
+    "isBot": false
+  },
+  {
+    "id": "cqi-2024-easy-bot",
+    "name": "Super dumb bot",
+    "isBot": true
+  },
+  {
+    "id": "cqi-2024-medium-bot",
+    "name": "Not so dumb bot",
+    "isBot": true
   }
 ]

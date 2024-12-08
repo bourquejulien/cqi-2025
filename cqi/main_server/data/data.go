@@ -11,8 +11,9 @@ import (
 var teams string
 
 type teamInfo struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
+	ID    string `json:"id"`
+	Name  string `json:"name"`
+	IsBot bool   `json:"isBot"`
 }
 
 type Team struct {
@@ -53,10 +54,12 @@ func (d *Data) AddGame(game *DbGame, ctx context.Context) error {
 	return d.scoreDB.addGame(game, ctx)
 }
 
-func (d *Data) GetTeamIds() []string {
-	teamIds := make([]string, len(d.teams))
+func (d *Data) GetTeamIds(isBot bool) []string {
+	teamIds := make([]string, 0, len(d.teams))
 	for i, team := range d.teams {
-		teamIds[i] = team.ID
+		if team.IsBot == isBot {
+			teamIds = append(teamIds, d.teams[i].ID)
+		}
 	}
 	return teamIds
 }

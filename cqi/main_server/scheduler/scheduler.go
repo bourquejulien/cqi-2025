@@ -95,12 +95,35 @@ func (s *Scheduler) AddResult(gameResult *GameResult, ctx context.Context) bool 
 }
 
 func (s *Scheduler) ForceAddMatch(team1Id string, team2Id string, ctx context.Context) bool {
-	teamImages, err := s.infra.ListImages([]string{team1Id, team2Id}, []string{DEFAULT_TAG}, ctx)
+	realTeamIds := make([]string, 0, 2)
+	botIds := make([]string, 0, 2)
+
+	allBotIds := s.data.GetTeamIds(true)
+	for _, id := range []string{team1Id, team2Id} {
+		isBot := false
+		for _, botId := range allBotIds {
+			if id == botId {
+				isBot = true
+				break
+			}
+		}
+
+		if isBot {
+			botIds = append(botIds, id)
+		} else {
+			realTeamIds = append(realTeamIds, id)
+		}
+	}
+
+	teamImages, err := s.infra.ListImages(realTeamIds, []string{DEFAULT_TAG}, ctx)
 
 	if err != nil {
 		log.Println(err)
 		return false
 	}
+
+	botImages := s.infra.ListBotImages(botIds)
+	teamImages = append(teamImages, botImages...)
 
 	s.lock.Lock()
 	defer s.lock.Unlock()
@@ -164,8 +187,11 @@ func daemon(scheduler *Scheduler, ctx context.Context) {
 }
 
 func autoAddMatch(scheduler *Scheduler, ctx context.Context) {
-	teamIds := scheduler.data.GetTeamIds()
-	teamImages, err := scheduler.infra.ListImages(teamIds, []string{DEFAULT_TAG}, ctx)
+	teamImages, err := scheduler.infra.ListImages(scheduler.data.GetTeamIds(false), []string{DEFAULT_TAG}, ctx)
+	botImages := scheduler.infra.ListBotImages(scheduler.data.GetTeamIds(true))
+
+	// TODO: Don't queue bot against bot
+	teamImages = append(teamImages, botImages...)
 
 	if err != nil {
 		log.Println(err)
@@ -189,7 +215,7 @@ func autoAddMatch(scheduler *Scheduler, ctx context.Context) {
 		team1Index := rand.Intn(len(teamImages))
 		team2Index := rand.Intn(len(teamImages))
 		for team1Index == team2Index {
-			team2Index = rand.Intn(len(teamIds))
+			team2Index = rand.Intn(len(teamImages))
 		}
 
 		match := Match{
