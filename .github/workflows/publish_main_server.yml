@@ -39,4 +39,3 @@ jobs:
           push: true
           tags: |
             ghcr.io/${{ github.repository }}-main-server:latest
-            ghcr.io/${{ github.repository }}-main-server:${{ github.sha }}

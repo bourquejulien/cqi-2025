@@ -41,7 +41,6 @@ jobs:
           push: true
           tags: |
             ghcr.io/${{ github.repository }}-game-server:latest
-            ghcr.io/${{ github.repository }}-game-server:${{ github.sha }}
           build-args: |
             USE_PYARMOR=false
 
@@ -54,6 +53,5 @@ jobs:
           push: true
           tags: |
             ghcr.io/${{ github.repository }}-game-server-public:latest
-            ghcr.io/${{ github.repository }}-game-server-public:${{ github.sha }}
           build-args: |
             USE_PYARMOR=true
