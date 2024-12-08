@@ -1,11 +1,11 @@
-name: Publish Main Server
+name: Publish Game Server
 
 on:
   workflow_dispatch:
   push:
     branches: ["main"]
     paths:
-    - "cqi/main_server/**"
+    - "cqi/game_server/**"
 
 jobs:
   push_to_registry:
@@ -35,8 +35,9 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           platforms: linux/amd64,linux/arm64
-          context: ./cqi/main_server
+          context: ./cqi
+          dockerfile: ./cqi/game_server/Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ github.repository }}-main-server:latest
-            ghcr.io/${{ github.repository }}-main-server:${{ github.sha }}
+            ghcr.io/${{ github.repository }}-game-server:latest
+            ghcr.io/${{ github.repository }}-game-server:${{ github.sha }}
