@@ -8,8 +8,8 @@ from src.game_handler import GameHandler, GameStatus
 class RunnerStatus:
     is_running: bool
     is_over: bool
+    score: float
     game_status: GameStatus | None
-
 
 class Runner:
     game_lock: RLock
@@ -40,9 +40,9 @@ class Runner:
     def stop(self):
         self.should_stop = True
 
-    def launch_game(self, offense_bot_url: str, defense_bot_url: str):
+    def launch_game(self, offense_bot_url: str, defense_bot_url: str, seed: int) -> None:
         with self.game_lock:
-            self.game_handler = GameHandler(offense_bot_url, defense_bot_url)
+            self.game_handler = GameHandler(offense_bot_url, defense_bot_url, seed)
         self._update_status()
 
     def _force_end_game(self) -> bool:
@@ -72,4 +72,5 @@ class Runner:
         with self.data_lock:
             self.game_status = RunnerStatus(self.is_running,
                                             self.game_handler.is_over if self.is_running else False,
+                                            self.game_handler.score if self.is_running else None,
                                             self.game_handler.get_status() if self.is_running else None)

@@ -12,8 +12,10 @@ START_ENDPOINT = "/start"
 NEXT_ENDPOINT = "/next_move"
 END_ENDPOINT = "/end_game"
 N_WALLS = 30
-MAX_MOVES = 150
+MAX_MOVES = 200
 TIMEOUT = 10
+MIN_MAP_SIZE = 20
+MAX_MAP_SIZE = 40
 
 @dataclass
 class GameStatus:
@@ -30,17 +32,21 @@ class GameHandler:
     goal: Position
     move_count: int
 
-    def __init__(self, offense_bot_url: str, defense_bot_url: str) -> None:
+    def __init__(self, offense_bot_url: str, defense_bot_url: str, seed: int) -> None:
+        random.seed(seed)
         self.offense_bot_url = offense_bot_url
         self.defense_bot_url = defense_bot_url
 
-        #self.map = Map.create_map(5, 5)
-        self.map = Map.create_map(random.randint(20, 40), random.randint(20, 40))
+        self.map = Map.create_map(random.randint(MIN_MAP_SIZE, MAX_MAP_SIZE), random.randint(MIN_MAP_SIZE, MAX_MAP_SIZE))
         self.goal = self.map.set_goal()
 
         self.offense_player = None
         self.defense_player = None
         self.move_count = MAX_MOVES
+
+    @property
+    def score(self) -> int:
+        return MAX_MOVES - self.move_count
 
     @property
     def is_started(self) -> bool:
