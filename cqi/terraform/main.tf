@@ -156,7 +156,7 @@ resource "aws_instance" "game_runner" {
       "curl -s 'https://dynamicdns.park-your-domain.com/update?host=${var.domain.game_runner}&domain=${var.domain.address}&password=${nonsensitive(jsondecode(data.aws_secretsmanager_secret_version.global_secrets.secret_string).namecheap_key)}&ip=${self.public_ip}'",
       "sudo GITHUB_TOKEN='${nonsensitive(jsondecode(data.aws_secretsmanager_secret_version.global_secrets.secret_string).github_token)}' ./init.sh",
       "sudo ./init.sh",
-      # "sudo docker compose up -d"
+      "sudo docker compose up -d"
     ]
   }
 

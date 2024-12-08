@@ -1,6 +1,6 @@
 services:
   main_server:
-    image: ghcr.io/bourquejulien/cqi-2024-gamer-runner:latest
+    image: ghcr.io/bourquejulien/cqi-2024-game-runner:latest
     container_name: game_runner
     network_mode: host
     user: root

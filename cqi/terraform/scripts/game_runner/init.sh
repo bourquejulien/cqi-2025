@@ -20,9 +20,6 @@ apt-get -y install \
     apt-transport-https \
     ca-certificates \
     curl \
-    python3 \
-    python3-venv \
-    libaugeas0 \
     > /dev/null
 
 echo "Installing Docker..."
