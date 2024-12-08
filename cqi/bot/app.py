@@ -14,12 +14,13 @@ from src.defense.defense import Defense
 
 ENV_PORT = "PORT"
 ENV_MODE = "MODE"
+ENV_LEVEL = "BOT_LEVEL"
 DEFAULT_PORT = 5001
 
 should_play_offense = True
 offense_bot: DumbOffenseBot | None = None
 defense: Defense | None = None
-
+level: str = ""
 
 def play_offense(payload: dict) -> Response:
     data = payload["map"]
@@ -57,9 +58,15 @@ async def start(request: Request):
     should_play_offense = data["is_offense"]
 
     if should_play_offense:
-        offense_bot = ShortestPathBot()
+        if level == "easy":
+            offense_bot = DumbOffenseBot()
+        else:
+            offense_bot = ShortestPathBot()
     else:
-        defense = Defense(BlockerDefenseBot())
+        if level == "easy":
+            defense = Defense(RandomDefenseBot())
+        else:
+            defense = Defense(BlockerDefenseBot())
 
     return Response(
         text="OK",
@@ -105,6 +112,9 @@ def main() -> None:
         if ENV_PORT in os.environ \
         else DEFAULT_PORT
     is_debug = ENV_MODE not in os.environ or os.environ[ENV_MODE] == "debug"
+
+    global level
+    level = os.environ[ENV_LEVEL] if ENV_LEVEL in os.environ else "medium"
 
     app = setup_web_server(is_debug=is_debug)
 

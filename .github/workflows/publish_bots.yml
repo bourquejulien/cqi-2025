@@ -1,12 +1,12 @@
-name: Publish Game Server
+name: Publish Bots
 
 on:
   workflow_dispatch:
   push:
     branches: ["main"]
     paths:
-      - "cqi/game_server/**"
-      - "cqi/game_server_common/**"
+    - "cqi/bot/**"
+    - "cqi/game_server_common/**"
 
 jobs:
   push_to_registry:
@@ -32,28 +32,28 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push
+      - name: Build and push easy bot
         uses: docker/build-push-action@v6
         with:
           platforms: linux/amd64,linux/arm64
           context: ./cqi
-          file: ./cqi/game_server/Dockerfile
+          file: ./cqi/bot/Dockerfile
           push: true
-          tags: |
-            ghcr.io/${{ github.repository }}-game-server:latest
-            ghcr.io/${{ github.repository }}-game-server:${{ github.sha }}
-          build-args: |
-            USE_PYARMOR=false
-
-      - name: Build and push PyArmor
-        uses: docker/build-push-action@v6
-        with:
-          platforms: linux/amd64,linux/arm64
-          context: ./cqi
-          file: ./cqi/game_server/Dockerfile
-          push: true
-          tags: |
-            ghcr.io/${{ github.repository }}-game-server-public:latest
-            ghcr.io/${{ github.repository }}-game-server-public:${{ github.sha }}
           build-args: |
             USE_PYARMOR=true
+            BOT_LEVEL="easy"
+          tags: |
+            ghcr.io/${{ github.repository }}-easy-bot:latest
+
+      - name: Build and push medium bot
+        uses: docker/build-push-action@v6
+        with:
+          platforms: linux/amd64,linux/arm64
+          context: ./cqi
+          file: ./cqi/bot/Dockerfile
+          push: true
+          build-args: |
+            USE_PYARMOR=false
+            BOT_LEVEL="medium"
+          tags: |
+            ghcr.io/${{ github.repository }}-medium-bot:latest
