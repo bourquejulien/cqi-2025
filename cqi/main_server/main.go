@@ -68,7 +68,7 @@ func main() {
         connectionString = "user=postgres password=postgres dbname=postgres sslmode=disable host=localhost"
     }
 
-    data, err := data.New(connectionString)
+    data, err := data.New(connectionString, context.Background())
 
     if err != nil {
         log.Fatal(err)

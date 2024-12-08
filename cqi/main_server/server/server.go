@@ -104,8 +104,8 @@ func (p *Server) getGame(w http.ResponseWriter, r *http.Request) {
 }
 
 func (p *Server) getStats(w http.ResponseWriter, r *http.Request) {
-    // TODO
-    stats := Stats{}
+    internalStats := p.Data.GetStats()
+    stats := Stats{internalStats.TotalGames, internalStats.EndTime}
     render.JSON(w, r, stats)
 }
 
