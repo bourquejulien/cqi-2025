@@ -6,8 +6,9 @@ module "teams" {
 }
 
 data "aws_secretsmanager_random_password" "internal_key" {
-  password_length = 20
+  password_length = 30
   include_space   = false
+  exclude_punctuation = true
 }
 
 resource "aws_secretsmanager_secret" "internal_key" {
@@ -19,6 +20,10 @@ resource "aws_secretsmanager_secret" "internal_key" {
 resource "aws_secretsmanager_secret_version" "internal_key" {
   secret_id     = aws_secretsmanager_secret.internal_key.id
   secret_string = data.aws_secretsmanager_random_password.internal_key.random_password
+
+  lifecycle {
+    ignore_changes = [secret_string, ]
+  }
 }
 
 resource "aws_security_group" "game_server_sg" {
@@ -80,6 +85,29 @@ resource "aws_instance" "game_server" {
 
   iam_instance_profile = aws_iam_instance_profile.ec2_instance_profile.name
 
+  connection {
+    type        = "ssh"
+    user        = "ubuntu"
+    private_key = base64decode(nonsensitive(jsondecode(data.aws_secretsmanager_secret_version.global_secrets.secret_string).ssh_private_key))
+    host        = self.public_ip
+    timeout     = "6m"
+  }
+
+  provisioner "file" {
+    source      = "./scripts/game_server"
+    destination = "./"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "cd /home/ubuntu/game_server",
+      "chmod +x ./init.sh",
+      "curl -s 'https://dynamicdns.park-your-domain.com/update?host=${var.domain.game_server}&domain=${var.domain.address}&password=${nonsensitive(jsondecode(data.aws_secretsmanager_secret_version.global_secrets.secret_string).namecheap_key)}&ip=${self.public_ip}'",
+      "sudo ./init.sh",
+      "sudo docker compose up -d"
+    ]
+  }
+
   tags = {
     Name = "game_server"
   }
@@ -94,13 +122,36 @@ resource "aws_instance" "game_runner" {
 
   iam_instance_profile = aws_iam_instance_profile.ec2_instance_profile.name
 
+  connection {
+    type        = "ssh"
+    user        = "ubuntu"
+    private_key = base64decode(nonsensitive(jsondecode(data.aws_secretsmanager_secret_version.global_secrets.secret_string).ssh_private_key))
+    host        = self.public_ip
+    timeout     = "6m"
+  }
+
+  # provisioner "file" {
+  #   source      = "./scripts/game_server"
+  #   destination = "./"
+  # }
+
+  provisioner "remote-exec" {
+    inline = [
+      # "cd /home/ubuntu/game_server",
+      # "chmod +x ./init.sh",
+      "curl -s 'https://dynamicdns.park-your-domain.com/update?host=${var.domain.game_runner}&domain=${var.domain.address}&password=${nonsensitive(jsondecode(data.aws_secretsmanager_secret_version.global_secrets.secret_string).namecheap_key)}&ip=${self.public_ip}'",
+      # "sudo ./init.sh",
+      # "sudo docker compose up -d"
+    ]
+  }
+
   tags = {
     Name = "game_runner"
   }
 }
 
 resource "aws_iam_role" "ec2_role" {
-  name = "ec2_ecr_role"
+  name = "ec2_role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17",
@@ -116,7 +167,7 @@ resource "aws_iam_role" "ec2_role" {
   })
 }
 
-resource "aws_iam_policy" "ecr_policy" {
+resource "aws_iam_policy" "ec2_policy" {
   name = "ecr_list_policy"
 
   policy = jsonencode({
@@ -126,10 +177,20 @@ resource "aws_iam_policy" "ecr_policy" {
         Action = [
           "ecr:DescribeRepositories",
           "ecr:ListImages",
-          "ecr:DescribeImages"
+          "ecr:DescribeImages",
         ],
         Effect   = "Allow",
         Resource = "*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "secretsmanager:GetSecretValue",
+          "secretsmanager:DescribeSecret"
+        ]
+        Resource = [
+          aws_secretsmanager_secret.internal_key.arn,
+        ]
       }
     ]
   })
@@ -137,7 +198,7 @@ resource "aws_iam_policy" "ecr_policy" {
 
 resource "aws_iam_role_policy_attachment" "ec2_role_policy_attachment" {
   role       = aws_iam_role.ec2_role.name
-  policy_arn = aws_iam_policy.ecr_policy.arn
+  policy_arn = aws_iam_policy.ec2_policy.arn
 }
 
 resource "aws_iam_instance_profile" "ec2_instance_profile" {
@@ -145,27 +206,15 @@ resource "aws_iam_instance_profile" "ec2_instance_profile" {
   role = aws_iam_role.ec2_role.name
 }
 
-data "aws_secretsmanager_secret" "namecheap_key" {
-  arn = "arn:aws:secretsmanager:us-east-1:481665101132:secret:namecheap_api_key-L2qGRe"
+data "aws_secretsmanager_secret" "global_secrets" {
+  arn = "arn:aws:secretsmanager:us-east-1:481665101132:secret:global_secrets-crxtcU"
 }
 
-data "aws_secretsmanager_secret_version" "namecheap_key" {
-  secret_id = data.aws_secretsmanager_secret.namecheap_key.id
-}
-
-data "http" "set_namecheap_domain" {
-  url = "https://dynamicdns.park-your-domain.com/update?host=${var.domain.game_server}&domain=${var.domain.address}&password=${data.aws_secretsmanager_secret_version.namecheap_key.secret_string}&ip=${aws_instance.game_server.public_ip}"
-  method   = "GET"
-  depends_on = [ aws_instance.game_server ]
-}
-
-data "http" "set_namecheap_key" {
-  url = "https://dynamicdns.park-your-domain.com/update?host=${var.domain.game_runner}&domain=${var.domain.address}&password=${data.aws_secretsmanager_secret_version.namecheap_key.secret_string}&ip=${aws_instance.game_runner.public_ip}"
-  method   = "GET"
-  depends_on = [ aws_instance.game_server ]
+data "aws_secretsmanager_secret_version" "global_secrets" {
+  secret_id = data.aws_secretsmanager_secret.global_secrets.id
 }
 
 resource "aws_key_pair" "default_ssh_key" {
-  key_name   = var.ec2_ssh_key.name
-  public_key = var.ec2_ssh_key.public_key
+  key_name   = "default_ssh_key"
+  public_key = jsondecode(data.aws_secretsmanager_secret_version.global_secrets.secret_string).ssh_public_key
 }

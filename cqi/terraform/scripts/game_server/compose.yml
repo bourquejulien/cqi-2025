@@ -1,0 +1,32 @@
+services:
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    healthcheck:
+      test: pg_isready -U postgres
+      interval: 60s
+      retries: 3
+      start_period: 10s
+      timeout: 10s
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  main_server:
+    image: brqu/server:latest
+    container_name: main_server
+    ports:
+      - "8000:8000"
+    environment:
+      CONNECTION_STRING: "user=postgres password=postgres dbname=postgres sslmode=disable host=postgres"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
