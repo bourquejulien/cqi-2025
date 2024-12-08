@@ -5,8 +5,8 @@ on:
   push:
     branches: ["main"]
     paths:
-    - "cqi/game_server/**"
-    - "cqi/game_server_common/**"
+      - "cqi/game_server/**"
+      - "cqi/game_server_common/**"
 
 jobs:
   push_to_registry:
@@ -37,7 +37,7 @@ jobs:
         with:
           platforms: linux/amd64,linux/arm64
           context: ./cqi
-          dockerfile: ./cqi/game_server/Dockerfile
+          file: ./cqi/game_server/Dockerfile
           push: true
           tags: |
             ghcr.io/${{ github.repository }}-game-server:latest
