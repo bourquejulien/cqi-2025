@@ -118,8 +118,16 @@ def main() -> None:
             while 1:
                 status1 = RunnerStatus(**requests.get(f'http://localhost:5000/status').json())
                 status2 = RunnerStatus(**requests.get(f'http://localhost:5001/status').json())
-
+                
                 if status1.is_over and status2.is_over:
+                    # Grab the logs of the games
+                    game_1_logs = game_server_1.logs()
+                    team1Offense_logs = team1Offense.logs()
+                    team1Defense_logs = team1Defense.logs()
+
+                    game_2_logs = game_server_2.logs()
+                    team2Offense_logs = team2Offense.logs()
+                    team2Defense_logs = team2Defense.logs()
                     break
 
         time.sleep(1)
