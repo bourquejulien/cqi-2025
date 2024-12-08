@@ -17,12 +17,12 @@ variable "team_names" {
 variable "domain" {
   description = "The server domain"
   type        = object({
-    game_server = string
+    main_server = string
     game_runner = string
     address = string
   })
   default = {
-    game_server = "data"
+    main_server = "server"
     game_runner = "runner"
     address = "cqiprog.info"
   }

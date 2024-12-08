@@ -6,6 +6,7 @@ on:
     branches: ["main"]
     paths:
     - "cqi/game_server/**"
+    - "cqi/game_server_common/**"
 
 jobs:
   push_to_registry:

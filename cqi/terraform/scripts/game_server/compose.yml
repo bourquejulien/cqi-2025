@@ -18,7 +18,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
 
   main_server:
-    image: ghcr.io/bourquejulien/cqi-2024-gamer-server:latest
+    image: ghcr.io/bourquejulien/cqi-2024-main-server:latest
     container_name: main_server
     ports:
       - "8000:8000"

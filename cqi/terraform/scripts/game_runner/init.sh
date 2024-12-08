@@ -23,7 +23,6 @@ apt-get -y install \
     python3 \
     python3-venv \
     libaugeas0 \
-    nginx
     > /dev/null
 
 echo "Installing Docker..."
@@ -41,19 +40,3 @@ apt-get update > /dev/null && apt-get -y install docker-ce docker-ce-cli contain
 # Test installation
 docker run hello-world
 echo $GITHUB_TOKEN | docker login ghcr.io -u bourquejulien --password-stdin
-
-echo "Installing certbot..."
-python3 -m venv /opt/certbot/ && \
-            /opt/certbot/bin/pip install --upgrade pip > /dev/null && \
-            /opt/certbot/bin/pip install certbot certbot-nginx > /dev/null && \
-            ln -s /opt/certbot/bin/certbot /usr/bin/certbot
-
-certbot certonly --nginx --non-interactive --agree-tos --domains server.cqiprog.info --email cqiprog@fastmail.com
-
-echo "Configuring nginx..."
-mv ./default.conf /etc/nginx/sites-available/default.conf
-ln -s /etc/nginx/sites-available/default.conf /etc/nginx/sites-enabled/default.conf
-nginx -t && nginx -s reload
-
-# Automatically renew certificates
-echo "0 0,12 * * * root /opt/certbot/bin/python -c 'import random; import time; time.sleep(random.random() * 3600)' && sudo certbot renew -q" | sudo tee -a /etc/crontab > /dev/null

@@ -6,8 +6,8 @@ module "teams" {
 }
 
 data "aws_secretsmanager_random_password" "internal_key" {
-  password_length = 30
-  include_space   = false
+  password_length     = 30
+  include_space       = false
   exclude_punctuation = true
 }
 
@@ -26,8 +26,8 @@ resource "aws_secretsmanager_secret_version" "internal_key" {
   }
 }
 
-resource "aws_security_group" "game_server_sg" {
-  name_prefix = "game_server_sg_"
+resource "aws_security_group" "main_server_sg" {
+  name_prefix = "main_server_sg_"
 
   ingress {
     from_port   = 80
@@ -76,11 +76,11 @@ resource "aws_security_group" "game_runner_sg" {
   }
 }
 
-resource "aws_instance" "game_server" {
+resource "aws_instance" "main_server" {
   ami                         = "ami-0325498274077fac5" # Ubuntu 24.04 ARM64
   instance_type               = "t4g.nano"
   associate_public_ip_address = true
-  vpc_security_group_ids      = [aws_security_group.game_server_sg.id]
+  vpc_security_group_ids      = [aws_security_group.main_server_sg.id]
   key_name                    = aws_key_pair.default_ssh_key.key_name
 
   iam_instance_profile = aws_iam_instance_profile.ec2_instance_profile.name
@@ -94,22 +94,22 @@ resource "aws_instance" "game_server" {
   }
 
   provisioner "file" {
-    source      = "./scripts/game_server"
+    source      = "./scripts/main_server"
     destination = "./"
   }
 
   provisioner "remote-exec" {
     inline = [
-      "cd /home/ubuntu/game_server",
+      "cd /home/ubuntu/main_server",
       "chmod +x ./init.sh",
-      "curl -s 'https://dynamicdns.park-your-domain.com/update?host=${var.domain.game_server}&domain=${var.domain.address}&password=${nonsensitive(jsondecode(data.aws_secretsmanager_secret_version.global_secrets.secret_string).namecheap_key)}&ip=${self.public_ip}'",
-      "sudo ./init.sh",
+      "curl -s 'https://dynamicdns.park-your-domain.com/update?host=${var.domain.main_server}&domain=${var.domain.address}&password=${nonsensitive(jsondecode(data.aws_secretsmanager_secret_version.global_secrets.secret_string).namecheap_key)}&ip=${self.public_ip}'",
+      "sudo GITHUB_TOKEN='${nonsensitive(jsondecode(data.aws_secretsmanager_secret_version.global_secrets.secret_string).github_token)}' ./init.sh",
       "sudo docker compose up -d"
     ]
   }
 
   tags = {
-    Name = "game_server"
+    Name = "main_server"
   }
 }
 
@@ -130,17 +130,18 @@ resource "aws_instance" "game_runner" {
     timeout     = "6m"
   }
 
-  # provisioner "file" {
-  #   source      = "./scripts/game_server"
-  #   destination = "./"
-  # }
+  provisioner "file" {
+    source      = "./scripts/game_runner"
+    destination = "./"
+  }
 
   provisioner "remote-exec" {
     inline = [
-      # "cd /home/ubuntu/game_server",
-      # "chmod +x ./init.sh",
+      "cd /home/ubuntu/game_runner",
+      "chmod +x ./init.sh",
       "curl -s 'https://dynamicdns.park-your-domain.com/update?host=${var.domain.game_runner}&domain=${var.domain.address}&password=${nonsensitive(jsondecode(data.aws_secretsmanager_secret_version.global_secrets.secret_string).namecheap_key)}&ip=${self.public_ip}'",
-      # "sudo ./init.sh",
+      "sudo GITHUB_TOKEN='${nonsensitive(jsondecode(data.aws_secretsmanager_secret_version.global_secrets.secret_string).github_token)}' ./init.sh",
+      "sudo ./init.sh",
       # "sudo docker compose up -d"
     ]
   }
