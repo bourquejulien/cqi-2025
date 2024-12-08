@@ -59,7 +59,7 @@ def add_result(secret: str, result: GameResult):
 
 def main() -> None:
     # Grab secret from AWS Secrets Manager
-    session = boto3.session.Session(profile_name='cqi') # TODO - Production can use default profile
+    session = boto3.session.Session()
     secret_manager_client = session.client(service_name="secretsmanager", region_name="us-east-1")
     secret = secret_manager_client.get_secret_value(SecretId='internal_key')["SecretString"]
 
