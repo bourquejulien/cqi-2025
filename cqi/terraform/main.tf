@@ -5,6 +5,20 @@ module "teams" {
   team_name = each.value
 }
 
+resource "aws_secretsmanager_secret" "user_secrets" {
+  name                           = "user_secrets"
+  recovery_window_in_days        = 0
+  force_overwrite_replica_secret = true
+}
+
+resource "aws_secretsmanager_secret_version" "user_secret" {
+  secret_id = aws_secretsmanager_secret.user_secrets.id
+  secret_string = jsonencode({ for team, mod in module.teams : team => {
+    access = mod.access_key
+    secret = mod.secret_key
+  } })
+}
+
 data "aws_secretsmanager_random_password" "internal_key" {
   password_length     = 30
   include_space       = false

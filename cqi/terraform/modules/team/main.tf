@@ -35,14 +35,3 @@ resource "aws_iam_user_policy" "team_user_policy" {
 resource "aws_iam_access_key" "team_user_access_key" {
   user = aws_iam_user.team_user.name
 }
-
-resource "aws_secretsmanager_secret" "user_secret" {
-  name                           = "${lower(var.team_name)}_secret"
-  recovery_window_in_days        = 0
-  force_overwrite_replica_secret = true
-}
-
-resource "aws_secretsmanager_secret_version" "user_secret" {
-  secret_id     = aws_secretsmanager_secret.user_secret.id
-  secret_string = jsonencode({ id : aws_iam_access_key.team_user_access_key.id, key : aws_iam_access_key.team_user_access_key.secret })
-}
