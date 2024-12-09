@@ -98,8 +98,8 @@ def main() -> None:
 
         for game in games:
             # Pull images
-            docker_client.images.pull(game.image_team1)
-            docker_client.images.pull(game.image_team2)
+            team1_image: Image = docker_client.images.pull(game.image_team1)
+            team2_image: Image = docker_client.images.pull(game.image_team2)
 
             # Create network
             network_name = f"{NETWORK_BASE_NAME}{game.id}"
@@ -109,12 +109,12 @@ def main() -> None:
             # Create containers
             # TODO - Add memory limit and CPU limit
             # TODO - Dynamically assign ports for game server
-            game_server_1: Container = docker_client.containers.create(GAME_SERVER_IMAGE_NAME, name=f"{game.id}_1", hostname="game_server", ports={"5000":"5000"}, network=game_network_1.name)
-            game_server_2: Container = docker_client.containers.create(GAME_SERVER_IMAGE_NAME, name=f"{game.id}_2", hostname="game_server", ports={"5000":"5001"}, network=game_network_2.name)
-            team1Offense: Container = docker_client.containers.create(game.image_team1, name=f"{game.id}_{game.team1_id}_O", hostname=f"offense", network=game_network_1.name)
-            team1Defense: Container = docker_client.containers.create(game.image_team1, name=f"{game.id}_{game.team1_id}_D", hostname=f"defense", network=game_network_2.name)
-            team2Offense: Container = docker_client.containers.create(game.image_team2, name=f"{game.id}_{game.team2_id}_O", hostname=f"offense", network=game_network_2.name)
-            team2Defense: Container = docker_client.containers.create(game.image_team2, name=f"{game.id}_{game.team2_id}_D", hostname=f"defense", network=game_network_1.name) 
+            game_server_1: Container = docker_client.containers.create(GAME_SERVER_IMAGE, name=f"{game.id}_1", hostname="game_server", ports={"5000":"5000"}, network=game_network_1.name)
+            game_server_2: Container = docker_client.containers.create(GAME_SERVER_IMAGE, name=f"{game.id}_2", hostname="game_server", ports={"5000":"5001"}, network=game_network_2.name)
+            team1Offense: Container = docker_client.containers.create(team1_image, name=f"{game.id}_{game.team1_id}_O", hostname=f"offense", network=game_network_1.name)
+            team1Defense: Container = docker_client.containers.create(team1_image, name=f"{game.id}_{game.team1_id}_D", hostname=f"defense", network=game_network_2.name)
+            team2Offense: Container = docker_client.containers.create(team2_image, name=f"{game.id}_{game.team2_id}_O", hostname=f"offense", network=game_network_2.name)
+            team2Defense: Container = docker_client.containers.create(team2_image, name=f"{game.id}_{game.team2_id}_D", hostname=f"defense", network=game_network_1.name) 
             
             # Start the game servers
             game_server_1.start()
