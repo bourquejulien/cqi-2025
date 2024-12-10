@@ -6,25 +6,27 @@ export interface FetcherResponseBase {
 }
 
 export interface OkResponse<T> extends FetcherResponseBase {
+    isSuccess: true;
     data: T;
 }
 
 export interface ErrorResponse extends FetcherResponseBase {
+    isSuccess: false;
     error: string;
     isGameEnded: boolean;
 }
 
-export type FetcherResponse<T> = Promise<OkResponse<T>> | Promise<ErrorResponse>;
+export type FetcherResponse<T> = Promise<OkResponse<T> | ErrorResponse>;
 
-function handleErrors(response: Promise<Response>) {
+function handleErrors<T>(response: Promise<Response>): FetcherResponse<T> {
     return response.then(async (response) => {
         if (!response.ok) {
-            return {isSuccess: false, isGameEnded: response.statusText == "ended", error: response.statusText};
+            return {isSuccess: false, isGameEnded: response.statusText == "ended", error: response.statusText} as ErrorResponse;
         }
 
-        return {isSuccess: true, data: await response.json()}
+        return {isSuccess: true, data: await response.json()} as OkResponse<T>
     }).catch((error) => {
-        return {isSuccess: false, isGameEnded: false, error: error};
+        return {isSuccess: false, isGameEnded: false, error: error} as ErrorResponse;
     });
 }
 
@@ -44,13 +46,13 @@ class DataFetcher {
 
     getLeaderBoardData(limit: number, page: number): FetcherResponse<GameDataBase[]> {
         const url = new URL(`${this.baseUrl}/game/list`);
-        url.searchParams.append("limit", limit);
-        url.searchParams.append("page", page);
+        url.searchParams.append("limit", String(limit));
+        url.searchParams.append("page", String(page));
 
         return handleErrors(fetch(url.toString()));
     }
 
-    async getStatsData(): FetcherResponse<Stats> {
+    getStatsData(): FetcherResponse<Stats> {
         return handleErrors(fetch(`${this.baseUrl}/stats`));
     }
 }

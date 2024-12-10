@@ -1,8 +1,9 @@
 import {Grid} from "@mantine/core";
 import React, {useEffect, useState} from "react";
-import LeaderBoard, {LeaderboardData} from "../components/Leaderboard/Leaderboard.tsx";
+import LeaderBoard from "../components/Leaderboard/Leaderboard.tsx";
 import {getDataFetcher} from "../Data.ts";
 import {Stats} from "../interfaces/Stats.ts";
+import {GameDataBase} from "../interfaces/GameData.ts";
 
 // @ts-expect-error TS6198
 function MainPage({setGameId, stats}: {
@@ -11,7 +12,7 @@ function MainPage({setGameId, stats}: {
 }) {
     const [currentPage, setCurrentPage] = useState(0);
     const [itemPerPage, setItemPerPage] = useState(10);
-    const [gameData, setGameData] = useState<LeaderboardData>([]);
+    const [gameData, setGameData] = useState<GameDataBase[]>([]);
 
     useEffect(() => {
         const updateData = async () => {

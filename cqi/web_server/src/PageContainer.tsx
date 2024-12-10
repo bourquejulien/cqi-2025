@@ -1,7 +1,7 @@
 import Header from "./components/Header/Header.tsx";
 import GamePage from "./pages/GamePage.tsx";
 import MainPage from "./pages/MainPage.tsx";
-import React, {useEffect, useState} from "react";
+import {useEffect, useState} from "react";
 import {Stack, Container} from "@mantine/core";
 import {getDataFetcher} from "./Data.ts";
 import {Stats} from "./interfaces/Stats.ts";

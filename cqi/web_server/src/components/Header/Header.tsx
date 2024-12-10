@@ -7,7 +7,7 @@ import {Stats} from "../../interfaces/Stats.ts";
 import {useEffect, useState} from "react";
 
 function getCountdown(endingTime: Date): string {
-    const gap = endingTime - new Date().getTime();
+    const gap = endingTime.getTime() - new Date().getTime();
 
     if (gap < 0) {
         return "";
