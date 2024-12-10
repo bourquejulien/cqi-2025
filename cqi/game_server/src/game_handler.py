@@ -32,7 +32,7 @@ class GameHandler:
     goal: Position
     move_count: int
 
-    def __init__(self, offense_bot_url: str, defense_bot_url: str, seed: int) -> None:
+    def __init__(self, offense_bot_url: str, defense_bot_url: str, seed: str) -> None:
         random.seed(seed)
         self.offense_bot_url = offense_bot_url
         self.defense_bot_url = defense_bot_url

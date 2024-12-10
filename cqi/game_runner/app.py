@@ -89,6 +89,9 @@ def main() -> None:
     # TODO - Cleanup any Containers or images on the server
     cleanup(docker_client)
 
+    # Reset games in case the game runner had crashed
+    reset_games(secret)
+
     # TODO - Grab the game_server image
     GAME_SERVER_IMAGE: Image = docker_client.images.pull(GAME_SERVER_IMAGE_NAME)
 
@@ -98,8 +101,8 @@ def main() -> None:
 
         for game in games:
             # Pull images
-            docker_client.images.pull(game.image_team1)
-            docker_client.images.pull(game.image_team2)
+            team1_image: Image = docker_client.images.pull(game.image_team1)
+            team2_image: Image = docker_client.images.pull(game.image_team2)
 
             # Create network
             network_name = f"{NETWORK_BASE_NAME}{game.id}"
@@ -109,12 +112,12 @@ def main() -> None:
             # Create containers
             # TODO - Add memory limit and CPU limit
             # TODO - Dynamically assign ports for game server
-            game_server_1: Container = docker_client.containers.create(GAME_SERVER_IMAGE_NAME, name=f"{game.id}_1", hostname="game_server", ports={"5000":"5000"}, network=game_network_1.name)
-            game_server_2: Container = docker_client.containers.create(GAME_SERVER_IMAGE_NAME, name=f"{game.id}_2", hostname="game_server", ports={"5000":"5001"}, network=game_network_2.name)
-            team1Offense: Container = docker_client.containers.create(game.image_team1, name=f"{game.id}_{game.team1_id}_O", hostname=f"offense", network=game_network_1.name)
-            team1Defense: Container = docker_client.containers.create(game.image_team1, name=f"{game.id}_{game.team1_id}_D", hostname=f"defense", network=game_network_2.name)
-            team2Offense: Container = docker_client.containers.create(game.image_team2, name=f"{game.id}_{game.team2_id}_O", hostname=f"offense", network=game_network_2.name)
-            team2Defense: Container = docker_client.containers.create(game.image_team2, name=f"{game.id}_{game.team2_id}_D", hostname=f"defense", network=game_network_1.name) 
+            game_server_1: Container = docker_client.containers.create(GAME_SERVER_IMAGE, name=f"{game.id}_1", hostname="game_server", ports={"5000":"5000"}, network=game_network_1.name)
+            game_server_2: Container = docker_client.containers.create(GAME_SERVER_IMAGE, name=f"{game.id}_2", hostname="game_server", ports={"5000":"5001"}, network=game_network_2.name)
+            team1Offense: Container = docker_client.containers.create(team1_image, name=f"{game.id}_{game.team1_id}_O", hostname=f"offense", network=game_network_1.name)
+            team1Defense: Container = docker_client.containers.create(team1_image, name=f"{game.id}_{game.team1_id}_D", hostname=f"defense", network=game_network_2.name)
+            team2Offense: Container = docker_client.containers.create(team2_image, name=f"{game.id}_{game.team2_id}_O", hostname=f"offense", network=game_network_2.name)
+            team2Defense: Container = docker_client.containers.create(team2_image, name=f"{game.id}_{game.team2_id}_D", hostname=f"defense", network=game_network_1.name) 
             
             # Start the game servers
             game_server_1.start()
@@ -131,8 +134,8 @@ def main() -> None:
             # Start both games
             # TODO - Retry n times in case server is loaded
             # TODO - Handle failures
-            requests.post(f'http://localhost:5000/run_game', params={'offense_url': f'http://offense:5000', 'defense_url': f'http://defense:5000'})
-            requests.post(f'http://localhost:5001/run_game', params={'offense_url': f'http://offense:5000', 'defense_url': f'http://defense:5000'})
+            requests.post(f'http://localhost:5000/run_game', params={'offense_url': f'http://offense:5000', 'defense_url': f'http://defense:5000', "seed": game.id})
+            requests.post(f'http://localhost:5001/run_game', params={'offense_url': f'http://offense:5000', 'defense_url': f'http://defense:5000', "seed": game.id})
 
             # Wait for games to finish
             while 1:
@@ -149,8 +152,8 @@ def main() -> None:
                     team2Defense.remove(force=True)
 
                     # Delete networks
-                    game_network_1.remove(force=True)
-                    game_network_2.remove(force=True)  
+                    game_network_1.remove()
+                    game_network_2.remove()  
 
                     # Add results
                     winner_id = game.team1_id if status1.score > status2.score else game.team2_id

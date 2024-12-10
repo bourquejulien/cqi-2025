@@ -40,7 +40,7 @@ class Runner:
     def stop(self):
         self.should_stop = True
 
-    def launch_game(self, offense_bot_url: str, defense_bot_url: str, seed: int) -> None:
+    def launch_game(self, offense_bot_url: str, defense_bot_url: str, seed: str) -> None:
         with self.game_lock:
             self.game_handler = GameHandler(offense_bot_url, defense_bot_url, seed)
         self._update_status()
