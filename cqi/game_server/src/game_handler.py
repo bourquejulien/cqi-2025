@@ -46,7 +46,7 @@ class GameHandler:
 
     @property
     def score(self) -> int:
-        return MAX_MOVES - self.move_count
+        return self.move_count
 
     @property
     def is_started(self) -> bool:
