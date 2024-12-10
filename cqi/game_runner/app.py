@@ -152,8 +152,8 @@ def main() -> None:
                     team2Defense.remove(force=True)
 
                     # Delete networks
-                    game_network_1.remove(force=True)
-                    game_network_2.remove(force=True)  
+                    game_network_1.remove()
+                    game_network_2.remove()  
 
                     # Add results
                     winner_id = game.team1_id if status1.score > status2.score else game.team2_id

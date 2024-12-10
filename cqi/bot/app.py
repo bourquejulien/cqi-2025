@@ -25,6 +25,7 @@ level: str = ""
 def play_offense(payload: dict) -> Response:
     data = payload["map"]
 
+    logging.info(f"Playing offense {offense_bot.__class__.__name__}")
     move = offense_bot.play(data)
     logging.info("Moved played: %s", move)
 
@@ -39,6 +40,7 @@ def play_offense(payload: dict) -> Response:
 
 def play_defense(payload: dict) -> Response:
     data = payload["map"]
+    logging.info(f"Playing defense {defense.__class__.__name__}")
     result = defense.play(data)
     if result is None:
         return Response(
@@ -54,6 +56,7 @@ def play_defense(payload: dict) -> Response:
 
 async def start(request: Request):
     global should_play_offense, offense_bot, defense
+    logging.info("Starting game - %s", level)
     data = await request.json()
     should_play_offense = data["is_offense"]
 
