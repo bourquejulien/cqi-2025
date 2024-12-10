@@ -17,16 +17,16 @@ const (
 
 type DbGame struct {
 	Id         string    `json:"id"`
-	StartTime  time.Time `json:"start_time"`
-	EndTime    time.Time `json:"end_time"`
-	Team1Id    string    `json:"team1_id"`
-	Team2Id    string    `json:"team2_id"`
-	WinnerId   *string   `json:"winner_id,omitempty"`
-	IsError    bool      `json:"is_error"`
-	Team1Score float32   `json:"team1_score"`
-	Team2Score float32   `json:"team2_score"`
-	ErrorData  *string   `json:"error_data,omitempty"`
-	GameData   *string   `json:"game_data,omitempty"`
+	StartTime  time.Time `json:"startTime"`
+	EndTime    time.Time `json:"endTime"`
+	Team1Id    string    `json:"team1Id"`
+	Team2Id    string    `json:"team2Id"`
+	WinnerId   *string   `json:"winnerId,omitempty"`
+	IsError    bool      `json:"isError"`
+	Team1Score float32   `json:"team1Score"`
+	Team2Score float32   `json:"team2Score"`
+	ErrorData  *string   `json:"errorData,omitempty"`
+	GameData   *string   `json:"gameData,omitempty"`
 }
 
 type cache struct {

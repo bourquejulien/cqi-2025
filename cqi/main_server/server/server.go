@@ -28,6 +28,7 @@ func (p *Server) Init() {
     router.Use(middleware.Logger)
 
     router.Route("/api", func(r chi.Router) {
+        r.Use(middleware.SetHeader("Access-Control-Allow-Origin", "*"))
         r.Route("/game", func(r chi.Router) {
             r.Get("/list", p.listGames)
             r.Get("/get", p.getGame)

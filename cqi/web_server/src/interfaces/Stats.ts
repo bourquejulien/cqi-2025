@@ -1,5 +1,4 @@
 export interface Stats {
-    gamesPlayed: number;
-    successfulGames: number;
+    totalGames: number;
     endTime: Date;
 }

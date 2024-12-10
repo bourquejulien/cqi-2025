@@ -3,8 +3,8 @@ package server
 import "time"
 
 type Stats struct {
-	TotalGames int       `json:"total_games"`
-	EndTime    time.Time `json:"end_time"`
+	TotalGames int       `json:"totalGames"`
+	EndTime    time.Time `json:"endTime"`
 }
 
 type Match struct {

@@ -1,28 +1,56 @@
 import Header from "./components/Header/Header.tsx";
 import GamePage from "./pages/GamePage.tsx";
 import MainPage from "./pages/MainPage.tsx";
-import {useState} from "react";
+import React, {useEffect, useState} from "react";
 import {Stack, Container} from "@mantine/core";
+import {getDataFetcher} from "./Data.ts";
+import {Stats} from "./interfaces/Stats.ts";
 
-function PageContainer() {
+function Content({stats}: { stats: Stats | undefined }) {
     const [gameId, setGameId] = useState<string | undefined>(undefined)
 
+    if (stats === undefined) {
+        return <></>
+    }
+
+    if (gameId === undefined) {
+        return <MainPage setGameId={setGameId} stats={stats}/>
+    }
+
+    return <GamePage gameId={gameId} setGameId={setGameId}/>
+}
+
+function PageContainer() {
+    const [stats, setStats] = useState<Stats | undefined>(undefined);
+
+    useEffect(() => {
+        const updateStats = async () => {
+            const response = await getDataFetcher().getStatsData();
+
+            if (response.isSuccess) {
+                response.data.endTime = new Date(response.data.endTime);
+                setStats(response.data);
+            }
+        }
+        updateStats();
+        const interval = setInterval(updateStats, 10_000);
+        return () => {
+            clearInterval(interval);
+        };
+    }, []);
+
     return (
-        <Container fluid h="100vh" p={20}
-        >
+        <Container fluid h="100vh" p={20}>
             <Stack
                 // h={3000}
                 bg="var(--mantine-color-body)"
                 align="stretch"
                 justify="space-between"
-                gap="md"
-            >
-                <Header/>
-                {gameId == undefined ? <MainPage gameId={gameId} setGameId={setGameId}/> :
-                    <GamePage gameId={gameId} setGameId={setGameId}/>}
+                gap="md">
+                <Header stats={stats}/>
+                <Content stats={stats}></Content>
             </Stack>
         </Container>
-
     )
 }
 
