@@ -45,6 +45,10 @@ class GameResult:
     error_data: str | None
     game_data: str | None
 
+def start_auto_play(secret: str):
+    logging.info('Starting auto play')
+    r = requests.post('http://localhost:8000/api/internal/autoplay', headers={'Authorization': f'{secret}'}, params={'enabled': True})
+
 def get_next_game(secret: str, n: int = 1) -> Match:
     logging.info('Getting next game')
     r = requests.post('http://localhost:8000/api/internal/match/pop', headers={'Authorization': f'{secret}'}, params={'n': n})

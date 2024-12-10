@@ -33,7 +33,7 @@ async def run_async(func: Callable[[Iterable], T], *args) -> T:
 
 async def get_status(request: Request):
     status = await run_async(game_runner.status)
-    return json_response({asdict(status)})
+    return json_response(asdict(status))
 
 
 async def run_game(request: Request):
