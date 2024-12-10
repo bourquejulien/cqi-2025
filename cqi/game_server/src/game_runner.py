@@ -71,6 +71,6 @@ class Runner:
     def _update_status(self) -> None:
         with self.data_lock:
             self.game_status = RunnerStatus(self.is_running,
-                                            self.game_handler.is_over if self.is_running else False,
+                                            self.game_handler.is_over if self.is_running else None,
                                             self.game_handler.score if self.is_running else None,
                                             self.game_handler.get_status() if self.is_running else None)

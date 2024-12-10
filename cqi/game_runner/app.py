@@ -156,6 +156,7 @@ def main() -> None:
                     game_network_2.remove()  
 
                     # Add results
+                    # TODO - Handle tie games
                     winner_id = game.team1_id if status1.score > status2.score else game.team2_id
                     results = GameResult(id=game.id, winner_id=winner_id, is_error=False, team1_score=status1.score, team2_score=status2.score, error_data=None, game_data=None)
                     add_result(secret=secret, result=results)
