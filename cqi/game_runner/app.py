@@ -134,6 +134,7 @@ def main() -> None:
             # Start both games
             # TODO - Retry n times in case server is loaded
             # TODO - Handle failures
+            time.sleep(5) # TODO - Wait for game servers and others to start
             requests.post(f'http://localhost:5000/run_game', params={'offense_url': f'http://offense:5000', 'defense_url': f'http://defense:5000', "seed": game.id})
             requests.post(f'http://localhost:5001/run_game', params={'offense_url': f'http://offense:5000', 'defense_url': f'http://defense:5000', "seed": game.id})
 
