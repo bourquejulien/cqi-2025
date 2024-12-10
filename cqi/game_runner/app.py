@@ -134,6 +134,7 @@ def main() -> None:
             # Start both games
             # TODO - Retry n times in case server is loaded
             # TODO - Handle failures
+            time.sleep(5) # TODO - Wait for game servers and others to start
             requests.post(f'http://localhost:5000/run_game', params={'offense_url': f'http://offense:5000', 'defense_url': f'http://defense:5000', "seed": game.id})
             requests.post(f'http://localhost:5001/run_game', params={'offense_url': f'http://offense:5000', 'defense_url': f'http://defense:5000', "seed": game.id})
 
@@ -156,6 +157,7 @@ def main() -> None:
                     game_network_2.remove()  
 
                     # Add results
+                    # TODO - Handle tie games
                     winner_id = game.team1_id if status1.score > status2.score else game.team2_id
                     results = GameResult(id=game.id, winner_id=winner_id, is_error=False, team1_score=status1.score, team2_score=status2.score, error_data=None, game_data=None)
                     add_result(secret=secret, result=results)
