@@ -41,7 +41,7 @@ jobs:
           push: true
           build-args: |
             USE_PYARMOR=true
-            BOT_LEVEL="easy"
+            BOT_LEVEL=easy
           tags: |
             ghcr.io/${{ github.repository }}-easy-bot:latest
 
@@ -54,6 +54,6 @@ jobs:
           push: true
           build-args: |
             USE_PYARMOR=false
-            BOT_LEVEL="medium"
+            BOT_LEVEL=medium
           tags: |
             ghcr.io/${{ github.repository }}-medium-bot:latest
