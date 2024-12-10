@@ -45,10 +45,6 @@ class GameResult:
     error_data: str | None
     game_data: str | None
 
-def start_auto_play(secret: str):
-    logging.info('Starting auto play')
-    r = requests.post('http://localhost:8000/api/internal/autoplay', headers={'Authorization': f'{secret}'}, params={'enabled': True})
-
 def get_next_game(secret: str, n: int = 1) -> Match:
     logging.info('Getting next game')
     r = requests.post('http://localhost:8000/api/internal/match/pop', headers={'Authorization': f'{secret}'}, params={'n': n})
@@ -93,6 +89,9 @@ def main() -> None:
     # TODO - Cleanup any Containers or images on the server
     cleanup(docker_client)
 
+    # Reset games in case the game runner had crashed
+    reset_games(secret)
+
     # TODO - Grab the game_server image
     GAME_SERVER_IMAGE: Image = docker_client.images.pull(GAME_SERVER_IMAGE_NAME)
 
@@ -135,8 +134,8 @@ def main() -> None:
             # Start both games
             # TODO - Retry n times in case server is loaded
             # TODO - Handle failures
-            requests.post(f'http://localhost:5000/run_game', params={'offense_url': f'http://offense:5000', 'defense_url': f'http://defense:5000'})
-            requests.post(f'http://localhost:5001/run_game', params={'offense_url': f'http://offense:5000', 'defense_url': f'http://defense:5000'})
+            requests.post(f'http://localhost:5000/run_game', params={'offense_url': f'http://offense:5000', 'defense_url': f'http://defense:5000', "seed": game.id})
+            requests.post(f'http://localhost:5001/run_game', params={'offense_url': f'http://offense:5000', 'defense_url': f'http://defense:5000', "seed": game.id})
 
             # Wait for games to finish
             while 1:

@@ -105,7 +105,7 @@ def test() -> None:
     signal.signal(signal.SIGINT, stop)
     signal.signal(signal.SIGTERM, stop)
 
-    game_runner.launch_game(bot_1_url, bot_2_url, 42)
+    game_runner.launch_game(bot_1_url, bot_2_url, "42")
 
     DURATION = 15
     for _ in range(DURATION):
