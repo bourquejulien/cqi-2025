@@ -8,7 +8,7 @@ import (
 
 	"time"
 
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 const (
@@ -36,7 +36,7 @@ type cache struct {
 }
 
 type Database struct {
-	conn  *pgx.Conn
+	pool  *pgxpool.Pool
 	lock  sync.RWMutex
 	cache cache
 }
@@ -45,7 +45,7 @@ type Database struct {
 var initSQL string
 
 func newDatabase(connectionString string, ctx context.Context) (*Database, error) {
-	conn, err := pgx.Connect(ctx, connectionString)
+	conn, err := pgxpool.New(ctx, connectionString)
 	if err != nil {
 		return nil, err
 	}
@@ -58,11 +58,29 @@ func newDatabase(connectionString string, ctx context.Context) (*Database, error
 	return &Database{conn, sync.RWMutex{}, cache{mapping: make(map[string]*DbGame)}}, nil
 }
 
+func (p *Database) acquireConnection(ctx context.Context) (*pgxpool.Conn, error) {
+	conn, err := p.pool.Acquire(ctx)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return conn, nil
+}
+
 func (p *Database) totalGameCount(ctx context.Context) (int, error) {
 	p.lock.RLock()
 	defer p.lock.RUnlock()
 
-	rows, err := p.conn.Query(ctx, "SELECT COUNT(*) FROM games")
+	conn, err := p.acquireConnection(ctx)
+
+	if err != nil {
+		return 0, err
+	}
+
+	defer conn.Release()
+
+	rows, err := conn.Query(ctx, "SELECT COUNT(*) FROM games")
 
 	if err != nil {
 		return 0, err
@@ -87,10 +105,18 @@ func (p *Database) getGame(id string, ctx context.Context) (*DbGame, error) {
 		return game, nil
 	}
 
-	row := p.conn.QueryRow(ctx, "SELECT id, start_time, end_time, team1_id, team2_id, winner_id, is_error, team1_score, team2_score FROM games WHERE id = $1", id)
+	conn, err := p.acquireConnection(ctx)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer conn.Release()
+
+	row := conn.QueryRow(ctx, "SELECT id, start_time, end_time, team1_id, team2_id, winner_id, is_error, team1_score, team2_score FROM games WHERE id = $1", id)
 
 	game := DbGame{}
-	err := row.Scan(&game.Id, &game.StartTime, &game.EndTime, &game.Team1Id, &game.Team2Id, &game.WinnerId, &game.IsError, &game.Team1Score, &game.Team2Score)
+	err = row.Scan(&game.Id, &game.StartTime, &game.EndTime, &game.Team1Id, &game.Team2Id, &game.WinnerId, &game.IsError, &game.Team1Score, &game.Team2Score)
 	if err != nil {
 		return nil, err
 	}
@@ -108,7 +134,15 @@ func (p *Database) getGamesWithPagination(ctx context.Context, limit int, page i
 		return list, nil
 	}
 
-	rows, err := p.conn.Query(ctx, "SELECT id, start_time, end_time, team1_id, team2_id, winner_id, is_error, team1_score, team2_score FROM games ORDER BY start_time desc LIMIT $1 OFFSET $2", limit, page)
+	conn, err := p.acquireConnection(ctx)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer conn.Release()
+
+	rows, err := conn.Query(ctx, "SELECT id, start_time, end_time, team1_id, team2_id, winner_id, is_error, team1_score, team2_score FROM games ORDER BY start_time desc LIMIT $1 OFFSET $2", limit, page)
 	if err != nil {
 		return nil, err
 	}
@@ -133,7 +167,15 @@ func (p *Database) addGame(game *DbGame, ctx context.Context) error {
 	p.lock.Lock()
 	defer p.lock.Unlock()
 
-	_, err := p.conn.Exec(ctx, "INSERT INTO games (id, start_time, end_time, team1_id, team2_id, winner_id, is_error, team1_score, team2_score, error_data, game_data) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)",
+	conn, err := p.acquireConnection(ctx)
+
+	if err != nil {
+		return err
+	}
+
+	defer conn.Release()
+
+	_, err = conn.Exec(ctx, "INSERT INTO games (id, start_time, end_time, team1_id, team2_id, winner_id, is_error, team1_score, team2_score, error_data, game_data) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)",
 		game.Id, game.StartTime, game.EndTime, game.Team1Id, game.Team2Id, game.WinnerId, game.IsError, game.Team1Score, game.Team2Score, game.ErrorData, game.GameData)
 	if err != nil {
 		return err
@@ -145,7 +187,7 @@ func (p *Database) addGame(game *DbGame, ctx context.Context) error {
 }
 
 func (p *Database) close(ctx context.Context) {
-	p.conn.Close(ctx)
+	p.pool.Close()
 }
 
 func (p *cache) getGameList(limit, page int) (bool, []*DbGame) {
