@@ -14,3 +14,8 @@ export interface GameData extends GameDataBase {
     errorData: string;
     gameData: string;
 }
+
+export interface GameResults {
+    totalGameCount: number;
+    results: GameDataBase[];
+}

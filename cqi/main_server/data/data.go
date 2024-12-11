@@ -5,7 +5,6 @@ import (
     _ "embed"
     "encoding/json"
     "log"
-    "sync"
     "time"
 )
 
@@ -24,73 +23,75 @@ type Stats struct {
 }
 
 type Data struct {
+    db   *Database
+    settings *settings
+    gamesDB *gamesDB
+
     teams     []teamInfo
-    stats     Stats
-    scoreDB   *Database
-    statsLock sync.RWMutex
 }
 
 func New(connectionString string, ctx context.Context) (*Data, error) {
-    data := Data{teams: []teamInfo{}, stats: Stats{}, statsLock: sync.RWMutex{}}
+    data := Data{teams: []teamInfo{}}
     err := json.Unmarshal([]byte(teams), &data.teams)
 
     if err != nil {
         log.Fatalf("Error unmarshalling teams data: %v", err)
     }
 
-    scoreDB, err := newDatabase(connectionString, ctx)
+    db, err := newDatabase(connectionString, ctx)
     if err != nil {
         return nil, err
     }
-    data.scoreDB = scoreDB
+    data.db = db
 
-    data.stats.TotalGames, err = scoreDB.totalGameCount(ctx)
+    data.gamesDB, err = newGamesDB(db, ctx)
 
     if err != nil {
         return nil, err
     }
 
-    data.stats.EndTime, err = time.Parse(time.RFC3339, "2025-01-17T14:00:00Z")
+    data.settings, err = newSettings(db, ctx)
     if err != nil {
-        panic(err)
+        return nil, err
     }
 
     return &data, nil
 }
 
 func (d *Data) GetGame(id string, context context.Context) (*DbGame, error) {
-    return d.scoreDB.getGame(id, context)
+    return d.gamesDB.getGame(id, context)
 }
 
-func (d *Data) GetStats() Stats {
-    d.statsLock.RLock()
-    defer d.statsLock.RUnlock()
+func (d *Data) GetStats() *Stats {
+    return &Stats{d.gamesDB.totalGameCount, d.settings.EndTime()}
+}
 
-    return d.stats
+func (d *Data) IsExpired() bool {
+    return time.Now().After(d.settings.EndTime())
 }
 
 func (d *Data) ListGames(context context.Context, limit, page int) ([]*DbGame, error) {
-    return d.scoreDB.getGamesWithPagination(context, limit, page)
+    return d.gamesDB.getGamesWithPagination(context, limit, page)
 }
 
 func (d *Data) AddGame(game *DbGame, ctx context.Context) error {
-    d.statsLock.Lock()
-    d.stats.TotalGames++
-    d.statsLock.Unlock()
-
-    return d.scoreDB.addGame(game, ctx)
+    return d.gamesDB.addGame(game, ctx)
 }
 
-func (d *Data) GetTeamIds(isBot bool) []string {
-    teamIds := make([]string, 0, len(d.teams))
-    for i, team := range d.teams {
+func (d *Data) GetTeamIds(isBot bool) map[string]string {
+    teamIds := make(map[string]string)
+    for _, team := range d.teams {
         if team.IsBot == isBot {
-            teamIds = append(teamIds, d.teams[i].ID)
+            teamIds[team.ID] = team.Name
         }
     }
     return teamIds
 }
 
+func (d* Data) SetEndTime(endTime time.Time, ctx context.Context) error {
+    return d.settings.SetEndTime(endTime, ctx)
+}
+
 func (d *Data) Close(ctx context.Context) {
-    d.scoreDB.close(ctx)
+    d.db.close()
 }

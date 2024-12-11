@@ -7,8 +7,6 @@ import (
 	"sync"
 
 	"time"
-
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 const (
@@ -35,44 +33,38 @@ type cache struct {
 	lock    sync.RWMutex
 }
 
-type Database struct {
-	pool  *pgxpool.Pool
-	lock  sync.RWMutex
-	cache cache
+type gamesDB struct {
+	db   *Database
+	cache *cache
+	lock sync.RWMutex
+
+	totalGameCount int
 }
 
-//go:embed init_data/init.sql
-var initSQL string
-
-func newDatabase(connectionString string, ctx context.Context) (*Database, error) {
-	conn, err := pgxpool.New(ctx, connectionString)
-	if err != nil {
-		return nil, err
+func newGamesDB(db *Database, ctx context.Context) (*gamesDB, error) {
+	games := gamesDB{
+		db: db,
+		cache: &cache{
+			mapping: map[string]*DbGame{},
+			list:    []*DbGame{},
+			lock:    sync.RWMutex{},
+		},
+		lock: sync.RWMutex{},
 	}
 
-	_, err = conn.Exec(ctx, initSQL)
-	if err != nil {
-		return nil, err
-	}
-
-	return &Database{conn, sync.RWMutex{}, cache{mapping: make(map[string]*DbGame)}}, nil
-}
-
-func (p *Database) acquireConnection(ctx context.Context) (*pgxpool.Conn, error) {
-	conn, err := p.pool.Acquire(ctx)
+	totalGameCount, err := getTotalGameCount(db, ctx)
 
 	if err != nil {
 		return nil, err
 	}
 
-	return conn, nil
+	games.totalGameCount = totalGameCount
+
+	return &games, nil
 }
 
-func (p *Database) totalGameCount(ctx context.Context) (int, error) {
-	p.lock.RLock()
-	defer p.lock.RUnlock()
-
-	conn, err := p.acquireConnection(ctx)
+func getTotalGameCount(db *Database, ctx context.Context) (int, error) {
+	conn, err := db.acquireConnection(ctx)
 
 	if err != nil {
 		return 0, err
@@ -97,7 +89,7 @@ func (p *Database) totalGameCount(ctx context.Context) (int, error) {
 	return count, nil
 }
 
-func (p *Database) getGame(id string, ctx context.Context) (*DbGame, error) {
+func (p *gamesDB) getGame(id string, ctx context.Context) (*DbGame, error) {
 	p.lock.RLock()
 	defer p.lock.RUnlock()
 
@@ -105,7 +97,7 @@ func (p *Database) getGame(id string, ctx context.Context) (*DbGame, error) {
 		return game, nil
 	}
 
-	conn, err := p.acquireConnection(ctx)
+	conn, err := p.db.acquireConnection(ctx)
 
 	if err != nil {
 		return nil, err
@@ -126,7 +118,7 @@ func (p *Database) getGame(id string, ctx context.Context) (*DbGame, error) {
 	return &game, nil
 }
 
-func (p *Database) getGamesWithPagination(ctx context.Context, limit int, page int) ([]*DbGame, error) {
+func (p *gamesDB) getGamesWithPagination(ctx context.Context, limit int, page int) ([]*DbGame, error) {
 	p.lock.RLock()
 	defer p.lock.RUnlock()
 
@@ -134,7 +126,7 @@ func (p *Database) getGamesWithPagination(ctx context.Context, limit int, page i
 		return list, nil
 	}
 
-	conn, err := p.acquireConnection(ctx)
+	conn, err := p.db.acquireConnection(ctx)
 
 	if err != nil {
 		return nil, err
@@ -163,11 +155,11 @@ func (p *Database) getGamesWithPagination(ctx context.Context, limit int, page i
 	return games, nil
 }
 
-func (p *Database) addGame(game *DbGame, ctx context.Context) error {
+func (p *gamesDB) addGame(game *DbGame, ctx context.Context) error {
 	p.lock.Lock()
 	defer p.lock.Unlock()
 
-	conn, err := p.acquireConnection(ctx)
+	conn, err := p.db.acquireConnection(ctx)
 
 	if err != nil {
 		return err
@@ -182,13 +174,12 @@ func (p *Database) addGame(game *DbGame, ctx context.Context) error {
 	}
 
 	p.cache.addGame(game)
+	p.totalGameCount++
 
 	return nil
 }
 
-func (p *Database) close(ctx context.Context) {
-	p.pool.Close()
-}
+
 
 func (p *cache) getGameList(limit, page int) (bool, []*DbGame) {
 	p.lock.RLock()

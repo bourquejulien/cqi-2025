@@ -18,7 +18,7 @@ function MainPage({setGameId, stats}: {
         const updateData = async () => {
             const response = await getDataFetcher().getLeaderBoardData(itemPerPage, currentPage);
             if (response.isSuccess) {
-                setGameData(response.data);
+                setGameData(response.data.results);
             }
         }
         updateData();

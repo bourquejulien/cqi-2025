@@ -11,3 +11,8 @@ CREATE TABLE IF NOT EXISTS games (
   team2_score REAL,
   game_data TEXT
 );
+
+CREATE TABLE IF NOT EXISTS settings (
+  id TEXT PRIMARY KEY,
+  setting TEXT
+);

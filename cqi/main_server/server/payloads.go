@@ -1,6 +1,9 @@
 package server
 
-import "time"
+import (
+	"cqiprog/data"
+	"time"
+)
 
 type Stats struct {
 	TotalGames int       `json:"totalGames"`
@@ -13,4 +16,14 @@ type Match struct {
 	Team2Id    string `json:"team2_id"`
 	ImageTeam1 string `json:"image_team1"`
 	ImageTeam2 string `json:"image_team2"`
+}
+
+type GameResults struct {
+	TotalGameCount int            `json:"totalGameCount"`
+	Results        []*data.DbGame `json:"results"`
+}
+
+type LaunchData struct {
+	TeamIdMapping map[string]string `json:"teamIdMapping"`
+	EndTime       time.Time         `json:"endTime"`
 }

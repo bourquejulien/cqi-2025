@@ -43,16 +43,28 @@ type Scheduler struct {
     cancel            *context.CancelFunc
     infra             *infra.Infra
     data              *data.Data
-    lock              sync.Mutex
+    lock              sync.RWMutex
 }
 
 func New(infra *infra.Infra, data *data.Data) (*Scheduler, error) {
     ctx, cancel := context.WithCancel(context.Background())
-    schduler := Scheduler{false, make(map[string]*Match), make([]*Match, 0, MAX_PLANNED_MATCHES*2), &cancel, infra, data, sync.Mutex{}}
+    schduler := Scheduler{false, make(map[string]*Match), make([]*Match, 0, MAX_PLANNED_MATCHES*2), &cancel, infra, data, sync.RWMutex{}}
 
     go daemon(&schduler, ctx)
 
     return &schduler, nil
+}
+
+func (s *Scheduler) ListOngoing() []*Match {
+    s.lock.RLock()
+    defer s.lock.RUnlock()
+
+    matches := make([]*Match, 0, len(s.ongoingMatches))
+    for _, match := range s.ongoingMatches {
+        matches = append(matches, match)
+    }
+
+    return matches
 }
 
 func (s *Scheduler) SetAutoplay(isEnabled bool) {
@@ -101,7 +113,7 @@ func (s *Scheduler) ForceAddMatch(team1Id string, team2Id string, ctx context.Co
     allBotIds := s.data.GetTeamIds(true)
     for _, id := range []string{team1Id, team2Id} {
         isBot := false
-        for _, botId := range allBotIds {
+        for botId, _ := range allBotIds {
             if id == botId {
                 isBot = true
                 break
@@ -191,8 +203,17 @@ func autoAddMatch(scheduler *Scheduler, ctx context.Context) {
         return
     }
 
-    teamImages, err := scheduler.infra.ListImages(scheduler.data.GetTeamIds(false), []string{DEFAULT_TAG}, ctx)
-    botImages := scheduler.infra.ListBotImages(scheduler.data.GetTeamIds(true))
+    teamIds := make([]string, 0)
+    for id := range scheduler.data.GetTeamIds(false) {
+        teamIds = append(teamIds, id)
+    }
+    teamImages, err := scheduler.infra.ListImages(teamIds, []string{DEFAULT_TAG}, ctx)
+
+    botIds := make([]string, 0)
+    for id := range scheduler.data.GetTeamIds(true) {
+        botIds = append(botIds, id)
+    }
+    botImages := scheduler.infra.ListBotImages(botIds)
 
     // TODO: Don't queue bot against bot
     teamImages = append(teamImages, botImages...)
