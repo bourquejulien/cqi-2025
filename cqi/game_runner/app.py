@@ -47,7 +47,7 @@ class GameResult:
 
 def get_next_game(secret: str, n: int = 1) -> Match:
     logging.info('Getting next game')
-    r = requests.post('http://localhost:8000/api/internal/match/pop', headers={'Authorization': f'{secret}'}, params={'n': n})
+    r = requests.post('http://localhost:8000/internal/match/pop', headers={'Authorization': f'{secret}'}, params={'n': n})
     
     # TODO - Add error handling
     matches_data = r.json()
@@ -66,11 +66,11 @@ def cleanup(client: DockerClient):
 # Call on start to tell the main server to forget current running games
 def reset_games(secret: str):
     logging.info('Resetting games')
-    r = requests.post('http://localhost:8000/api/internal/match/reset', headers={'Authorization': f'{secret}'})
+    r = requests.post('http://localhost:8000/internal/match/reset', headers={'Authorization': f'{secret}'})
 
 def add_result(secret: str, result: GameResult):
     logging.info('Adding result')
-    r = requests.post('http://localhost:8000/api/internal/match/add_result', headers={'Authorization': f'{secret}'}, json=result.__dict__)
+    r = requests.post('http://localhost:8000/internal/match/add_result', headers={'Authorization': f'{secret}'}, json=result.__dict__)
 
 def main() -> None:
     # Grab secret from AWS Secrets Manager
