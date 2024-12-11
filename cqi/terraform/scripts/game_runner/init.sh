@@ -34,6 +34,13 @@ echo \
 
 apt-get update > /dev/null && apt-get -y install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin > /dev/null
 
+# Allow to run as non-root
+gpasswd -a $USER docker
+newgrp docker
+
 # Test installation
 docker run hello-world
 echo $GITHUB_TOKEN | docker login ghcr.io -u bourquejulien --password-stdin
+
+# Start the server
+docker compose up -d
