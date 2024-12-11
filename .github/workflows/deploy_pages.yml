@@ -1,6 +1,7 @@
 name: Deploy to github pages
 
 on:
+  workflow_dispatch:
   push:
     branches: [ main ]
     paths:
@@ -31,6 +32,9 @@ jobs:
         run: npm run build
         env:
           CI: false
+
+      - name: Update CNAME
+        run: echo cqiprog.info > dist/CNAME
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v4
