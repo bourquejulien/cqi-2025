@@ -1,5 +1,6 @@
 import {GameData, GameResults} from "../interfaces/GameData.ts";
 import {Stats} from "../interfaces/Stats.ts";
+import {Match} from "../interfaces/Match.ts";
 
 export interface FetcherResponseBase {
     isSuccess: boolean;
@@ -21,7 +22,11 @@ export type FetcherResponse<T> = Promise<OkResponse<T> | ErrorResponse>;
 function handleErrors<T>(response: Promise<Response>): FetcherResponse<T> {
     return response.then(async (response) => {
         if (!response.ok) {
-            return {isSuccess: false, isGameEnded: response.statusText == "forbidden", error: response.statusText} as ErrorResponse;
+            return {
+                isSuccess: false,
+                isGameEnded: response.statusText == "forbidden",
+                error: response.statusText
+            } as ErrorResponse;
         }
 
         return {isSuccess: true, data: await response.json()} as OkResponse<T>
@@ -42,6 +47,14 @@ class DataFetcher {
         url.searchParams.append("id", id);
 
         return handleErrors(fetch(url.toString()));
+    }
+
+    getOngoingMatches(): FetcherResponse<Match[]> {
+        return handleErrors(fetch(`${this.baseUrl}/ongoing_matches`));
+    }
+
+    getLaunchData(): FetcherResponse<Stats> {
+        return handleErrors(fetch(`${this.baseUrl}/launch_data`));
     }
 
     getLeaderBoardData(limit: number, page: number): FetcherResponse<GameResults> {

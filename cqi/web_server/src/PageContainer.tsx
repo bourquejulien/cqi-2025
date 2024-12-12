@@ -44,6 +44,10 @@ function PageContainer() {
         };
     }, []);
 
+    useEffect(() => {
+
+    }, []);
+
     if (isOver) {
         return <GameOverPage/>
     }

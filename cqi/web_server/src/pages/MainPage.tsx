@@ -1,11 +1,11 @@
-import {Grid} from "@mantine/core";
+import {Grid, Title} from "@mantine/core";
 import React, {useEffect, useState} from "react";
 import LeaderBoard from "../components/Leaderboard/Leaderboard.tsx";
 import {getDataFetcher} from "../Data.ts";
 import {Stats} from "../interfaces/Stats.ts";
 import {GameDataBase} from "../interfaces/GameData.ts";
+import {LeftPane} from "../components/LeftPane/LeftPane.tsx";
 
-// @ts-expect-error TS6198
 function MainPage({setGameId, stats}: {
     setGameId: React.Dispatch<React.SetStateAction<string | undefined>>,
     stats: Stats
@@ -22,7 +22,7 @@ function MainPage({setGameId, stats}: {
             }
         }
         updateData();
-        const interval = setInterval(updateData, 10_000);
+        const interval = setInterval(updateData, 30_000);
         return () => {
             clearInterval(interval);
         };
@@ -31,9 +31,11 @@ function MainPage({setGameId, stats}: {
     return (
         <Grid style={{height: "70%"}}>
             <Grid.Col span={3}>
-
+                <Title order={3} style={{textAlign: "center"}}>Match en cours</Title>
+                <LeftPane/>
             </Grid.Col>
             <Grid.Col span={6}>
+                <Title order={1} style={{textAlign: "center"}}>Classement</Title>
                 <LeaderBoard
                     leaderBoardData={{
                         paginationData: {
@@ -43,7 +45,8 @@ function MainPage({setGameId, stats}: {
                         }, gameData: gameData
                     }}
                     setCurrentPage={setCurrentPage}
-                    setItemPerPage={setItemPerPage}/>
+                    setItemPerPage={setItemPerPage}
+                    setGameId={setGameId}/>
             </Grid.Col>
             <Grid.Col span={3}>
 

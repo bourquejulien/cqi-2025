@@ -117,15 +117,14 @@ func (p *Server) getGame(w http.ResponseWriter, r *http.Request) {
 
 func (p *Server) getOngoingMatches(w http.ResponseWriter, r *http.Request) {
 	ongoingMatches := p.Scheduler.ListOngoing()
-	matches := make([]Match, len(ongoingMatches))
+	matches := make([]OngoingMatch, len(ongoingMatches))
 
 	for i, match := range p.Scheduler.ListOngoing() {
-		matches[i] = Match{
+		matches[i] = OngoingMatch{
 			Id:         match.Id,
 			Team1Id:    match.Team1Id,
 			Team2Id:    match.Team2Id,
-			ImageTeam1: match.ImageTeam1,
-			ImageTeam2: match.ImageTeam2,
+			StartTime: *match.LaunchTime,
 		}
 	}
 

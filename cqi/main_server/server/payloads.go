@@ -18,6 +18,13 @@ type Match struct {
 	ImageTeam2 string `json:"image_team2"`
 }
 
+type OngoingMatch struct {
+	Id         string `json:"id"`
+	Team1Id    string `json:"team1Id"`
+	Team2Id    string `json:"team2Id"`
+    StartTime  time.Time `json:"startTime"`
+}
+
 type GameResults struct {
 	TotalGameCount int            `json:"totalGameCount"`
 	Results        []*data.DbGame `json:"results"`

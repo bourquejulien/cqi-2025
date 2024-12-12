@@ -14,10 +14,11 @@ export interface LeaderboardData {
 }
 
 // @ts-expect-error TS6198
-const LeaderBoard = ({leaderBoardData, setCurrentPage, setItemPerPage}: {
+const LeaderBoard = ({leaderBoardData, setCurrentPage, setItemPerPage, setGameId}: {
     leaderBoardData: LeaderboardData,
     setCurrentPage: React.Dispatch<React.SetStateAction<number>>,
-    setItemPerPage: React.Dispatch<React.SetStateAction<number>>
+    setItemPerPage: React.Dispatch<React.SetStateAction<number>>,
+    setGameId: React.Dispatch<React.SetStateAction<string | undefined>>
 }) => {
     const rows = leaderBoardData.gameData.map((game) => {
         const team1Score = game.isError ? "N/A" : game.team1Score;
