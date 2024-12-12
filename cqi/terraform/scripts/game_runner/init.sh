@@ -35,8 +35,8 @@ echo \
 apt-get update > /dev/null && apt-get -y install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin > /dev/null
 
 # Allow to run as non-root
-gpasswd -a $USER docker
-newgrp docker
+# gpasswd -a $USER docker
+# newgrp docker
 
 # Test installation
 docker run hello-world
