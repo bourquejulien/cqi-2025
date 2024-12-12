@@ -19,8 +19,6 @@ const LeaderBoard = ({leaderBoardData, setCurrentPage, setItemPerPage}: {
     setCurrentPage: React.Dispatch<React.SetStateAction<number>>,
     setItemPerPage: React.Dispatch<React.SetStateAction<number>>
 }) => {
-    const totalPages = Math.ceil(leaderBoardData.paginationData.totalItemCount / leaderBoardData.paginationData.itemsPerPage);
-
     const rows = leaderBoardData.gameData.map((game) => {
         const team1Score = game.isError ? "N/A" : game.team1Score;
         const team2Score = game.isError ? "N/A" : game.team2Score;
@@ -60,7 +58,7 @@ const LeaderBoard = ({leaderBoardData, setCurrentPage, setItemPerPage}: {
                 <Table.Tbody>{rows}</Table.Tbody>
             </Table>
 
-            <Pagination total={totalPages} value={leaderBoardData.paginationData.page} onChange={setCurrentPage}
+            <Pagination total={Math.ceil(leaderBoardData.paginationData.totalItemCount / leaderBoardData.paginationData.itemsPerPage)} value={leaderBoardData.paginationData.page} onChange={setCurrentPage}
                         mt="sm"/>
         </Stack>
     );

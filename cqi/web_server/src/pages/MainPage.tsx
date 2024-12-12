@@ -10,13 +10,13 @@ function MainPage({setGameId, stats}: {
     setGameId: React.Dispatch<React.SetStateAction<string | undefined>>,
     stats: Stats
 }) {
-    const [currentPage, setCurrentPage] = useState(0);
+    const [currentPage, setCurrentPage] = useState(1);
     const [itemPerPage, setItemPerPage] = useState(10);
     const [gameData, setGameData] = useState<GameDataBase[]>([]);
 
     useEffect(() => {
         const updateData = async () => {
-            const response = await getDataFetcher().getLeaderBoardData(itemPerPage, currentPage);
+            const response = await getDataFetcher().getLeaderBoardData(itemPerPage, Math.max(0, currentPage - 1));
             if (response.isSuccess) {
                 setGameData(response.data.results);
             }

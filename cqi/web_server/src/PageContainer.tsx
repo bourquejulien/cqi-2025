@@ -57,8 +57,9 @@ function PageContainer() {
             <Stack
                 bg="var(--mantine-color-body)"
                 align="stretch"
-                justify="space-between"
-                gap="md">
+                justify="stretch"
+                h={"100%"}
+                gap="3vh">
                 <Header stats={stats}/>
                 <Content stats={stats}></Content>
             </Stack>

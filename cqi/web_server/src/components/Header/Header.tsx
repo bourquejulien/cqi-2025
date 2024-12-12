@@ -37,17 +37,16 @@ function Header({stats}: { stats: Stats }) {
     useEffect(() => {
         setTotalMatchPlayed(stats?.totalGames ?? 0);
         setEndingTime(stats?.endTime ?? new Date());
-        }, [stats]);
+    }, [stats]);
 
     return (
-        <Grid gutter={{base: 5, xs: 'md', md: 'xl', xl: 50}}>
+        <Grid align="center" gutter={{base: 5, xs: 'md', md: 'xl', xl: 50}}>
             <Grid.Col span={4}>
                 <TextBox text={"Total match played:\n" + totalMatchPlayed}/>
             </Grid.Col>
             <Grid.Col span={4}>
-                <Image src={"/logo.png"} alt="Logo" style={{height: '100%'}}/>
+                <Image src={"/logo.png"} alt="Logo" w={"75%"} style={{margin: "auto"}}/>
             </Grid.Col>
-
             <Grid.Col span={4}>
                 <TextBox text={countdown}/>
             </Grid.Col>
