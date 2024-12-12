@@ -6,6 +6,7 @@ import {Stack, Container} from "@mantine/core";
 import {getDataFetcher} from "./Data.ts";
 import {Stats} from "./interfaces/Stats.ts";
 import {GameOverPage} from "./pages/GameOverPage.tsx";
+import {LoadingPage} from "./pages/LoadingPage.tsx";
 
 function Content({stats}: { stats: Stats | undefined }) {
     const [gameId, setGameId] = useState<string | undefined>(undefined)
@@ -47,10 +48,13 @@ function PageContainer() {
         return <GameOverPage/>
     }
 
+    if (stats === undefined) {
+        return <LoadingPage/>;
+    }
+
     return (
         <Container fluid h="100vh" p={20}>
             <Stack
-                // h={3000}
                 bg="var(--mantine-color-body)"
                 align="stretch"
                 justify="space-between"

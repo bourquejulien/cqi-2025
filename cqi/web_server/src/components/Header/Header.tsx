@@ -21,10 +21,10 @@ function getCountdown(endingTime: Date): string {
     return `${days}d ${hours}h ${minutes}m ${seconds}s`;
 }
 
-function Header({stats}: { stats: Stats | undefined }) {
-    const [totalMatchPlayed, setTotalMatchPlayed] = useState(0);
-    const [endingTime, setEndingTime] = useState(new Date());
-    const [countdown, setCountdown] = useState("");
+function Header({stats}: { stats: Stats }) {
+    const [totalMatchPlayed, setTotalMatchPlayed] = useState(stats.totalGames);
+    const [endingTime, setEndingTime] = useState(stats.endTime);
+    const [countdown, setCountdown] = useState(getCountdown(endingTime));
 
     useEffect(() => {
         const interval = setInterval(() => {
