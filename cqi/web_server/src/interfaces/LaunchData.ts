@@ -1,4 +1,4 @@
 export interface LaunchData {
-    teamIdMapping: Map<string, string>;
+    teamIdMapping: { [key: string]: string };
     endTime: Date;
 }

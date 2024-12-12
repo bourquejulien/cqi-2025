@@ -29,12 +29,12 @@ function MainPage({setGameId, stats}: {
     }, [currentPage, itemPerPage]);
 
     return (
-        <Grid style={{height: "70%"}}>
-            <Grid.Col span={3}>
+        <Grid style={{height: "70%"}} gutter={"xl"}>
+            <Grid.Col span={3} offset={0}>
                 <Title order={3} style={{textAlign: "center"}}>Match en cours</Title>
                 <LeftPane/>
             </Grid.Col>
-            <Grid.Col span={6}>
+            <Grid.Col span={6} offset={1}>
                 <Title order={1} style={{textAlign: "center"}}>Classement</Title>
                 <LeaderBoard
                     leaderBoardData={{

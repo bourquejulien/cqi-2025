@@ -1,7 +1,7 @@
 import {Table, Text} from "@mantine/core";
 import {Match} from "../../interfaces/Match.ts";
 import {useEffect, useState} from "react";
-import {getDataFetcher} from "../../Data.ts";
+import {getDataFetcher, getPlayerService} from "../../Data.ts";
 
 
 function getMinutesSince(date: Date): number {
@@ -26,7 +26,7 @@ function getMatches() {
 }
 
 export function LeftPane() {
-
+    const playerService = getPlayerService();
     const [ongoingMatches, setOngoingMatches] = useState<Match[]>([]);
 
     useEffect(() => {
@@ -47,8 +47,8 @@ export function LeftPane() {
 
         return (
             <Table.Tr key={match.id}>
-                <Table.Td><Text>{match.team1Id}</Text></Table.Td>
-                <Table.Td><Text>{match.team2Id}</Text></Table.Td>
+                <Table.Td><Text>{playerService.getPlayerNameOrDefault(match.team1Id)}</Text></Table.Td>
+                <Table.Td><Text>{playerService.getPlayerNameOrDefault(match.team2Id)}</Text></Table.Td>
                 <Table.Td>{getMinutesSince(match.startTime)}</Table.Td>
             </Table.Tr>
         )

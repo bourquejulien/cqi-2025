@@ -3,7 +3,7 @@ import GamePage from "./pages/GamePage.tsx";
 import MainPage from "./pages/MainPage.tsx";
 import {useEffect, useState} from "react";
 import {Stack, Container} from "@mantine/core";
-import {getDataFetcher} from "./Data.ts";
+import {getDataFetcher, getPlayerService} from "./Data.ts";
 import {Stats} from "./interfaces/Stats.ts";
 import {GameOverPage} from "./pages/GameOverPage.tsx";
 import {LoadingPage} from "./pages/LoadingPage.tsx";
@@ -23,6 +23,7 @@ function Content({stats}: { stats: Stats | undefined }) {
 }
 
 function PageContainer() {
+    const [isReady, setIsReady] = useState<boolean>(false);
     const [stats, setStats] = useState<Stats | undefined>(undefined);
     const [isOver, setIsOver] = useState<boolean>(false);
 
@@ -45,14 +46,19 @@ function PageContainer() {
     }, []);
 
     useEffect(() => {
-
+        getDataFetcher().getLaunchData().then((response) => {
+            if (response.isSuccess) {
+                getPlayerService().setMapping(response.data.teamIdMapping);
+                setIsReady(true);
+            }
+        });
     }, []);
 
     if (isOver) {
         return <GameOverPage/>
     }
 
-    if (stats === undefined) {
+    if (!isReady || stats === undefined) {
         return <LoadingPage/>;
     }
 

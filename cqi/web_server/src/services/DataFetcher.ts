@@ -1,6 +1,7 @@
 import {GameData, GameResults} from "../interfaces/GameData.ts";
 import {Stats} from "../interfaces/Stats.ts";
 import {Match} from "../interfaces/Match.ts";
+import {LaunchData} from "../interfaces/LaunchData.ts";
 
 export interface FetcherResponseBase {
     isSuccess: boolean;
@@ -53,7 +54,7 @@ class DataFetcher {
         return handleErrors(fetch(`${this.baseUrl}/ongoing_matches`));
     }
 
-    getLaunchData(): FetcherResponse<Stats> {
+    getLaunchData(): FetcherResponse<LaunchData> {
         return handleErrors(fetch(`${this.baseUrl}/launch_data`));
     }
 

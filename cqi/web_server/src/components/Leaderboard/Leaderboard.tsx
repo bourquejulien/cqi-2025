@@ -1,6 +1,7 @@
 import {Pagination, Stack, Table, Text} from "@mantine/core";
 import React from "react";
 import {GameDataBase} from "../../interfaces/GameData.ts";
+import {getPlayerService} from "../../Data.ts";
 
 export interface PaginationData {
     page: number;
@@ -20,20 +21,21 @@ const LeaderBoard = ({leaderBoardData, setCurrentPage, setItemPerPage, setGameId
     setItemPerPage: React.Dispatch<React.SetStateAction<number>>,
     setGameId: React.Dispatch<React.SetStateAction<string | undefined>>
 }) => {
+    const playerService = getPlayerService();
+
     const rows = leaderBoardData.gameData.map((game) => {
         const team1Score = game.isError ? "N/A" : game.team1Score;
         const team2Score = game.isError ? "N/A" : game.team2Score;
 
         const team1Color = game.isError ? "dark.9" : game.winnerId === game.team1Id ? "green.7" : "dark.9";
         const team2Color = game.isError ? "dark.9" : game.winnerId === game.team2Id ? "green.7" : "dark.9";
-
         return (
             <Table.Tr key={game.id}>
-                <Table.Td><Text c={team1Color}>{game.team1Id}</Text></Table.Td>
-                <Table.Td><Text c={team2Color}>{game.team2Id}</Text></Table.Td>
+                <Table.Td><Text c={team1Color}>{playerService.getPlayerNameOrDefault(game.team1Id)}</Text></Table.Td>
+                <Table.Td><Text c={team2Color}>{playerService.getPlayerNameOrDefault(game.team2Id)}</Text></Table.Td>
                 <Table.Td>{team1Score}</Table.Td>
                 <Table.Td>{team2Score}</Table.Td>
-                <Table.Td>{game.isError ? "Yes" : "No"}</Table.Td>
+                <Table.Td>{game.isError ? "✅" : "❌"}</Table.Td>
             </Table.Tr>
         )
     });
@@ -49,11 +51,11 @@ const LeaderBoard = ({leaderBoardData, setCurrentPage, setItemPerPage, setGameId
             <Table>
                 <Table.Thead>
                     <Table.Tr>
-                        <Table.Th>Team 1</Table.Th>
-                        <Table.Th>Team 2</Table.Th>
-                        <Table.Th>Team 1 score</Table.Th>
-                        <Table.Th>Team 2 score</Table.Th>
-                        <Table.Th>Failed</Table.Th>
+                        <Table.Th>Équipe 1</Table.Th>
+                        <Table.Th>Équipe 2</Table.Th>
+                        <Table.Th>Score équipe 2</Table.Th>
+                        <Table.Th>Score équipe 2</Table.Th>
+                        <Table.Th>Succès</Table.Th>
                     </Table.Tr>
                 </Table.Thead>
                 <Table.Tbody>{rows}</Table.Tbody>

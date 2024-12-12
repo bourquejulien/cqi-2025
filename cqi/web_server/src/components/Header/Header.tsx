@@ -42,7 +42,7 @@ function Header({stats}: { stats: Stats }) {
     return (
         <Grid align="center" gutter={{base: 5, xs: 'md', md: 'xl', xl: 50}}>
             <Grid.Col span={4}>
-                <TextBox text={"Total match played:\n" + totalMatchPlayed}/>
+                <TextBox text={"Match joués:\n" + totalMatchPlayed}/>
             </Grid.Col>
             <Grid.Col span={4}>
                 <Image src={"/logo.png"} alt="Logo" w={"75%"} style={{margin: "auto"}}/>
