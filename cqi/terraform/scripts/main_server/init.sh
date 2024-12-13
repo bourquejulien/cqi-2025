@@ -52,7 +52,7 @@ python3 -m venv /opt/certbot/ && \
             /opt/certbot/bin/pip install certbot certbot-nginx > /dev/null && \
             ln -s /opt/certbot/bin/certbot /usr/bin/certbot
 
-# certbot certonly --nginx --non-interactive --agree-tos --domains server.cqiprog.info --email cqiprog@fastmail.com
+certbot certonly --nginx --non-interactive --agree-tos --domains server.cqiprog.info --email cqiprog@fastmail.com
 
 echo "Configuring nginx..."
 mv ./default.conf /etc/nginx/sites-available/default.conf

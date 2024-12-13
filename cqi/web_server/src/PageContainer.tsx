@@ -45,13 +45,16 @@ function PageContainer() {
     }, []);
 
     useEffect(() => {
+        if (isReady) {
+            return;
+        }
         getDataFetcher().getLaunchData().then((response) => {
             if (response.isSuccess) {
                 getPlayerService().setMapping(response.data.teamIdMapping);
                 setIsReady(true);
             }
         });
-    }, []);
+    }, [stats]);
 
     if (isOver) {
         return <GameOverPage/>
