@@ -10,9 +10,9 @@ export function LoadingPage() {
             justifyContent: 'center'
         }}>
             <Stack
-                h={"10%"}
+                h={"50%"}
                 align="center"
-                justify="space-between"
+                justify="space-around"
                       gap="md"
             >
                 <Image src={"/logo.png"} alt="Logo"/>

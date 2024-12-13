@@ -1,6 +1,6 @@
 services:
   game-server:
-    image: brqu/cqi-game-server:latest
+    image: ghcr.io/bourquejulien/cqi-2024-game-server:latest
     build:
       args:
         USE_PYARMOR: false

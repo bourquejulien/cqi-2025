@@ -1,5 +1,5 @@
 resource "aws_ecr_repository" "team_repo" {
-  name = lower(var.team_name)
+  name         = lower(var.team_name)
   force_delete = true
 }
 
@@ -27,6 +27,13 @@ resource "aws_iam_user_policy" "team_user_policy" {
         ]
         Effect   = "Allow"
         Resource = aws_ecr_repository.team_repo.arn
+      },
+      {
+        "Action" : [
+          "ecr:GetAuthorizationToken"
+        ],
+        "Effect" : "Allow",
+        "Resource" : "*"
       }
     ]
   })
