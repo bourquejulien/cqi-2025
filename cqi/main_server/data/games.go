@@ -34,9 +34,9 @@ type cache struct {
 }
 
 type gamesDB struct {
-	db   *Database
+	db    *Database
 	cache *cache
-	lock sync.RWMutex
+	lock  sync.RWMutex
 
 	totalGameCount int
 }
@@ -134,7 +134,8 @@ func (p *gamesDB) getGamesWithPagination(ctx context.Context, limit int, page in
 
 	defer conn.Release()
 
-	rows, err := conn.Query(ctx, "SELECT id, start_time, end_time, team1_id, team2_id, winner_id, is_error, team1_score, team2_score FROM games ORDER BY start_time desc LIMIT $1 OFFSET $2", limit, page)
+	offset := page * limit
+	rows, err := conn.Query(ctx, "SELECT id, start_time, end_time, team1_id, team2_id, winner_id, is_error, team1_score, team2_score FROM games ORDER BY end_time desc LIMIT $1 OFFSET $2", limit, offset)
 	if err != nil {
 		return nil, err
 	}
@@ -150,7 +151,7 @@ func (p *gamesDB) getGamesWithPagination(ctx context.Context, limit int, page in
 		games = append(games, &game)
 	}
 
-	p.cache.addGameList(games)
+	p.cache.addGameList(games, offset)
 
 	return games, nil
 }
@@ -179,19 +180,6 @@ func (p *gamesDB) addGame(game *DbGame, ctx context.Context) error {
 	return nil
 }
 
-
-
-func (p *cache) getGameList(limit, page int) (bool, []*DbGame) {
-	p.lock.RLock()
-	defer p.lock.RUnlock()
-
-	if len(p.list) >= limit*(page+1) {
-		return true, p.list[limit*page : limit*page+limit]
-	}
-
-	return false, nil
-}
-
 func (p *cache) getGame(id string) *DbGame {
 	p.lock.RLock()
 	defer p.lock.RUnlock()
@@ -211,17 +199,32 @@ func (p *cache) addGame(game *DbGame) {
 	p.list = append(p.list, game)
 
 	sort.Slice(p.list, func(i, j int) bool {
-		return p.list[i].StartTime.After(p.list[j].StartTime)
+		return p.list[i].EndTime.After(p.list[j].EndTime)
 	})
+
+	if len(p.list) > LIST_CACHE_SIZE {
+		p.list = p.list[:LIST_CACHE_SIZE]
+	}
 }
 
-func (p *cache) addGameList(games []*DbGame) {
+func (p *cache) getGameList(limit, page int) (bool, []*DbGame) {
+	p.lock.RLock()
+	defer p.lock.RUnlock()
+
+	if len(p.list) >= limit*(page+1) {
+		return true, p.list[limit*page : limit*page+limit]
+	}
+
+	return false, nil
+}
+
+func (p *cache) addGameList(games []*DbGame, offset int) {
 	p.lock.Lock()
 	defer p.lock.Unlock()
 
-	if len(p.list) >= LIST_CACHE_SIZE || len(games) < len(p.list) {
+	if len(p.list) >= LIST_CACHE_SIZE || offset > len(p.list) || offset + len(games) <= len(p.list) {
 		return
 	}
 
-	p.list = games
+	p.list = append(p.list[0:offset], games...)
 }

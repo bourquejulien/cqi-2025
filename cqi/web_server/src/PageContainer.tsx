@@ -30,10 +30,9 @@ function PageContainer() {
     useEffect(() => {
         const updateStats = async () => {
             const response = await getDataFetcher().getStatsData();
-
             if (response.isSuccess) {
-                response.data.endTime = new Date(response.data.endTime);
                 setStats(response.data);
+                setIsOver(false);
             } else if (response.isGameEnded) {
                 setIsOver(true);
             }

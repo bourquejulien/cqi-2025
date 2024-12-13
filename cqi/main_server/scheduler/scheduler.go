@@ -91,7 +91,7 @@ func (s *Scheduler) addResult(gameResult *GameResult, ctx context.Context) bool 
 	gameData := data.DbGame{
 		Id:         gameResult.Id,
 		StartTime:  *match.LaunchTime,
-		EndTime:    time.Now(),
+		EndTime:    time.Now().UTC(),
 		Team1Id:    match.Team1Id,
 		Team2Id:    match.Team2Id,
 		WinnerId:   gameResult.WinnerId,
@@ -118,7 +118,7 @@ func (s *Scheduler) ForceAddMatch(team1Id string, team2Id string, ctx context.Co
 	allBotIds := s.data.GetTeamIds(true)
 	for _, id := range []string{team1Id, team2Id} {
 		isBot := false
-		for botId := range allBotIds {
+		for _, botId := range allBotIds {
 			if id == botId {
 				isBot = true
 				break
@@ -167,7 +167,7 @@ func (s *Scheduler) PopMatch(n int, ctx context.Context) []Match {
 	}
 
 	matches := make([]Match, n)
-	launchTime := time.Now()
+	launchTime := time.Now().UTC()
 	for i, match := range s.plannedMatches[:n] {
 		match.LaunchTime = &launchTime
 		s.ongoingMatches[match.Id] = match
@@ -200,8 +200,8 @@ func daemon(scheduler *Scheduler, ctx context.Context) {
 			time.Sleep(1 * time.Second)
 
 			deamonCtx, cancelFunc := context.WithTimeout(ctx, 5*time.Second)
-            defer cancelFunc()
-            
+			defer cancelFunc()
+
 			autoAddMatch(scheduler, deamonCtx)
 			cleanupMatches(scheduler, deamonCtx)
 		}
@@ -213,17 +213,8 @@ func autoAddMatch(scheduler *Scheduler, ctx context.Context) {
 		return
 	}
 
-	teamIds := make([]string, 0)
-	for id := range scheduler.data.GetTeamIds(false) {
-		teamIds = append(teamIds, id)
-	}
-	teamImages, err := scheduler.infra.ListImages(teamIds, []string{DEFAULT_TAG}, ctx)
-
-	botIds := make([]string, 0)
-	for id := range scheduler.data.GetTeamIds(true) {
-		botIds = append(botIds, id)
-	}
-	botImages := scheduler.infra.ListBotImages(botIds)
+	teamImages, err := scheduler.infra.ListImages(scheduler.data.GetTeamIds(false), []string{DEFAULT_TAG}, ctx)
+	botImages := scheduler.infra.ListBotImages(scheduler.data.GetTeamIds(true))
 
 	// TODO: Don't queue bot against bot
 	teamImages = append(teamImages, botImages...)
@@ -271,7 +262,7 @@ func cleanupMatches(scheduler *Scheduler, ctx context.Context) {
 	defer scheduler.lock.Unlock()
 
 	for id, match := range scheduler.ongoingMatches {
-		if match.LaunchTime.Add(MATCH_TIMEOUT).Before(time.Now()) {
+		if match.LaunchTime.Add(MATCH_TIMEOUT).Before(time.Now().UTC()) {
 			scheduler.addResult(&GameResult{Id: id, IsError: true}, ctx)
 		}
 	}

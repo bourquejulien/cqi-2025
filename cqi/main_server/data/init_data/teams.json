@@ -46,17 +46,17 @@
   },
   {
     "id": "mcgill2",
-    "name": "Université McGill - Macdonald Campus",
+    "name": "Université McGill - Campus Macdonald",
     "isBot": false
   },
   {
     "id": "cqi-2024-easy-bot",
-    "name": "Super dumb bot",
+    "name": "Dumb Bot",
     "isBot": true
   },
   {
     "id": "cqi-2024-medium-bot",
-    "name": "Not so dumb bot",
+    "name": "Less Dumb Bot",
     "isBot": true
   }
 ]

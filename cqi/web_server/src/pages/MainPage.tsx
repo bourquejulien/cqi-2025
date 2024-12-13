@@ -4,7 +4,8 @@ import LeaderBoard from "../components/Leaderboard/Leaderboard.tsx";
 import {getDataFetcher} from "../Data.ts";
 import {Stats} from "../interfaces/Stats.ts";
 import {GameDataBase} from "../interfaces/GameData.ts";
-import {LeftPane} from "../components/LeftPane/LeftPane.tsx";
+import {MatchPane} from "../components/LeftPane/MatchPane.tsx";
+import {Match} from "../interfaces/Match.ts";
 
 function MainPage({setGameId, stats}: {
     setGameId: React.Dispatch<React.SetStateAction<string | undefined>>,
@@ -13,16 +14,21 @@ function MainPage({setGameId, stats}: {
     const [currentPage, setCurrentPage] = useState(1);
     const [itemPerPage, setItemPerPage] = useState(10);
     const [gameData, setGameData] = useState<GameDataBase[]>([]);
+    const [ongoingMatches, setOngoingMatches] = useState<Match[]>([]);
 
     useEffect(() => {
         const updateData = async () => {
             const response = await getDataFetcher().getLeaderBoardData(itemPerPage, Math.max(0, currentPage - 1));
-            if (response.isSuccess) {
+            const matches = await  getDataFetcher().getOngoingMatches();
+
+            if (response.isSuccess && matches.isSuccess) {
                 setGameData(response.data.results);
+                setOngoingMatches(matches.data);
             }
         }
+
         updateData();
-        const interval = setInterval(updateData, 30_000);
+        const interval = setInterval(updateData, 20_000);
         return () => {
             clearInterval(interval);
         };
@@ -32,7 +38,7 @@ function MainPage({setGameId, stats}: {
         <Grid style={{height: "70%"}} gutter={"xl"}>
             <Grid.Col span={3} offset={0}>
                 <Title order={3} style={{textAlign: "center"}}>Match en cours</Title>
-                <LeftPane/>
+                <MatchPane matches={ongoingMatches}/>
             </Grid.Col>
             <Grid.Col span={6} offset={1}>
                 <Title order={1} style={{textAlign: "center"}}>Classement</Title>

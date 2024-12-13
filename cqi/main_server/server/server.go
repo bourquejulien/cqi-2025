@@ -131,7 +131,7 @@ func (p *Server) getOngoingMatches(w http.ResponseWriter, r *http.Request) {
 
 func (p *Server) getLaunchData(w http.ResponseWriter, r *http.Request) {
 	launchData := LaunchData{
-		TeamIdMapping: p.Data.GetTeamIds(false),
+		TeamIdMapping: p.Data.GetTeamMapping(),
 		EndTime:       p.Data.GetStats().EndTime,
 	}
 	render.JSON(w, r, launchData)
@@ -227,17 +227,16 @@ func (p *Server) setEndtime(w http.ResponseWriter, r *http.Request) {
 
 func (p *Server) validatePublicCalls(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        if !p.Data.IsExpired() {
+            next.ServeHTTP(w, r)
+            return
+        }
 		validationHandler(next, w, r, p)
 	})
 }
 
 func (p *Server) validateToken(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-        if !p.Data.IsExpired() {
-            next.ServeHTTP(w, r)
-            return
-        }
-
 		validationHandler(next, w, r, p)
 	})
 }

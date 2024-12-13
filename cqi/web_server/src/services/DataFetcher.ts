@@ -25,7 +25,7 @@ function handleErrors<T>(response: Promise<Response>): FetcherResponse<T> {
         if (!response.ok) {
             return {
                 isSuccess: false,
-                isGameEnded: response.statusText == "forbidden",
+                isGameEnded: (await response.text()).startsWith("Forbidden"),
                 error: response.statusText
             } as ErrorResponse;
         }
@@ -51,11 +51,25 @@ class DataFetcher {
     }
 
     getOngoingMatches(): FetcherResponse<Match[]> {
-        return handleErrors(fetch(`${this.baseUrl}/ongoing_matches`));
+        return handleErrors<Match[]>(fetch(`${this.baseUrl}/ongoing_matches`))
+            .then((response) => {
+                if (response.isSuccess) {
+                    response.data.forEach((match) => {
+                        match.startTime = new Date(match.startTime);
+                    });
+                }
+                return response;
+            });
     }
 
     getLaunchData(): FetcherResponse<LaunchData> {
-        return handleErrors(fetch(`${this.baseUrl}/launch_data`));
+        return handleErrors<LaunchData>(fetch(`${this.baseUrl}/launch_data`))
+            .then((response) => {
+                if (response.isSuccess) {
+                    response.data.endTime = new Date(response.data.endTime);
+                }
+                return response;
+            });
     }
 
     getLeaderBoardData(limit: number, page: number): FetcherResponse<GameResults> {
@@ -63,11 +77,26 @@ class DataFetcher {
         url.searchParams.append("limit", String(limit));
         url.searchParams.append("page", String(page));
 
-        return handleErrors(fetch(url.toString()));
+        return handleErrors<GameResults>(fetch(url.toString()))
+            .then((response) => {
+                if (response.isSuccess) {
+                    response.data.results.forEach((game) => {
+                        game.startTime = new Date(game.startTime);
+                        game.endTime = new Date(game.endTime);
+                    });
+                }
+                return response;
+            });
     }
 
     getStatsData(): FetcherResponse<Stats> {
-        return handleErrors(fetch(`${this.baseUrl}/stats`));
+        return handleErrors<Stats>(fetch(`${this.baseUrl}/stats`))
+            .then((response) => {
+                if (response.isSuccess) {
+                    response.data.endTime = new Date(response.data.endTime);
+                }
+                return response;
+            });
     }
 }
 

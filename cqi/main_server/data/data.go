@@ -78,12 +78,20 @@ func (d *Data) AddGame(game *DbGame, ctx context.Context) error {
 	return d.gamesDB.addGame(game, ctx)
 }
 
-func (d *Data) GetTeamIds(isBot bool) map[string]string {
-	teamIds := make(map[string]string)
+func (d *Data) GetTeamIds(isBot bool) []string {
+	teamIds := make([]string, 0 , len(d.teams))
 	for _, team := range d.teams {
 		if team.IsBot == isBot {
-			teamIds[team.ID] = team.Name
+            teamIds = append(teamIds, team.ID)
 		}
+	}
+	return teamIds
+}
+
+func (d *Data) GetTeamMapping() map[string]string {
+	teamIds := make(map[string]string)
+	for _, team := range d.teams {
+		teamIds[team.ID] = team.Name
 	}
 	return teamIds
 }
