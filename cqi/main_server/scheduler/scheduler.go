@@ -14,7 +14,7 @@ import (
 
 const (
 	DEFAULT_TAG         = "latest"
-	MAX_PLANNED_MATCHES = 10
+	MAX_PLANNED_MATCHES = 5
 	MATCH_TIMEOUT       = 3 * time.Minute
 )
 
@@ -214,42 +214,50 @@ func autoAddMatch(scheduler *Scheduler, ctx context.Context) {
 	}
 
 	teamImages, err := scheduler.infra.ListImages(scheduler.data.GetTeamIds(false), []string{DEFAULT_TAG}, ctx)
+
+	if len(teamImages) == 0 {
+		return
+	}
+
 	botImages := scheduler.infra.ListBotImages(scheduler.data.GetTeamIds(true))
 
-	// TODO: Don't queue bot against bot
-	teamImages = append(teamImages, botImages...)
+	allImages := append(teamImages, botImages...)
 
 	if err != nil {
 		log.Println(err)
 		return
 	}
 
-	if len(teamImages) < 2 {
+	if len(allImages) < 2 {
 		return
 	}
 
 	scheduler.lock.Lock()
 	defer scheduler.lock.Unlock()
 
-	countToAdd := MAX_PLANNED_MATCHES - len(scheduler.plannedMatches)
+	countToAdd := max(min(MAX_PLANNED_MATCHES - len(scheduler.plannedMatches), len(teamImages)), 0)
 
 	if countToAdd <= 0 {
 		return
 	}
 
 	for i := 0; i < countToAdd; i++ {
-		team1Index := rand.Intn(len(teamImages))
-		team2Index := rand.Intn(len(teamImages))
-		for team1Index == team2Index {
-			team2Index = rand.Intn(len(teamImages))
+		teamImageIndex := rand.Intn(len(teamImages))
+
+		otherImageIndex := rand.Intn(len(allImages))
+		teamImage := teamImages[teamImageIndex]
+		
+		for teamImage.TeamId == allImages[otherImageIndex].TeamId {
+			otherImageIndex = rand.Intn(len(allImages))
 		}
 
+		otherImage := allImages[otherImageIndex]
 		match := Match{
 			Id:         uuid.NewString(),
-			Team1Id:    teamImages[team1Index].TeamId,
-			Team2Id:    teamImages[team2Index].TeamId,
-			ImageTeam1: teamImages[team1Index].Images[0].FullUrl,
-			ImageTeam2: teamImages[team2Index].Images[0].FullUrl,
+			Team1Id:    teamImage.TeamId,
+			Team2Id:    otherImage.TeamId,
+			ImageTeam1: teamImage.Images[0].FullUrl,
+			ImageTeam2: otherImage.Images[0].FullUrl,
 			LaunchTime: nil,
 		}
 
