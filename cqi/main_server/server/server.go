@@ -31,9 +31,7 @@ func (p *Server) Init() {
 	r.Use(middleware.SetHeader("Access-Control-Allow-Origin", "*"))
 
 	r.Route("/api", func(r chi.Router) {
-		if p.Data.IsExpired() {
-			r.Use(p.validateToken)
-		}
+		r.Use(p.validatePublicCalls)
 
 		r.Route("/game", func(r chi.Router) {
 			r.Get("/list", p.listGames)
@@ -121,9 +119,9 @@ func (p *Server) getOngoingMatches(w http.ResponseWriter, r *http.Request) {
 
 	for i, match := range p.Scheduler.ListOngoing() {
 		matches[i] = OngoingMatch{
-			Id:         match.Id,
-			Team1Id:    match.Team1Id,
-			Team2Id:    match.Team2Id,
+			Id:        match.Id,
+			Team1Id:   match.Team1Id,
+			Team2Id:   match.Team2Id,
 			StartTime: *match.LaunchTime,
 		}
 	}
@@ -220,20 +218,35 @@ func (p *Server) setEndtime(w http.ResponseWriter, r *http.Request) {
 	err = p.Data.SetEndTime(endTime, r.Context())
 
 	if err != nil {
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		http.Error(w, fmt.Sprintf("error: %v", err), http.StatusInternalServerError)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
 }
 
+func (p *Server) validatePublicCalls(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		validationHandler(next, w, r, p)
+	})
+}
+
 func (p *Server) validateToken(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		token := r.Header.Get("Authorization")
-		if token != p.InternalKey {
-			http.Error(w, "forbidden", http.StatusForbidden)
-			return
-		}
-		next.ServeHTTP(w, r)
+        if !p.Data.IsExpired() {
+            next.ServeHTTP(w, r)
+            return
+        }
+
+		validationHandler(next, w, r, p)
 	})
+}
+
+func validationHandler(next http.Handler, w http.ResponseWriter, r *http.Request, server *Server) {
+	token := r.Header.Get("Authorization")
+	if token != server.InternalKey {
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
+	next.ServeHTTP(w, r)
 }
