@@ -15,7 +15,7 @@ export function LoadingPage() {
                 justify="space-around"
                       gap="md"
             >
-                <Image src={"/logo.png"} alt="Logo"/>
+                <Image src={"/logo_dark.png"} alt="Logo"/>
                 <Loader color="CQI.0" size="xl"/>
             </Stack>
         </Container>
