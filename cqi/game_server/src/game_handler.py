@@ -66,7 +66,7 @@ class GameHandler:
         self._play_defense()
         self._play_offense()
 
-        logging.info(self.map.to_img_64(Position(0, 0)).decode())
+        logging.debug(self.map.to_img_64(Position(0, 0)).decode())
 
     def end_game(self):
         requests.post(self.offense_bot_url + END_ENDPOINT, {})
@@ -118,7 +118,7 @@ class GameHandler:
                                  "map": self.map.to_img_64(self.offense_player.position, 3).decode()}, timeout=TIMEOUT)
         
         self.move_count -= 1
-        logging.info(f"Remaining number of moves: {self.move_count}")
+        logging.debug(f"Remaining number of moves: {self.move_count}")
 
         move: OffenseMove
         try:
@@ -148,13 +148,13 @@ class GameHandler:
             self.offense_player.position = previous_offense_position
             return
         
-        logging.info(f"Previous offense position: {previous_offense_position}")
-        logging.info(f"Goal position: {self.goal}")
+        logging.debug(f"Previous offense position: {previous_offense_position}")
+        logging.debug(f"Goal position: {self.goal}")
         
         logging.info("Offense move valid")
         self.map.set(previous_offense_position.x, previous_offense_position.y, ElementType.BACKGROUND)
         self.map.set(self.offense_player.position.x, self.offense_player.position.y, ElementType.PLAYER_OFFENSE)
-        logging.info(f"Offense new position is: {self.offense_player.position}")
+        logging.debug(f"Offense new position is: {self.offense_player.position}")
 
     def get_status(self) -> GameStatus:
         return GameStatus(self.map.to_list())
