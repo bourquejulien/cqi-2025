@@ -20,7 +20,7 @@ RUN if [ $USE_PYARMOR = "true" ] ; then pyarmor gen . && cp -r ./dist /app/dist 
 
 FROM python:3.12-alpine3.20 AS final
 
-ARG BOT_LEVEL=medium
+ARG BOT_LEVEL=easy
 ARG PORT=5000
 EXPOSE $PORT
 
