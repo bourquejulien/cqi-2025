@@ -1,0 +1,14 @@
+services:
+  game_runner:
+    build:
+      context: .
+    container_name: game_runner
+    environment:
+      AWS_SSO_SESSION: pm_local_session
+      SERVER_ADDRESS: "http://localhost:8000"
+
+    volumes:
+      - ~/.aws:/root/.aws:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ~/.docker/config.json:/root/.docker/config.json:ro
+    network_mode: "host"

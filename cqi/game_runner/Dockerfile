@@ -34,8 +34,7 @@ RUN pip install --no-cache-dir -r requirements.txt && rm requirements.txt
 
 COPY --from=base --chown=cqi:cqi /dist .
 
-RUN chmod +x app.py
+USER root
 
-USER cqi
-
+ENV SERVER_ADDRESS="https://server.cqiprog.info"
 ENTRYPOINT [ "python", "app.py" ]
