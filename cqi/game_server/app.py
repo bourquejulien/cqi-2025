@@ -7,6 +7,7 @@ import os
 import time
 import signal
 import threading
+import uuid
 
 from typing import Callable, Iterable, TypeVar
 from threading import Thread
@@ -42,12 +43,17 @@ async def run_game(request: Request):
     SEED = "seed"
     query_param = request.rel_url.query
 
-    if OFFENSE not in query_param or DEFENSE not in query_param or SEED not in query_param:
+    if OFFENSE not in query_param or DEFENSE not in query_param:
         return Response(text="Wrong parameters", status=400)
 
     offense_bot_url = request.rel_url.query[OFFENSE]
     defense_bot_url = request.rel_url.query[DEFENSE]
-    seed = request.rel_url.query[SEED]
+    
+    seed: str
+    if SEED in query_param:
+        seed = request.rel_url.query[SEED]
+    else:
+        seed = uuid.uuid4().hex
 
     await run_async(game_runner.launch_game, offense_bot_url, defense_bot_url, seed)
 

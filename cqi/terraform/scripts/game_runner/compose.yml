@@ -1,6 +1,9 @@
 services:
-  main_server:
+  game_runner:
     image: ghcr.io/bourquejulien/cqi-2024-game-runner:latest
     container_name: game_runner
-    network_mode: host
-    user: root
+
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ~/.docker/config.json:/root/.docker/config.json:ro
+    network_mode: "host"
