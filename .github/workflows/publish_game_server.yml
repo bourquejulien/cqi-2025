@@ -43,6 +43,7 @@ jobs:
             ghcr.io/${{ github.repository }}-game-server:latest
           build-args: |
             USE_PYARMOR=false
+            GAME_MODE=release
 
       - name: Build and push PyArmor
         uses: docker/build-push-action@v6
@@ -55,3 +56,4 @@ jobs:
             ghcr.io/${{ github.repository }}-game-server-public:latest
           build-args: |
             USE_PYARMOR=true
+            GAME_MODE=public

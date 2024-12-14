@@ -23,6 +23,7 @@ RUN if [ $USE_PYARMOR = "true" ] ; then pyarmor gen . && cp -r ./dist /app/dist 
 FROM python:3.12-alpine3.20 AS final
 
 ARG PORT=5000
+ARG GAME_MODE=public
 EXPOSE $PORT
 
 RUN addgroup \
@@ -51,6 +52,6 @@ RUN chmod +x app.py
 
 USER cqi
 ENV PORT=$PORT
-ENV MODE=release
+ENV MODE=$GAME_MODE
 
 ENTRYPOINT [ "python", "app.py" ]

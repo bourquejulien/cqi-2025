@@ -7,4 +7,3 @@ aws secretsmanager get-secret-value \
     --query "SecretString" \
     --output text \
     | cat
-

@@ -98,7 +98,7 @@ def setup_web_server() -> Application:
     return app
 
 
-def test() -> None:
+def demo() -> None:
     bot_1_url = os.environ["BOT_1_URL"]
     bot_2_url = os.environ["BOT_2_URL"]
 
@@ -122,6 +122,8 @@ def test() -> None:
     if not game_runner.status().is_over:
         logging.warning("Game not over")
 
+    status = game_runner.status()
+    print(status)
 
 def run() -> None:
     port = int(os.environ[ENV_PORT]) \
@@ -140,7 +142,7 @@ def main() -> None:
 
     initialize(is_debug)
 
-    launch = test if mode == "test" else run
+    launch = demo if mode in ["test" "public"] else run
     try:
         launch()
     finally:
