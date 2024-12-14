@@ -45,8 +45,12 @@ class GameHandler:
         self.move_count = MAX_MOVES
 
     @property
-    def score(self) -> int:
-        return self.move_count
+    def score(self) -> int | None:
+        if self.goal is None or self.offense_player is None:
+            return None
+        
+        shortest_path = self.map.get_shortest_path(self.offense_player.position, self.goal)
+        return MAX_MOVES - len(shortest_path) + (MAX_MOVES - self.move_count)
 
     @property
     def is_started(self) -> bool:
@@ -126,6 +130,10 @@ class GameHandler:
             move = OffenseMove(data["move"])
         except Exception as e:
             logging.error(f"Error parsing response from offense bot: {e}")
+            return
+        
+        if move is None:
+            logging.info("Move was skipped")
             return
 
         if self.move_count <= 0:

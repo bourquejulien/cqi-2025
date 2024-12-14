@@ -60,6 +60,30 @@ class Map(CommonMap):
         self.map[goal.x, goal.y] = ElementType.GOAL.value
         return goal
 
+    def get_shortest_path(self, start: Position, end: Position) -> list[Position]:
+        path_map = self.map.copy()
+
+        queue: list[list[Position]] = []
+        queue.append([start])
+        path_map[start.x, start.y] = ElementType.VISITED.value
+
+        while(len(queue) > 0):
+            path: list[Position] = queue.pop(0)
+            point = path[-1]
+
+            if point.x == end.x and point.y == end.y:
+                break
+
+            # Check other points
+            next_points = [Position(point.x + 1, point.y), Position(point.x - 1, point.y), Position(point.x, point.y + 1), Position(point.x, point.y - 1)]
+            for next_point in next_points:
+                if next_point.x >= 0 and next_point.x < path_map.shape[0] and next_point.y >= 0 and next_point.y < path_map.shape[1]:
+                    if path_map[next_point.x, next_point.y] in [ElementType.BACKGROUND.value, ElementType.GOAL.value, ElementType.UNKNOW.value]:
+                        path_map[next_point.x, next_point.y] = ElementType.VISITED.value
+                        queue.append(path + [next_point])
+            
+        return path
+
     def path_exists(self, start: Position, end: Position) -> bool:
         path_map = self.map.copy()
 
