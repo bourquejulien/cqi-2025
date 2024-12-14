@@ -6,25 +6,22 @@ services:
     networks:
       - game-network
     environment:
-      - BOT_1_URL=http://bot_1:5000
-      - BOT_2_URL=http://bot_2:5000
-  bot-1:
+    # Swap to test offense or defense
+      - OFFENSE_URL=http://bot:5000
+      - DEFENSE_URL=http://your_bot:5000
+  bot:
     image: ghcr.io/bourquejulien/cqi-2024-easy-bot:latest
-    hostname: bot_1
+    hostname: bot
     networks:
       - game-network
     environment:
       - PORT=5000
-  bot-2:
-    hostname: bot_2
+  your_bot:
+    hostname: your_bot
     build:
-      context: ..
-      dockerfile: ./bot/Dockerfile
-      target: final
+      context: .
     networks:
       - game-network
-    environment:
-      - PORT=5000
 
 networks:
   game-network:

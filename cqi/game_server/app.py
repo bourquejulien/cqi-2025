@@ -99,8 +99,8 @@ def setup_web_server() -> Application:
 
 
 def demo() -> None:
-    bot_1_url = os.environ["BOT_1_URL"]
-    bot_2_url = os.environ["BOT_2_URL"]
+    offense_url = os.environ["OFFENSE_URL"]
+    defense_url = os.environ["DEFENSE_URL"]
 
     global should_stop
     should_stop = False
@@ -111,7 +111,7 @@ def demo() -> None:
     signal.signal(signal.SIGINT, stop)
     signal.signal(signal.SIGTERM, stop)
 
-    game_runner.launch_game(bot_1_url, bot_2_url, "42")
+    game_runner.launch_game(offense_url, defense_url, "42")
 
     DURATION = 15
     for _ in range(DURATION):
@@ -123,7 +123,7 @@ def demo() -> None:
         logging.warning("Game not over")
 
     status = game_runner.status()
-    print(status)
+    logging.info("Final score: %s", status.score)
 
 def run() -> None:
     port = int(os.environ[ENV_PORT]) \
@@ -142,7 +142,7 @@ def main() -> None:
 
     initialize(is_debug)
 
-    launch = demo if mode in ["test" "public"] else run
+    launch = demo if mode in {"test", "public"} else run
     try:
         launch()
     finally:
