@@ -36,8 +36,9 @@ class OffenseMove(Enum):
     RIGHT = "right"
     UP = "up"
     DOWN = "down"
+    SKIP = "skip"
 
-    def to_position(move: Self) -> Position:
+    def to_position(move: Self) -> Position | None:
         match(move):
             case OffenseMove.UP:
                 return Position(0, -1)
@@ -47,6 +48,8 @@ class OffenseMove(Enum):
                 return Position(1, 0)
             case OffenseMove.LEFT:
                 return Position(-1, 0)
+            case OffenseMove.SKIP:
+                return None
 
 
 class ElementType(Enum):

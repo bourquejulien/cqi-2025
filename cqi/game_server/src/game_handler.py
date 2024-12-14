@@ -131,6 +131,10 @@ class GameHandler:
         except Exception as e:
             logging.error(f"Error parsing response from offense bot: {e}")
             return
+        
+        if move is None:
+            logging.info("Move was skipped")
+            return
 
         if self.move_count <= 0:
             logging.info("No more move available")
