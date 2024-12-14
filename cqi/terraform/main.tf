@@ -190,6 +190,9 @@ resource "aws_iam_policy" "ec2_policy" {
           "ecr:DescribeRepositories",
           "ecr:ListImages",
           "ecr:DescribeImages",
+          "ecr:GetAuthorizationToken",
+          "ecr:BatchGetImage",
+          "ecr:GetDownloadUrlForLayer",
         ],
         Effect   = "Allow",
         Resource = "*"
