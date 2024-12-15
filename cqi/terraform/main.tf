@@ -5,6 +5,11 @@ module "teams" {
   team_name = each.value
 }
 
+module "database" {
+  source = "./modules/database"
+  ec2_security_group_id = aws_security_group.main_server_sg.id
+}
+
 resource "aws_secretsmanager_secret" "user_secrets" {
   name                           = "user_secrets"
   recovery_window_in_days        = 0
@@ -124,6 +129,8 @@ resource "aws_instance" "main_server" {
   tags = {
     Name = "main_server"
   }
+
+  depends_on = [ module.database ]
 }
 
 resource "aws_instance" "game_runner" {

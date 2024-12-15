@@ -14,6 +14,10 @@ import (
     "time"
 )
 
+const (
+    DEFAULT_CONNECTION_STRING = "user=postgres password=postgres dbname=postgres sslmode=disable host=localhost"
+)
+
 func ListenAndServe(server *server.Server, port string) error {
     serverCtx, serverStopCtx := context.WithCancel(context.Background())
 
@@ -50,26 +54,44 @@ func ListenAndServe(server *server.Server, port string) error {
     return nil
 }
 
+func getConnectionString(i *infra.Infra, ctx context.Context) (string, error) {
+    connectionString := os.Getenv("CONNECTION_STRING")
+
+    if connectionString != "" {
+        return connectionString, nil
+    }
+
+    if !infra.IsRunningOnEC2() {
+        return DEFAULT_CONNECTION_STRING, nil
+    }
+
+    result, err := i.GetRdsConnectionString(ctx)
+
+    if err != nil {
+        return "", err
+    }
+
+    return result, nil
+}
+
 func main() {
     port := os.Getenv("PORT")
-    connectionString := os.Getenv("CONNECTION_STRING")
 
     if port == "" {
         port = "8000"
     }
 
     infra, err := infra.New(context.Background())
-
     if err != nil {
         log.Fatal(err)
     }
 
-    if connectionString == "" {
-        connectionString = "user=postgres password=postgres dbname=postgres sslmode=disable host=localhost"
+    connectionString, err := getConnectionString(infra, context.Background())
+    if err != nil {
+        log.Fatal(err)
     }
 
     data, err := data.New(connectionString, context.Background())
-
     if err != nil {
         log.Fatal(err)
     }
@@ -77,7 +99,6 @@ func main() {
     defer data.Close(context.Background())
 
     scheduler, err := scheduler.New(infra, data)
-
     if err != nil {
         log.Fatal(err)
     }
@@ -85,7 +106,6 @@ func main() {
     defer scheduler.Close()
 
     internalKey, err := infra.GetInternalKey(context.Background())
-
     if err != nil {
         log.Fatal(err)
     }

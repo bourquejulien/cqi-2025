@@ -8,7 +8,7 @@ import (
 )
 
 type Database struct {
-	pool  *pgxpool.Pool
+	pool *pgxpool.Pool
 }
 
 //go:embed init_data/init.sql
