@@ -21,7 +21,7 @@ class MainServerClient:
 
         response: requests.Response
         try:
-            response = requests.post(f"{self.base_url}/pop", headers=self._headers, params={"n": n})
+            response = requests.post(f"{self.base_url}/pop", timeout=5, headers=self._headers, params={"n": n})
         except:
             logging.error("Failed to get next game")
             return []
@@ -41,7 +41,7 @@ class MainServerClient:
 
         response: requests.Response
         try:
-            response = requests.post(f"{self.base_url}/add_result", headers=self._headers, json=asdict(result))
+            response = requests.post(f"{self.base_url}/add_result", timeout=5, headers=self._headers, json=asdict(result))
         except:
             logging.error("Failed to add result")
             return

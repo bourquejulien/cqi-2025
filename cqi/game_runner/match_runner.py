@@ -43,6 +43,7 @@ def safe_execute(func: callable, **args) -> bool:
         return False
     
 GAME_RUNNER_BASE_NAME = "game-runner-managed"
+DEFAULT_TIMEOUT = 2
 
 class MatchRunner:
     game_server_image: Image
@@ -183,11 +184,11 @@ class MatchRunner:
             time.sleep(1)
 
             if not game_1_started:
-                r1 = requests.post(f"http://localhost:{port_1}/run_game", params={"offense_url": f"http://offense:5000", "defense_url": f"http://defense:5000", "seed": match.id})
+                r1 = requests.post(f"http://localhost:{port_1}/run_game", timeout=DEFAULT_TIMEOUT, params={"offense_url": f"http://offense:5000", "defense_url": f"http://defense:5000", "seed": match.id})
                 game_1_started = r1.ok
             
             if not game_2_started:
-                r2 = requests.post(f"http://localhost:{port_2}/run_game", params={"offense_url": f"http://offense:5000", "defense_url": f"http://defense:5000", "seed": match.id})
+                r2 = requests.post(f"http://localhost:{port_2}/run_game", timeout=DEFAULT_TIMEOUT, params={"offense_url": f"http://offense:5000", "defense_url": f"http://defense:5000", "seed": match.id})
                 game_2_started = r2.ok
 
         if not game_1_started or not game_2_started:
@@ -209,12 +210,12 @@ class MatchRunner:
         status1: RunnerStatus
         status2: RunnerStatus
         try:
-            status1 = RunnerStatus(**requests.get(f"http://localhost:{match_data.game_1.port}/status").json())
+            status1 = RunnerStatus(**requests.get(f"http://localhost:{match_data.game_1.port}/status", timeout=DEFAULT_TIMEOUT).json())
         except:
             status1 = None
         
         try:
-            status2 = RunnerStatus(**requests.get(f"http://localhost:{match_data.game_2.port}/status").json())
+            status2 = RunnerStatus(**requests.get(f"http://localhost:{match_data.game_2.port}/status", timeout=DEFAULT_TIMEOUT).json())
         except:
             status2 = None
         
