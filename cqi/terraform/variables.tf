@@ -28,3 +28,8 @@ variable "domain" {
     address     = "cqiprog.info"
   }
 }
+
+variable "persisted_bucket_arn" {
+  type = string
+  default = "arn:aws:s3:::cqi-persisted"
+}

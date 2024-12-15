@@ -12,6 +12,10 @@ resource "aws_db_instance" "default" {
     skip_final_snapshot  = true
 
     vpc_security_group_ids = [aws_security_group.db.id]
+
+    lifecycle {
+    ignore_changes = [password, ]
+  }
 }
 
 data "aws_secretsmanager_random_password" "database_password" {
@@ -40,12 +44,12 @@ resource "aws_security_group" "db" {
     name        = "db_security_group"
     description = "Allow access to the database from EC2 instances"
 
-    ingress {
-        from_port   = 5432
-        to_port     = 5432
-        protocol    = "tcp"
-        cidr_blocks = ["0.0.0.0/0"]
-    }
+    # ingress {
+    #     from_port   = 5432
+    #     to_port     = 5432
+    #     protocol    = "tcp"
+    #     cidr_blocks = ["0.0.0.0/0"]
+    # }
 
     egress {
         from_port   = 0

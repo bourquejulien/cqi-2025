@@ -224,6 +224,19 @@ resource "aws_iam_policy" "ec2_policy" {
         Resource = [
           module.database.secret_arn,
         ]
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "s3:ListBucket",
+          "s3:GetObject",
+          "s3:PutObject",
+          "s3:DeleteObject"
+        ]
+        Resource = [
+          var.persisted_bucket_arn,
+          "${var.persisted_bucket_arn}/*"
+        ]
       }
     ]
   })

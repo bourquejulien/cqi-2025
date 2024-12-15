@@ -2,6 +2,8 @@
 
 set -e
 
+LETSENCRYPT_BACKUP="s3://cqi-persisted/letsencrypt/backup.tar.gz"
+
 if [ "$(id -u)" -ne 0 ]; then
   echo "This script must be run as root" >&2
   exit 1
@@ -14,6 +16,8 @@ fi
 
 echo "Updating system..."
 apt-get update > /dev/null && apt-get -y upgrade > /dev/null
+
+snap install aws-cli --classic > /dev/null
 
 echo "Installing dependencies..."
 apt-get -y install \
@@ -52,6 +56,14 @@ python3 -m venv /opt/certbot/ && \
             /opt/certbot/bin/pip install certbot certbot-nginx > /dev/null && \
             ln -s /opt/certbot/bin/certbot /usr/bin/certbot
 
+if aws s3 ls $LETSENCRYPT_BACKUP ; then
+    echo "Downloading and extracting letsencrypt backup..."
+    rm -rf /etc/letsencrypt
+    aws s3 cp $LETSENCRYPT_BACKUP - | sudo tar -xzf - -C /etc
+else
+    echo "No letsencrypt backup found."
+fi
+
 certbot certonly --nginx --non-interactive --agree-tos --domains server.cqiprog.info --email cqiprog@fastmail.com
 
 echo "Configuring nginx..."
@@ -61,6 +73,9 @@ nginx -t && nginx -s reload
 
 # Automatically renew certificates
 echo "0 0,12 * * * root /opt/certbot/bin/python -c 'import random; import time; time.sleep(random.random() * 3600)' && sudo certbot renew -q" | sudo tee -a /etc/crontab > /dev/null
+
+# Push the updated files to S3
+tar -czf - -C /etc letsencrypt | aws s3 cp - $LETSENCRYPT_BACKUP --acl bucket-owner-full-control
 
 # Start the server
 docker compose up -d
