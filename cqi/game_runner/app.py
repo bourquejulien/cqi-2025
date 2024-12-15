@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import os
+import signal
 import boto3
 import docker
 import time
@@ -13,12 +14,11 @@ from docker.models.images import Image
 from docker.models.containers import Container
 from docker.models.networks import Network
 
+from stop_token import StopToken
 from match_runner import MatchRunner
 from main_server_client import MainServerClient
 
 GAME_SERVER_IMAGE_NAME = "ghcr.io/bourquejulien/cqi-2024-game-server"
-NETWORK_BASE_NAME = "game-runner-network-"
-CONTAINER_BASE_NAME = "game-runner-"
 
 def get_internal_key(session: boto3.session.Session) -> str:
     ecr_client = session.client(service_name="ecr", region_name="us-east-1")
@@ -29,39 +29,41 @@ def get_internal_key(session: boto3.session.Session) -> str:
     return username, password, registry
 
 def main() -> None:
-    base_address = os.environ.get("SERVER_ADDRESS", "http://localhost:8000")
-
     logging.basicConfig(level=logging.INFO,
-                        format="%(asctime)s %(levelname)s%(module)s-%(funcName)s: %(message)s",
-                        datefmt="%d-%m-%Y %H:%M:%S")
-
+                    format="%(asctime)s %(levelname)s%(module)s-%(funcName)s: %(message)s",
+                    datefmt="%d-%m-%Y %H:%M:%S")
     # Grab secret from AWS Secrets Manager
     session = boto3.session.Session()
     secret_manager_client = session.client(service_name="secretsmanager", region_name="us-east-1")
     secret = secret_manager_client.get_secret_value(SecretId="internal_key")["SecretString"]
 
     docker_client: DockerClient = docker.from_env()
-    username, password, registry = get_internal_key(session)
 
+    username, password, registry = get_internal_key(session)
     docker_client.login(username=username, password=password, registry=registry)
 
+    base_address = os.environ.get("SERVER_ADDRESS", "http://localhost:8000")
     main_server_client = MainServerClient(secret=secret, base_url=base_address)
 
     gameServerImage: Image = docker_client.images.pull(GAME_SERVER_IMAGE_NAME)
 
-    match_runner = MatchRunner(game_server_image=gameServerImage, docker_client=docker_client, network_base_name=NETWORK_BASE_NAME, container_base_name=CONTAINER_BASE_NAME)
+    match_runner = MatchRunner(game_server_image=gameServerImage, docker_client=docker_client)
     match_runner.cleanup()
 
-    while True:
+    stop_token = StopToken()
+    signal.signal(signal.SIGINT, stop_token.cancel)
+
+    while not stop_token.is_canceled():
+        # TODO - Evaluate how many games can run concurrently
         matches_to_run = main_server_client.get_next_matches(2)
-        match_runner.run_matches(matches_to_run)
+        match_runner.run_matches(stop_token, matches_to_run)
 
         results = match_runner.get_results()
         for result in results:
             main_server_client.add_result(result)
 
         logging.info("Added %s results", len(results))
-        time.sleep(5)
+        stop_token.wait(5)
 
 if __name__ == "__main__":
     main()

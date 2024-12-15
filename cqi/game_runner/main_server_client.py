@@ -32,6 +32,8 @@ class MainServerClient:
         
         matches_data = response.json()
         matches = [Match(**match) for match in matches_data]
+
+        logging.info("Got %s matches", len(matches))
         return matches
 
     def add_result(self, result: GameResult):

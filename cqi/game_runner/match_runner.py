@@ -11,6 +11,7 @@ from docker.models.images import Image
 
 import requests
 
+from stop_token import StopToken
 from interfaces import GameResult, Match, RunnerStatus
 
 def get_available_port() -> int:
@@ -40,50 +41,48 @@ def safe_execute(func: callable, **args) -> bool:
         return True
     except Exception as _:
         return False
+    
+GAME_RUNNER_BASE_NAME = "game-runner-managed"
 
 class MatchRunner:
     game_server_image: Image
     docker_client: DockerClient
-    network_base_name: str
-    container_base_name: str
 
     current_matches: dict[str, MatchData]
     results: list[GameResult]
 
-    def __init__(self, game_server_image: Image, docker_client: DockerClient, network_base_name: str, container_base_name: str) -> None:
+    def __init__(self, game_server_image: Image, docker_client: DockerClient) -> None:
         self.game_server_image = game_server_image
         self.docker_client = docker_client
-        self.network_base_name = network_base_name
-        self.container_base_name = container_base_name
 
         self.current_matches = {}
         self.results = []
 
     
-    def run_matches(self, matches: list[Match]) -> None:
-        # TODO - Evaluate how many games can run concurrently
-
+    def run_matches(self, stop_token: StopToken, matches: list[Match]) -> None:
         for match in matches:
-            self._run_match(match)
+            self._run_match(stop_token, match)
 
         for current_match in self.current_matches.values():
-            self.get_match_results(current_match)
+            self.get_match_results(stop_token, current_match)
         
         for result in self.results:
             if result.id in self.current_matches:
                 del self.current_matches[result.id]
+        
+        if stop_token.is_canceled():
+            self.cleanup()
 
     def cleanup(self, id: str | None = None) -> None:
+        start_string = GAME_RUNNER_BASE_NAME + "-" + (id or "")
+
         container: Container
-
-        valid_id = lambda name: id is None or id in name
-
         for container in self.docker_client.containers.list(all=True):
-            if container.name.startswith((self.container_base_name)) and valid_id(container.name):
+            if container.name.startswith((start_string)):
                 container.remove(force=True)
 
         for network in self.docker_client.networks.list():
-            if network.name.startswith(self.network_base_name) and valid_id(network.name):
+            if network.name.startswith(start_string):
                 for container in network.containers:
                     network.disconnect(container, force=True)
                     container.remove(force=True)
@@ -102,7 +101,10 @@ class MatchRunner:
         # TODO - Add error data
         self.results.append(GameResult(id=match.id, winner_id=None, is_error=True, team1_score=None, team2_score=None, error_data=None, game_data=None))
 
-    def _run_match(self, match: Match) -> None:
+    def _run_match(self, stop_token: StopToken, match: Match) -> None:
+        if stop_token.is_canceled():
+            return
+
         # Pull images
         team1_image: Image = self.docker_client.images.pull(match.image_team1)
         team2_image: Image = self.docker_client.images.pull(match.image_team2)
@@ -110,15 +112,18 @@ class MatchRunner:
         id = match.id[:8]
 
         # Create network
-        network_name = f"{self.network_base_name}{id}"
+        base_docker_id = f"{GAME_RUNNER_BASE_NAME}-{id}"
 
         game_network_1: Network
         game_network_2: Network
         try:
-            game_network_1 = self.docker_client.networks.create(f"{network_name}_1", driver="bridge") # TODO - Make network internal only
-            game_network_2 = self.docker_client.networks.create(f"{network_name}_2", driver="bridge") # TODO - Make network internal only
+            game_network_1 = self.docker_client.networks.create(f"{base_docker_id}-1", driver="bridge") # TODO - Make network internal only
+            game_network_2 = self.docker_client.networks.create(f"{base_docker_id}-2", driver="bridge") # TODO - Make network internal only
         except:
             self._handle_error(match, "Failed to create network")
+            return
+        
+        if stop_token.is_canceled():
             return
 
         # Create containers
@@ -129,8 +134,8 @@ class MatchRunner:
         game_server_1: Container
         game_server_2: Container
         try:
-            game_server_1 = self.docker_client.containers.create(self.game_server_image, name=f"{self.container_base_name}{id}_1", hostname="game_server", ports={"5000":port_1}, network=game_network_1.name)
-            game_server_2 = self.docker_client.containers.create(self.game_server_image, name=f"{self.container_base_name}{id}_2", hostname="game_server", ports={"5000":port_2}, network=game_network_2.name)
+            game_server_1 = self.docker_client.containers.create(self.game_server_image, name=f"{base_docker_id}-1", hostname="game_server", ports={"5000":port_1}, network=game_network_1.name)
+            game_server_2 = self.docker_client.containers.create(self.game_server_image, name=f"{base_docker_id}-2", hostname="game_server", ports={"5000":port_2}, network=game_network_2.name)
 
             game_server_1.start()
             game_server_2.start()
@@ -138,28 +143,37 @@ class MatchRunner:
             self._handle_error(match, "Failed to create game server")
             return
         
+        if stop_token.is_canceled():
+            return
+        
         # Start team 1 bots
         team1Offense: Container
         team1Defense: Container
         try:
-            team1Offense = self.docker_client.containers.create(team1_image, name=f"{self.container_base_name}{id}_{match.team1_id}_O", hostname=f"offense", network=game_network_1.name)
-            team1Defense = self.docker_client.containers.create(team1_image, name=f"{self.container_base_name}{id}_{match.team1_id}_D", hostname=f"defense", network=game_network_2.name)
+            team1Offense = self.docker_client.containers.create(team1_image, name=f"{base_docker_id}-{match.team1_id}-O", hostname=f"offense", network=game_network_1.name)
+            team1Defense = self.docker_client.containers.create(team1_image, name=f"{base_docker_id}-{match.team1_id}-D", hostname=f"defense", network=game_network_2.name)
             team1Offense.start()
             team1Defense.start()
         except:
             self._handle_error(match, "Failed to create team 1 bots")
             return
         
+        if stop_token.is_canceled():
+            return
+        
         # Start team 2 bots
         team2Offense: Container
         team2Defense: Container
         try:
-            team2Offense = self.docker_client.containers.create(team2_image, name=f"{self.container_base_name}{id}_{match.team2_id}_O", hostname=f"offense", network=game_network_2.name)
-            team2Defense = self.docker_client.containers.create(team2_image, name=f"{self.container_base_name}{id}_{match.team2_id}_D", hostname=f"defense", network=game_network_1.name)
+            team2Offense = self.docker_client.containers.create(team2_image, name=f"{base_docker_id}-{match.team2_id}-O", hostname=f"offense", network=game_network_2.name)
+            team2Defense = self.docker_client.containers.create(team2_image, name=f"{base_docker_id}-{match.team2_id}-D", hostname=f"defense", network=game_network_1.name)
             team2Defense.start()
             team2Offense.start()
         except:
             self._handle_error(match, "Failed to create team 2 bots")
+            return
+        
+        if stop_token.is_canceled():
             return
 
         # Start both games
@@ -187,8 +201,11 @@ class MatchRunner:
 
         self.current_matches[match_data.game.id] = match_data
 
-    def get_match_results(self, match_data: MatchData) -> list[GameResult]:
+    def get_match_results(self, stop_token: StopToken, match_data: MatchData) -> list[GameResult]:
         # Wait for games to finish
+
+        if stop_token.is_canceled():
+            return
 
         status1: RunnerStatus
         status2: RunnerStatus
