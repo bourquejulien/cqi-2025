@@ -74,7 +74,7 @@ class MatchRunner:
             self.cleanup()
 
     def cleanup(self, id: str | None = None) -> None:
-        start_string = GAME_RUNNER_BASE_NAME + "-" + (id or "")
+        start_string = GAME_RUNNER_BASE_NAME + "-" + (id[:8] or "")
 
         container: Container
         for container in self.docker_client.containers.list(all=True):
@@ -109,10 +109,8 @@ class MatchRunner:
         team1_image: Image = self.docker_client.images.pull(match.image_team1)
         team2_image: Image = self.docker_client.images.pull(match.image_team2)
 
-        id = match.id[:8]
-
         # Create network
-        base_docker_id = f"{GAME_RUNNER_BASE_NAME}-{id}"
+        base_docker_id = f"{GAME_RUNNER_BASE_NAME}-{match.id[:8]}"
 
         game_network_1: Network
         game_network_2: Network
