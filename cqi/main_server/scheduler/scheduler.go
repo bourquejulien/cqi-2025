@@ -15,6 +15,7 @@ import (
 const (
 	DEFAULT_TAG         = "latest"
 	MAX_PLANNED_MATCHES = 5
+	MAX_RUNNING_MATCHES = 5
 	MATCH_TIMEOUT       = 3 * time.Minute
 )
 
@@ -165,6 +166,8 @@ func (s *Scheduler) PopMatch(n int, ctx context.Context) []Match {
 	if n > len(s.plannedMatches) {
 		n = len(s.plannedMatches)
 	}
+
+	n = max(0, min(n, MAX_RUNNING_MATCHES - len(s.ongoingMatches)))
 
 	matches := make([]Match, n)
 	launchTime := time.Now().UTC()
