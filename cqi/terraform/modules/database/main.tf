@@ -30,7 +30,7 @@ resource "aws_secretsmanager_secret_version" "database" {
   secret_id     = aws_secretsmanager_secret.database.id
   secret_string = jsonencode({
                     username = aws_db_instance.default.username
-                    password = data.aws_secretsmanager_random_password.database_password.random_password
+                    password = aws_db_instance.default.password
                     db_name  = aws_db_instance.default.db_name
                     identifier = aws_db_instance.default.identifier
                 })

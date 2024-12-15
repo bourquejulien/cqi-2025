@@ -74,6 +74,7 @@ class MatchRunner:
             self.cleanup()
 
     def cleanup(self, id: str | None = None) -> None:
+        id = id or ""
         start_string = GAME_RUNNER_BASE_NAME + "-" + (id[:8] or "")
 
         container: Container

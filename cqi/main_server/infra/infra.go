@@ -177,22 +177,14 @@ func (p *Infra) GetRdsConnectionString(ctx context.Context) (string, error) {
 	var secrets map[string]string
 	json.Unmarshal([]byte(*result.SecretString), &secrets)
 
-	var identifier, username, password, dbName string
+	var identifier, password string
 	var ok bool
 
 	if identifier, ok = secrets["identifier"]; !ok {
 		return "", fmt.Errorf("failed to get secret value, %v", err)
 	}
 
-	if username, ok = secrets["username"]; !ok {
-		return "", fmt.Errorf("failed to get secret value, %v", err)
-	}
-
 	if password, ok = secrets["password"]; !ok {
-		return "", fmt.Errorf("failed to get secret value, %v", err)
-	}
-
-	if dbName, ok = secrets["db_name"]; !ok {
 		return "", fmt.Errorf("failed to get secret value, %v", err)
 	}
 
@@ -203,6 +195,8 @@ func (p *Infra) GetRdsConnectionString(ctx context.Context) (string, error) {
 	}
 
 	instanceEndpoint := *instance.Endpoint.Address
+    dbName := *instance.DBName
+    username := *instance.MasterUsername
 
     filepath, err := downloadRdsCert()
     if err != nil {

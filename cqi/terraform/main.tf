@@ -200,6 +200,7 @@ resource "aws_iam_policy" "ec2_policy" {
           "ecr:GetAuthorizationToken",
           "ecr:BatchGetImage",
           "ecr:GetDownloadUrlForLayer",
+          "rds:DescribeDBInstances"
         ],
         Effect   = "Allow",
         Resource = "*"
@@ -212,6 +213,16 @@ resource "aws_iam_policy" "ec2_policy" {
         ]
         Resource = [
           aws_secretsmanager_secret.internal_key.arn,
+        ]
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "secretsmanager:GetSecretValue",
+          "secretsmanager:DescribeSecret"
+        ]
+        Resource = [
+          module.database.secret_arn,
         ]
       }
     ]
