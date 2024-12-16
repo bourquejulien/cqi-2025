@@ -97,7 +97,7 @@ resource "aws_security_group" "game_runner_sg" {
 
 resource "aws_instance" "main_server" {
   ami                         = "ami-0325498274077fac5" # Ubuntu 24.04 ARM64
-  instance_type               = "t4g.nano"
+  instance_type               = "t4g.small"
   associate_public_ip_address = true
   vpc_security_group_ids      = [aws_security_group.main_server_sg.id]
   key_name                    = aws_key_pair.default_ssh_key.key_name
@@ -135,7 +135,7 @@ resource "aws_instance" "main_server" {
 
 resource "aws_instance" "game_runner" {
   ami                         = "ami-0325498274077fac5" # Ubuntu 24.04 ARM64
-  instance_type               = "t4g.nano"
+  instance_type               = "t4g.small"
   associate_public_ip_address = true
   vpc_security_group_ids      = [aws_security_group.game_runner_sg.id]
   key_name                    = aws_key_pair.default_ssh_key.key_name
