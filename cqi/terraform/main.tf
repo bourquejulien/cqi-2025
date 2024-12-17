@@ -6,8 +6,19 @@ module "teams" {
 }
 
 module "database" {
-  source = "./modules/database"
+  source                = "./modules/database"
   ec2_security_group_id = aws_security_group.main_server_sg.id
+}
+
+module "runner" {
+  source = "./modules/runner"
+
+  instance_count = var.runner_count
+
+  global_secrets   = jsondecode(data.aws_secretsmanager_secret_version.global_secrets.secret_string)
+  ssh_key_name     = aws_key_pair.default_ssh_key.key_name
+  domain           = var.domain
+  internal_key_arn = aws_secretsmanager_secret.internal_key.arn
 }
 
 resource "aws_secretsmanager_secret" "user_secrets" {
@@ -77,24 +88,6 @@ resource "aws_security_group" "main_server_sg" {
   }
 }
 
-resource "aws_security_group" "game_runner_sg" {
-  name_prefix = "game_runner_sg_"
-
-  ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-}
-
 resource "aws_instance" "main_server" {
   ami                         = "ami-0325498274077fac5" # Ubuntu 24.04 ARM64
   instance_type               = "t4g.small"
@@ -130,47 +123,11 @@ resource "aws_instance" "main_server" {
     Name = "main_server"
   }
 
-  depends_on = [ module.database ]
-}
-
-resource "aws_instance" "game_runner" {
-  ami                         = "ami-0325498274077fac5" # Ubuntu 24.04 ARM64
-  instance_type               = "t4g.small"
-  associate_public_ip_address = true
-  vpc_security_group_ids      = [aws_security_group.game_runner_sg.id]
-  key_name                    = aws_key_pair.default_ssh_key.key_name
-
-  iam_instance_profile = aws_iam_instance_profile.ec2_instance_profile.name
-
-  connection {
-    type        = "ssh"
-    user        = "ubuntu"
-    private_key = base64decode(nonsensitive(jsondecode(data.aws_secretsmanager_secret_version.global_secrets.secret_string).ssh_private_key))
-    host        = self.public_ip
-    timeout     = "6m"
-  }
-
-  provisioner "file" {
-    source      = "./scripts/game_runner"
-    destination = "./"
-  }
-
-  provisioner "remote-exec" {
-    inline = [
-      "cd /home/ubuntu/game_runner",
-      "chmod +x ./init.sh",
-      "curl -s 'https://dynamicdns.park-your-domain.com/update?host=${var.domain.game_runner}&domain=${var.domain.address}&password=${nonsensitive(jsondecode(data.aws_secretsmanager_secret_version.global_secrets.secret_string).namecheap_key)}&ip=${self.public_ip}'",
-      "sudo GITHUB_TOKEN='${nonsensitive(jsondecode(data.aws_secretsmanager_secret_version.global_secrets.secret_string).github_token)}' ./init.sh",
-    ]
-  }
-
-  tags = {
-    Name = "game_runner"
-  }
+  depends_on = [module.database]
 }
 
 resource "aws_iam_role" "ec2_role" {
-  name = "ec2_role"
+  name = "ec2_main_server_role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17",
@@ -187,7 +144,7 @@ resource "aws_iam_role" "ec2_role" {
 }
 
 resource "aws_iam_policy" "ec2_policy" {
-  name = "ecr_list_policy"
+  name = "main_server_list_policy"
 
   policy = jsonencode({
     Version = "2012-10-17",
@@ -198,8 +155,6 @@ resource "aws_iam_policy" "ec2_policy" {
           "ecr:ListImages",
           "ecr:DescribeImages",
           "ecr:GetAuthorizationToken",
-          "ecr:BatchGetImage",
-          "ecr:GetDownloadUrlForLayer",
           "rds:DescribeDBInstances"
         ],
         Effect   = "Allow",
@@ -212,17 +167,8 @@ resource "aws_iam_policy" "ec2_policy" {
           "secretsmanager:DescribeSecret"
         ]
         Resource = [
-          aws_secretsmanager_secret.internal_key.arn,
-        ]
-      },
-      {
-        Effect = "Allow"
-        Action = [
-          "secretsmanager:GetSecretValue",
-          "secretsmanager:DescribeSecret"
-        ]
-        Resource = [
           module.database.secret_arn,
+          aws_secretsmanager_secret.internal_key.arn,
         ]
       },
       {
@@ -248,12 +194,12 @@ resource "aws_iam_role_policy_attachment" "ec2_role_policy_attachment" {
 }
 
 resource "aws_iam_instance_profile" "ec2_instance_profile" {
-  name = "ec2_instance_profile"
+  name = "ec2_main_server_instance_profile"
   role = aws_iam_role.ec2_role.name
 }
 
 data "aws_secretsmanager_secret" "global_secrets" {
-  arn = "arn:aws:secretsmanager:us-east-1:481665101132:secret:global_secrets-crxtcU"
+  arn = var.global_secret_arn
 }
 
 data "aws_secretsmanager_secret_version" "global_secrets" {

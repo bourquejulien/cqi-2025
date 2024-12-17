@@ -33,3 +33,14 @@ variable "persisted_bucket_arn" {
   type = string
   default = "arn:aws:s3:::cqi-persisted"
 }
+
+variable "global_secret_arn" {
+  type = string
+  default = "arn:aws:secretsmanager:us-east-1:481665101132:secret:global_secrets-crxtcU"
+}
+
+variable "runner_count" {
+  description = "The number of runner instances to create"
+  type        = number
+  default     = 1
+}
