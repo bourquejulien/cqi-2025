@@ -34,12 +34,12 @@ const LeaderBoard = ({leaderBoardData, setCurrentPage, setItemPerPage, setGameId
 
         return (
             <Table.Tr key={game.id}>
-                <Table.Td><Text c={team1Color}>{playerService.getPlayerNameOrDefault(game.team1Id)}</Text></Table.Td>
-                <Table.Td><Text c={team2Color}>{playerService.getPlayerNameOrDefault(game.team2Id)}</Text></Table.Td>
-                <Table.Td>{team1Score}</Table.Td>
-                <Table.Td>{team2Score}</Table.Td>
-                <Table.Td>{game.isError ? "❌" : "✅"}</Table.Td>
-                <Table.Td>{endTime.toLocaleTimeString()}</Table.Td>
+                <Table.Td style={{textAlign: "center"}}><Text c={team1Color}>{playerService.getPlayerNameOrDefault(game.team1Id)}</Text></Table.Td>
+                <Table.Td style={{textAlign: "center"}}><Text c={team2Color}>{playerService.getPlayerNameOrDefault(game.team2Id)}</Text></Table.Td>
+                <Table.Td style={{textAlign: "center"}}>{team1Score}</Table.Td>
+                <Table.Td style={{textAlign: "center"}}>{team2Score}</Table.Td>
+                <Table.Td style={{textAlign: "center"}}>{game.isError ? "❌" : "✅"}</Table.Td>
+                <Table.Td style={{textAlign: "center"}}>{endTime.toLocaleTimeString()}</Table.Td>
             </Table.Tr>
         )
     });
@@ -55,12 +55,12 @@ const LeaderBoard = ({leaderBoardData, setCurrentPage, setItemPerPage, setGameId
             <Table>
                 <Table.Thead>
                     <Table.Tr>
-                        <Table.Th>Équipe 1</Table.Th>
-                        <Table.Th>Équipe 2</Table.Th>
-                        <Table.Th>Score équipe 2</Table.Th>
-                        <Table.Th>Score équipe 2</Table.Th>
-                        <Table.Th>Succès</Table.Th>
-                        <Table.Th>Fin</Table.Th>
+                        <Table.Th style={{textAlign: "center"}}>Équipe 1</Table.Th>
+                        <Table.Th style={{textAlign: "center"}}>Équipe 2</Table.Th>
+                        <Table.Th style={{textAlign: "center"}}>Score équipe 2</Table.Th>
+                        <Table.Th style={{textAlign: "center"}}>Score équipe 2</Table.Th>
+                        <Table.Th style={{textAlign: "center"}}>Succès</Table.Th>
+                        <Table.Th style={{textAlign: "center"}}>Fin</Table.Th>
                     </Table.Tr>
                 </Table.Thead>
                 <Table.Tbody>{rows}</Table.Tbody>

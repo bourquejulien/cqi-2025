@@ -23,9 +23,11 @@ type Stats struct {
 }
 
 type Data struct {
-	db       *Database
-	settings *settings
-	gamesDB  *gamesDB
+	db          *Database
+	settings    *settings
+	gamesDB     *gamesDB
+	stopDeamon  *context.CancelFunc
+	rankingInfo *RankingInfo
 
 	teams []teamInfo
 }
@@ -55,6 +57,10 @@ func New(connectionString string, ctx context.Context) (*Data, error) {
 		return nil, err
 	}
 
+	ctx, cancel := context.WithCancel(context.Background())
+	data.stopDeamon = &cancel
+	data.startDeamon(ctx)
+
 	return &data, nil
 }
 
@@ -79,10 +85,10 @@ func (d *Data) AddGame(game *DbGame, ctx context.Context) error {
 }
 
 func (d *Data) GetTeamIds(isBot bool) []string {
-	teamIds := make([]string, 0 , len(d.teams))
+	teamIds := make([]string, 0, len(d.teams))
 	for _, team := range d.teams {
 		if team.IsBot == isBot {
-            teamIds = append(teamIds, team.ID)
+			teamIds = append(teamIds, team.ID)
 		}
 	}
 	return teamIds
@@ -102,4 +108,5 @@ func (d *Data) SetEndTime(endTime time.Time, ctx context.Context) error {
 
 func (d *Data) Close(ctx context.Context) {
 	d.db.close()
+	(*d.stopDeamon)()
 }

@@ -6,8 +6,9 @@ import (
 )
 
 type Stats struct {
-	TotalGames int       `json:"totalGames"`
-	EndTime    time.Time `json:"endTime"`
+	TotalGames  int               `json:"totalGames"`
+	EndTime     time.Time         `json:"endTime"`
+	RankingInfo *data.RankingInfo `json:"rankingInfo"`
 }
 
 type Match struct {
@@ -19,10 +20,10 @@ type Match struct {
 }
 
 type OngoingMatch struct {
-	Id         string `json:"id"`
-	Team1Id    string `json:"team1Id"`
-	Team2Id    string `json:"team2Id"`
-    StartTime  time.Time `json:"startTime"`
+	Id        string    `json:"id"`
+	Team1Id   string    `json:"team1Id"`
+	Team2Id   string    `json:"team2Id"`
+	StartTime time.Time `json:"startTime"`
 }
 
 type GameResults struct {

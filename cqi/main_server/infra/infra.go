@@ -18,13 +18,13 @@ import (
 )
 
 const (
-	INTERNAL_KEY_NAME string = "internal_key"
-	DB_SECRET_NAME           = "database"
-	BOT_IMAGE_URL            = "ghcr.io/bourquejulien"
-	RDS_CERT_URL             = "https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem"
-	RDS_FILE                 = "rds-combined-ca-bundle.pem"
-    ec2MetadataTokenURL = "http://169.254.169.254/latest/api/token"
-    ec2MetadataURL      = "http://169.254.169.254/latest/meta-data/instance-id"
+	INTERNAL_KEY_NAME   string = "internal_key"
+	DB_SECRET_NAME             = "database"
+	BOT_IMAGE_URL              = "ghcr.io/bourquejulien"
+	RDS_CERT_URL               = "https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem"
+	RDS_FILE                   = "rds-combined-ca-bundle.pem"
+	ec2MetadataTokenURL        = "http://169.254.169.254/latest/api/token"
+	ec2MetadataURL             = "http://169.254.169.254/latest/meta-data/instance-id"
 )
 
 type Infra struct {
@@ -45,87 +45,86 @@ type TeamImage struct {
 	Images []Image
 }
 
-
 func getIMDSToken() (string, error) {
-    client := &http.Client{
-        Timeout: 1 * time.Second,
-    }
+	client := &http.Client{
+		Timeout: 1 * time.Second,
+	}
 
-    req, err := http.NewRequest("PUT", ec2MetadataTokenURL, nil)
-    if err != nil {
-        return "", fmt.Errorf("failed to create request for IMDSv2 token: %v", err)
-    }
+	req, err := http.NewRequest("PUT", ec2MetadataTokenURL, nil)
+	if err != nil {
+		return "", fmt.Errorf("failed to create request for IMDSv2 token: %v", err)
+	}
 
-    req.Header.Set("X-aws-ec2-metadata-token-ttl-seconds", "21600")
+	req.Header.Set("X-aws-ec2-metadata-token-ttl-seconds", "21600")
 
-    resp, err := client.Do(req)
-    if err != nil {
-        return "", fmt.Errorf("failed to get IMDSv2 token: %v", err)
-    }
-    defer resp.Body.Close()
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("failed to get IMDSv2 token: %v", err)
+	}
+	defer resp.Body.Close()
 
-    if resp.StatusCode != http.StatusOK {
-        return "", fmt.Errorf("failed to get IMDSv2 token, status code: %d", resp.StatusCode)
-    }
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("failed to get IMDSv2 token, status code: %d", resp.StatusCode)
+	}
 
-    token, err := io.ReadAll(resp.Body)
-    if err != nil {
-        return "", fmt.Errorf("failed to read IMDSv2 token response: %v", err)
-    }
+	token, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("failed to read IMDSv2 token response: %v", err)
+	}
 
-    return string(token), nil
+	return string(token), nil
 }
 
 func IsRunningOnEC2() bool {
-    token, err := getIMDSToken()
-    if err != nil {
-        return false
-    }
+	token, err := getIMDSToken()
+	if err != nil {
+		return false
+	}
 
-    client := &http.Client{
-        Timeout: 5 * time.Second,
-    }
+	client := &http.Client{
+		Timeout: 5 * time.Second,
+	}
 
-    req, err := http.NewRequest("GET", ec2MetadataURL, nil)
-    if err != nil {
-        return false
-    }
+	req, err := http.NewRequest("GET", ec2MetadataURL, nil)
+	if err != nil {
+		return false
+	}
 
-    req.Header.Set("X-aws-ec2-metadata-token", token)
+	req.Header.Set("X-aws-ec2-metadata-token", token)
 
-    resp, err := client.Do(req)
-    if err != nil {
-        return false
-    }
-    defer resp.Body.Close()
+	resp, err := client.Do(req)
+	if err != nil {
+		return false
+	}
+	defer resp.Body.Close()
 
-    if resp.StatusCode != http.StatusOK {
-        return false
-    }
+	if resp.StatusCode != http.StatusOK {
+		return false
+	}
 
-    _, err = io.ReadAll(resp.Body)
-    return err == nil
+	_, err = io.ReadAll(resp.Body)
+	return err == nil
 }
 
 func downloadRdsCert() (string, error) {
-    resp, err := http.Get(RDS_CERT_URL)
-    if err != nil {
-        return "", fmt.Errorf("failed to download RDS certificate: %v", err)
-    }
-    defer resp.Body.Close()
+	resp, err := http.Get(RDS_CERT_URL)
+	if err != nil {
+		return "", fmt.Errorf("failed to download RDS certificate: %v", err)
+	}
+	defer resp.Body.Close()
 
-    out, err := os.CreateTemp("", RDS_FILE)
-    if err != nil {
-        return "", fmt.Errorf("failed to create certificate file: %v", err)
-    }
-    defer out.Close()
+	out, err := os.CreateTemp("", RDS_FILE)
+	if err != nil {
+		return "", fmt.Errorf("failed to create certificate file: %v", err)
+	}
+	defer out.Close()
 
-    _, err = io.Copy(out, resp.Body)
-    if err != nil {
-        return "", fmt.Errorf("failed to save certificate file: %v", err)
-    }
+	_, err = io.Copy(out, resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("failed to save certificate file: %v", err)
+	}
 
-    return out.Name(), nil
+	return out.Name(), nil
 }
 
 func New(ctx context.Context) (*Infra, error) {
@@ -195,13 +194,13 @@ func (p *Infra) GetRdsConnectionString(ctx context.Context) (string, error) {
 	}
 
 	instanceEndpoint := *instance.Endpoint.Address
-    dbName := *instance.DBName
-    username := *instance.MasterUsername
+	dbName := *instance.DBName
+	username := *instance.MasterUsername
 
-    filepath, err := downloadRdsCert()
-    if err != nil {
-        return "", fmt.Errorf("failed to download RDS certificate: %v", err)
-    }
+	filepath, err := downloadRdsCert()
+	if err != nil {
+		return "", fmt.Errorf("failed to download RDS certificate: %v", err)
+	}
 
 	return fmt.Sprintf("user=%s password=%s dbname=%s sslmode=require sslrootcert=%s host=%s", username, password, dbName, filepath, instanceEndpoint), nil
 }

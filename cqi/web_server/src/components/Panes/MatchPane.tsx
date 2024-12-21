@@ -14,9 +14,9 @@ function getRows(ongoingMatches: Match[]): JSX.Element[] {
 
         return (
             <Table.Tr key={match.id}>
-                <Table.Td><Text>{playerService.getPlayerNameOrDefault(match.team1Id)}</Text></Table.Td>
-                <Table.Td><Text>{playerService.getPlayerNameOrDefault(match.team2Id)}</Text></Table.Td>
-                <Table.Td>{getSecondsSince(match.startTime)}s</Table.Td>
+                <Table.Td style={{textAlign: "center"}}><Text>{playerService.getPlayerNameOrDefault(match.team1Id)}</Text></Table.Td>
+                <Table.Td style={{textAlign: "center"}}><Text>{playerService.getPlayerNameOrDefault(match.team2Id)}</Text></Table.Td>
+                <Table.Td style={{textAlign: "center"}}>{getSecondsSince(match.startTime)}s</Table.Td>
             </Table.Tr>
         )
     });
@@ -37,9 +37,9 @@ export function MatchPane({matches}: { matches: Match[] }) {
         <Table>
             <Table.Thead>
                 <Table.Tr>
-                    <Table.Th>Équipe 1</Table.Th>
-                    <Table.Th>Équipe 2</Table.Th>
-                    <Table.Th>Durée</Table.Th>
+                    <Table.Th style={{textAlign: "center"}}>Équipe 1</Table.Th>
+                    <Table.Th style={{textAlign: "center"}}>Équipe 2</Table.Th>
+                    <Table.Th style={{textAlign: "center"}}>Durée</Table.Th>
                 </Table.Tr>
             </Table.Thead>
             <Table.Tbody>{rows}</Table.Tbody>

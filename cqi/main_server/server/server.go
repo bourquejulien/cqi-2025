@@ -33,7 +33,7 @@ func (p *Server) Init() {
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 		render.PlainText(w, r, "OK")
 	})
-	
+
 	r.Route("/api", func(r chi.Router) {
 		r.Use(p.validatePublicCalls)
 
@@ -143,7 +143,7 @@ func (p *Server) getLaunchData(w http.ResponseWriter, r *http.Request) {
 
 func (p *Server) getStats(w http.ResponseWriter, r *http.Request) {
 	internalStats := p.Data.GetStats()
-	stats := Stats{internalStats.TotalGames, internalStats.EndTime}
+	stats := Stats{internalStats.TotalGames, internalStats.EndTime, p.Data.GetRanking()}
 	render.JSON(w, r, stats)
 }
 
@@ -231,10 +231,10 @@ func (p *Server) setEndtime(w http.ResponseWriter, r *http.Request) {
 
 func (p *Server) validatePublicCalls(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-        if !p.Data.IsExpired() {
-            next.ServeHTTP(w, r)
-            return
-        }
+		if !p.Data.IsExpired() {
+			next.ServeHTTP(w, r)
+			return
+		}
 		validationHandler(next, w, r, p)
 	})
 }

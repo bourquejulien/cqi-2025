@@ -3,14 +3,9 @@ package data
 import (
 	"context"
 	_ "embed"
-	"sort"
 	"sync"
 
 	"time"
-)
-
-const (
-	LIST_CACHE_SIZE = 1000
 )
 
 type DbGame struct {
@@ -59,6 +54,8 @@ func newGamesDB(db *Database, ctx context.Context) (*gamesDB, error) {
 	}
 
 	games.totalGameCount = totalGameCount
+
+	games.getGamesWithPagination(ctx, LIST_CACHE_SIZE, 0)
 
 	return &games, nil
 }
@@ -156,6 +153,13 @@ func (p *gamesDB) getGamesWithPagination(ctx context.Context, limit int, page in
 	return games, nil
 }
 
+func (p *gamesDB) getGamesSince(ctx context.Context, since time.Time) ([]*DbGame, error) {
+	p.lock.RLock()
+	defer p.lock.RUnlock()
+
+	return p.cache.getGamesSince(since), nil
+}
+
 func (p *gamesDB) addGame(game *DbGame, ctx context.Context) error {
 	p.lock.Lock()
 	defer p.lock.Unlock()
@@ -178,53 +182,4 @@ func (p *gamesDB) addGame(game *DbGame, ctx context.Context) error {
 	p.totalGameCount++
 
 	return nil
-}
-
-func (p *cache) getGame(id string) *DbGame {
-	p.lock.RLock()
-	defer p.lock.RUnlock()
-
-	if game, ok := p.mapping[id]; ok {
-		return game
-	}
-
-	return nil
-}
-
-func (p *cache) addGame(game *DbGame) {
-	p.lock.Lock()
-	defer p.lock.Unlock()
-
-	p.mapping[game.Id] = game
-	p.list = append(p.list, game)
-
-	sort.Slice(p.list, func(i, j int) bool {
-		return p.list[i].EndTime.After(p.list[j].EndTime)
-	})
-
-	if len(p.list) > LIST_CACHE_SIZE {
-		p.list = p.list[:LIST_CACHE_SIZE]
-	}
-}
-
-func (p *cache) getGameList(limit, page int) (bool, []*DbGame) {
-	p.lock.RLock()
-	defer p.lock.RUnlock()
-
-	if len(p.list) >= limit*(page+1) {
-		return true, p.list[limit*page : limit*page+limit]
-	}
-
-	return false, nil
-}
-
-func (p *cache) addGameList(games []*DbGame, offset int) {
-	p.lock.Lock()
-	defer p.lock.Unlock()
-
-	if len(p.list) >= LIST_CACHE_SIZE || offset > len(p.list) || offset + len(games) <= len(p.list) {
-		return
-	}
-
-	p.list = append(p.list[0:offset], games...)
 }

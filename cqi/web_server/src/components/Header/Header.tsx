@@ -45,7 +45,7 @@ function Header({stats}: { stats: Stats }) {
                 <TextBox text={"Match joués:\n" + totalMatchPlayed}/>
             </Grid.Col>
             <Grid.Col span={4}>
-                <Image src={"/logo_dark.png"} alt="Logo" w={"75%"} style={{margin: "auto"}}/>
+                <Image src={"/logo_dark.png"} alt="Logo" w={"min(100%, 20rem)"} style={{margin: "auto"}}/>
             </Grid.Col>
             <Grid.Col span={4}>
                 <TextBox text={countdown}/>

@@ -65,7 +65,7 @@ function PageContainer() {
     }
 
     return (
-        <Container fluid h="100vh" p={20}>
+        <Container fluid p={20}>
             <Stack
                 bg="var(--mantine-color-body)"
                 align="stretch"

@@ -167,7 +167,7 @@ func (s *Scheduler) PopMatch(n int, ctx context.Context) []Match {
 		n = len(s.plannedMatches)
 	}
 
-	n = max(0, min(n, MAX_RUNNING_MATCHES - len(s.ongoingMatches)))
+	n = max(0, min(n, MAX_RUNNING_MATCHES-len(s.ongoingMatches)))
 
 	matches := make([]Match, n)
 	launchTime := time.Now().UTC()
@@ -238,7 +238,7 @@ func autoAddMatch(scheduler *Scheduler, ctx context.Context) {
 	scheduler.lock.Lock()
 	defer scheduler.lock.Unlock()
 
-	countToAdd := max(min(MAX_PLANNED_MATCHES - len(scheduler.plannedMatches), len(teamImages)), 0)
+	countToAdd := max(min(MAX_PLANNED_MATCHES-len(scheduler.plannedMatches), len(teamImages)), 0)
 
 	if countToAdd <= 0 {
 		return
@@ -249,7 +249,7 @@ func autoAddMatch(scheduler *Scheduler, ctx context.Context) {
 
 		otherImageIndex := rand.Intn(len(allImages))
 		teamImage := teamImages[teamImageIndex]
-		
+
 		for teamImage.TeamId == allImages[otherImageIndex].TeamId {
 			otherImageIndex = rand.Intn(len(allImages))
 		}

@@ -4,22 +4,23 @@ import LeaderBoard from "../components/Leaderboard/Leaderboard.tsx";
 import {getDataFetcher} from "../Data.ts";
 import {Stats} from "../interfaces/Stats.ts";
 import {GameDataBase} from "../interfaces/GameData.ts";
-import {MatchPane} from "../components/LeftPane/MatchPane.tsx";
+import {MatchPane} from "../components/Panes/MatchPane.tsx";
 import {Match} from "../interfaces/Match.ts";
+import Ranking from "../components/Panes/Ranking.tsx";
 
 function MainPage({setGameId, stats}: {
     setGameId: React.Dispatch<React.SetStateAction<string | undefined>>,
     stats: Stats
 }) {
     const [currentPage, setCurrentPage] = useState(1);
-    const [itemPerPage, setItemPerPage] = useState(10);
+    const [itemPerPage, setItemPerPage] = useState(20);
     const [gameData, setGameData] = useState<GameDataBase[]>([]);
     const [ongoingMatches, setOngoingMatches] = useState<Match[]>([]);
 
     useEffect(() => {
         const updateData = async () => {
             const response = await getDataFetcher().getLeaderBoardData(itemPerPage, Math.max(0, currentPage - 1));
-            const matches = await  getDataFetcher().getOngoingMatches();
+            const matches = await getDataFetcher().getOngoingMatches();
 
             if (response.isSuccess && matches.isSuccess) {
                 setGameData(response.data.results);
@@ -35,13 +36,13 @@ function MainPage({setGameId, stats}: {
     }, [currentPage, itemPerPage]);
 
     return (
-        <Grid style={{height: "70%"}} gutter={"xl"}>
-            <Grid.Col span={3} offset={0}>
-                <Title order={3} style={{textAlign: "center"}}>Match en cours</Title>
+        <Grid gutter={"xl"}>
+            <Grid.Col span={{base: 12, md: 6, lg: 3}}>
+                <Title order={2} style={{textAlign: "center"}}>Match en cours</Title>
                 <MatchPane matches={ongoingMatches}/>
             </Grid.Col>
-            <Grid.Col span={6} offset={1}>
-                <Title order={1} style={{textAlign: "center"}}>Classement</Title>
+            <Grid.Col span={{base: 12, md: 6, lg: 6}}>
+                <Title order={1} style={{textAlign: "center"}}>Résultats</Title>
                 <LeaderBoard
                     leaderBoardData={{
                         paginationData: {
@@ -54,8 +55,9 @@ function MainPage({setGameId, stats}: {
                     setItemPerPage={setItemPerPage}
                     setGameId={setGameId}/>
             </Grid.Col>
-            <Grid.Col span={3}>
-
+            <Grid.Col span={{base: 12, md: 6, lg: 3}}>
+                <Title order={2} style={{textAlign: "center"}}>Classement</Title>
+                <Ranking rankingInfo={stats.rankingInfo}/>
             </Grid.Col>
         </Grid>
     )
