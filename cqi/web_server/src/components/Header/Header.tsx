@@ -7,18 +7,15 @@ import {Stats} from "../../interfaces/Stats.ts";
 import {useEffect, useState} from "react";
 
 function getCountdown(endingTime: Date): string {
-    const gap = endingTime.getTime() - new Date().getTime();
-
-    if (gap < 0) {
-        return "";
-    }
+    const gap = Math.max(0, endingTime.getTime() - new Date().getTime());
 
     const days = Math.floor(gap / (1000 * 60 * 60 * 24));
     const hours = Math.floor((gap % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
     const minutes = Math.floor((gap % (1000 * 60 * 60)) / (1000 * 60));
     const seconds = Math.floor((gap % (1000 * 60)) / 1000);
 
-    return `${days}d ${hours}h ${minutes}m ${seconds}s`;
+    const format = `${hours}h ${minutes}m ${seconds}s`;
+    return days > 0 ? `${days}j ${format}` : format;
 }
 
 function Header({stats}: { stats: Stats }) {

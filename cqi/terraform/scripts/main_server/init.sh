@@ -1,6 +1,7 @@
 #!/bin/bash
 
 set -e
+set -o pipefail
 
 LETSENCRYPT_BACKUP="s3://cqi-persisted/letsencrypt/backup.tar.gz"
 
@@ -15,6 +16,7 @@ if [ -z "$GITHUB_TOKEN" ]; then
 fi
 
 echo "Updating system..."
+apt-get remove -y needrestart > /dev/null
 apt-get update > /dev/null && apt-get -y upgrade > /dev/null
 
 snap install aws-cli --classic > /dev/null
@@ -42,12 +44,10 @@ echo \
 
 apt-get update > /dev/null && apt-get -y install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin > /dev/null
 
-# Allow to run as non-root
-# gpasswd -a $USER docker
-# newgrp docker
-
 # Test installation
 docker run hello-world
+
+# Login to GitHub Container Registry
 echo $GITHUB_TOKEN | docker login ghcr.io -u bourquejulien --password-stdin
 
 echo "Installing certbot..."

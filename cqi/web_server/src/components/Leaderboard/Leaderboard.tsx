@@ -14,6 +14,17 @@ export interface LeaderboardData {
     gameData: GameDataBase[];
 }
 
+function formatDuration(startTime: Date, endTime: Date): string {
+    const durationMs = endTime.getTime() - startTime.getTime();
+    if (durationMs <= 0) {
+        return "0s";
+    }
+
+    const duration = new Date(durationMs);
+    const minutes = duration.getMinutes() > 0 ? `${duration.getMinutes()}m` : "";
+    return  minutes + `${duration.getSeconds()}s`;
+}
+
 // @ts-expect-error TS6198
 const LeaderBoard = ({leaderBoardData, setCurrentPage, setItemPerPage, setGameId}: {
     leaderBoardData: LeaderboardData,
@@ -30,8 +41,6 @@ const LeaderBoard = ({leaderBoardData, setCurrentPage, setItemPerPage, setGameId
         const team1Color = game.isError ? "dark.9" : game.winnerId === game.team1Id ? "green.7" : "dark.9";
         const team2Color = game.isError ? "dark.9" : game.winnerId === game.team2Id ? "green.7" : "dark.9";
 
-        const endTime = new Date(game.endTime);
-
         return (
             <Table.Tr key={game.id}>
                 <Table.Td style={{textAlign: "center"}}><Text c={team1Color}>{playerService.getPlayerNameOrDefault(game.team1Id)}</Text></Table.Td>
@@ -39,7 +48,7 @@ const LeaderBoard = ({leaderBoardData, setCurrentPage, setItemPerPage, setGameId
                 <Table.Td style={{textAlign: "center"}}>{team1Score}</Table.Td>
                 <Table.Td style={{textAlign: "center"}}>{team2Score}</Table.Td>
                 <Table.Td style={{textAlign: "center"}}>{game.isError ? "❌" : "✅"}</Table.Td>
-                <Table.Td style={{textAlign: "center"}}>{endTime.toLocaleTimeString()}</Table.Td>
+                <Table.Td style={{textAlign: "center", textWrap: "nowrap"}}>{formatDuration(game.startTime, game.endTime)}</Table.Td>
             </Table.Tr>
         )
     });
@@ -60,7 +69,7 @@ const LeaderBoard = ({leaderBoardData, setCurrentPage, setItemPerPage, setGameId
                         <Table.Th style={{textAlign: "center"}}>Score équipe 2</Table.Th>
                         <Table.Th style={{textAlign: "center"}}>Score équipe 2</Table.Th>
                         <Table.Th style={{textAlign: "center"}}>Succès</Table.Th>
-                        <Table.Th style={{textAlign: "center"}}>Fin</Table.Th>
+                        <Table.Th style={{textAlign: "center"}}>Durée</Table.Th>
                     </Table.Tr>
                 </Table.Thead>
                 <Table.Tbody>{rows}</Table.Tbody>
