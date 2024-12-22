@@ -29,11 +29,11 @@ type Data struct {
 	stopDeamon  *context.CancelFunc
 	rankingInfo *RankingInfo
 
-	teams []teamInfo
+	teams []*teamInfo
 }
 
 func New(connectionString string, ctx context.Context) (*Data, error) {
-	data := Data{teams: []teamInfo{}}
+	data := Data{teams: []*teamInfo{}}
 	err := json.Unmarshal([]byte(teams), &data.teams)
 
 	if err != nil {

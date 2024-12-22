@@ -12,6 +12,8 @@ const (
 )
 
 func (p *Data) startDeamon(ctx context.Context) {
+	updateRanking(p, ctx)
+	
 	go deamon(p, ctx)
 }
 

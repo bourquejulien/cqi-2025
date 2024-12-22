@@ -44,10 +44,10 @@ echo \
 
 apt-get update > /dev/null && apt-get -y install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin > /dev/null
 
-# Test installation
+echo "Test installation"
 docker run hello-world
 
-# Login to GitHub Container Registry
+echo "Login to GitHub Container Registry"
 echo $GITHUB_TOKEN | docker login ghcr.io -u bourquejulien --password-stdin
 
 echo "Installing certbot..."

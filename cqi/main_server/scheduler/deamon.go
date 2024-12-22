@@ -2,6 +2,7 @@ package scheduler
 
 import (
 	"context"
+	"cqiprog/scheduler/autoplay"
 	"log"
 	"time"
 
@@ -60,11 +61,23 @@ func autoAddMatch(scheduler *Scheduler, ctx context.Context) {
 		return
 	}
 
+	rankingInfo := scheduler.data.GetRanking()
+	getPlannedMatchesTeamIds := func(plannedMatches []*Match) []string {
+		ids := make([]string, 0, 2*len(plannedMatches))
+		for _, match := range plannedMatches {
+			ids = append(ids, match.Team1Id, match.Team2Id)
+		}
+
+		return ids
+	}
+
 	for i := 0; i < countToAdd; i++ {
-		teamImageIndex := rand.Intn(len(teamImages))
+		teamImage := autoplay.GetNextTeam(rankingInfo, teamImages, getPlannedMatchesTeamIds(scheduler.plannedMatches))
+		if teamImage == nil {
+			continue
+		}
 
 		otherImageIndex := rand.Intn(len(allImages))
-		teamImage := teamImages[teamImageIndex]
 
 		for teamImage.TeamId == allImages[otherImageIndex].TeamId {
 			otherImageIndex = rand.Intn(len(allImages))

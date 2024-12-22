@@ -24,9 +24,11 @@ func ListenAndServe(server *server.Server, port string) error {
 	sig := make(chan os.Signal, 1)
 	signal.Notify(sig, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
 	go func() {
+        defer serverStopCtx()
 		<-sig
 
-		shutdownCtx, _ := context.WithTimeout(serverCtx, 10*time.Second)
+		shutdownCtx, shutdownCtxStop := context.WithTimeout(serverCtx, 10*time.Second)
+		defer shutdownCtxStop()
 
 		go func() {
 			<-shutdownCtx.Done()
@@ -39,7 +41,6 @@ func ListenAndServe(server *server.Server, port string) error {
 		if err != nil {
 			log.Fatal(err)
 		}
-		serverStopCtx()
 	}()
 
 	server.Init()

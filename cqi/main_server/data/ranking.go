@@ -20,13 +20,13 @@ type RankingResult struct {
 
 type RankingInfo struct {
 	UpdatePeriod int             `json:"updatePeriod"`
-	Results      []RankingResult `json:"results"`
+	Results      []*RankingResult `json:"results"`
 }
 
 func updateRanking(data *Data, ctx context.Context) {
 	ranking := RankingInfo{
 		UpdatePeriod: int(RANKING_PERIOD.Milliseconds()),
-		Results:      make([]RankingResult, 0, len(data.teams)),
+		Results:      make([]*RankingResult, 0, len(data.teams)),
 	}
 
 	games, err := data.gamesDB.getGamesSince(ctx, time.Now().Add(-RANKING_PERIOD))
@@ -70,7 +70,7 @@ func updateRanking(data *Data, ctx context.Context) {
 	}
 
 	for _, team := range teams {
-		ranking.Results = append(ranking.Results, *team)
+		ranking.Results = append(ranking.Results, team)
 	}
 
 	data.rankingInfo = &ranking
