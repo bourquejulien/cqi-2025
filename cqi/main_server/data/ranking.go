@@ -6,10 +6,6 @@ import (
 	"time"
 )
 
-const (
-	RANKING_PERIOD = 30 * time.Minute
-)
-
 type RankingResult struct {
 	TeamID      string `json:"teamId"`
 	TotalGames  int    `json:"totalGames"`
@@ -24,15 +20,17 @@ type RankingInfo struct {
 }
 
 func updateRanking(data *Data, ctx context.Context) {
+	rankingPeriod := data.settings.GetSettings().RankingPeriod
+
 	ranking := RankingInfo{
-		UpdatePeriod: int(RANKING_PERIOD.Milliseconds()),
+		UpdatePeriod: int(rankingPeriod.Milliseconds()),
 		Results:      make([]*RankingResult, 0, len(data.teams)),
 	}
 
-	games, err := data.gamesDB.getGamesSince(ctx, time.Now().Add(-RANKING_PERIOD))
+	games, err := data.gamesDB.getGamesSince(ctx, time.Now().Add(-rankingPeriod))
 
 	if err != nil {
-		log.Printf("Error getting games since %v: %v", time.Now().Add(-RANKING_PERIOD), err)
+		log.Printf("Error getting games since %v: %v", time.Now().Add(-rankingPeriod), err)
 		return
 	}
 

@@ -4,10 +4,10 @@ import (
 	"context"
 	"cqiprog/data"
 	"cqiprog/scheduler"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -57,7 +57,9 @@ func (p *Server) Init() {
 
 		r.Post("/autoplay", p.manageAutoplay)
 		r.Post("/force_queue", p.forceQueueMatch)
-		r.Post("/set_endtime", p.setEndtime)
+
+		r.Get("/settings", p.getSettings)
+		r.Post("/settings", p.setSettings)
 	})
 
 	p.router = r
@@ -212,14 +214,14 @@ func (p *Server) forceQueueMatch(w http.ResponseWriter, r *http.Request) {
 	p.Scheduler.ForceAddMatch(team1Id, team2Id, r.Context())
 }
 
-func (p *Server) setEndtime(w http.ResponseWriter, r *http.Request) {
-	endTime, err := time.Parse(time.RFC3339, r.URL.Query().Get("end_time"))
-	if err != nil {
-		http.Error(w, "Invalid end_time parameter", http.StatusBadRequest)
+func (p *Server) setSettings(w http.ResponseWriter, r *http.Request) {
+	var settings map[string]string
+	if err := json.NewDecoder(r.Body).Decode(&settings); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
 
-	err = p.Data.SetEndTime(endTime, r.Context())
+	err := p.Data.SetSettings(settings, r.Context())
 
 	if err != nil {
 		http.Error(w, fmt.Sprintf("error: %v", err), http.StatusInternalServerError)
@@ -227,6 +229,11 @@ func (p *Server) setEndtime(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
+}
+
+func (p *Server) getSettings(w http.ResponseWriter, r *http.Request) {
+	settings := p.Data.GetSettings()
+	render.JSON(w, r, settings)
 }
 
 func (p *Server) validatePublicCalls(next http.Handler) http.Handler {

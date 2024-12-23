@@ -13,8 +13,6 @@ import (
 
 const (
 	DEFAULT_TAG         = "latest"
-	MAX_PLANNED_MATCHES = 5
-	MAX_RUNNING_MATCHES = 5
 	MATCH_TIMEOUT       = 3 * time.Minute
 )
 
@@ -49,7 +47,7 @@ type Scheduler struct {
 
 func New(infra *infra.Infra, data *data.Data) (*Scheduler, error) {
 	ctx, cancel := context.WithCancel(context.Background())
-	schduler := Scheduler{false, make(map[string]*Match), make([]*Match, 0, MAX_PLANNED_MATCHES*2), &cancel, infra, data, sync.RWMutex{}}
+	schduler := Scheduler{false, make(map[string]*Match), make([]*Match, 0, data.GetSettings().MaxConcurrentMatch*2), &cancel, infra, data, sync.RWMutex{}}
 
 	go daemon(&schduler, ctx)
 
@@ -166,7 +164,7 @@ func (s *Scheduler) PopMatch(n int, ctx context.Context) []Match {
 		n = len(s.plannedMatches)
 	}
 
-	n = max(0, min(n, MAX_RUNNING_MATCHES-len(s.ongoingMatches)))
+	n = max(0, min(n, s.data.GetSettings().MaxConcurrentMatch-len(s.ongoingMatches)))
 
 	matches := make([]Match, n)
 	launchTime := time.Now().UTC()

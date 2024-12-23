@@ -1,4 +1,4 @@
-package data
+package database
 
 import (
 	"context"
@@ -11,10 +11,10 @@ type Database struct {
 	pool *pgxpool.Pool
 }
 
-//go:embed init_data/init.sql
+//go:embed init.sql
 var initSQL string
 
-func newDatabase(connectionString string, ctx context.Context) (*Database, error) {
+func NewDatabase(connectionString string, ctx context.Context) (*Database, error) {
 	conn, err := pgxpool.New(ctx, connectionString)
 	if err != nil {
 		return nil, err
@@ -28,7 +28,7 @@ func newDatabase(connectionString string, ctx context.Context) (*Database, error
 	return &Database{conn}, nil
 }
 
-func (p *Database) acquireConnection(ctx context.Context) (*pgxpool.Conn, error) {
+func (p *Database) AcquireConnection(ctx context.Context) (*pgxpool.Conn, error) {
 	conn, err := p.pool.Acquire(ctx)
 
 	if err != nil {
@@ -38,6 +38,6 @@ func (p *Database) acquireConnection(ctx context.Context) (*pgxpool.Conn, error)
 	return conn, nil
 }
 
-func (p *Database) close() {
+func (p *Database) Close() {
 	p.pool.Close()
 }

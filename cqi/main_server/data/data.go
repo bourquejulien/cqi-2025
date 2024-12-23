@@ -2,6 +2,8 @@ package data
 
 import (
 	"context"
+	"cqiprog/data/database"
+	"cqiprog/data/settings"
 	_ "embed"
 	"encoding/json"
 	"log"
@@ -23,8 +25,8 @@ type Stats struct {
 }
 
 type Data struct {
-	db          *Database
-	settings    *settings
+	db          *database.Database
+	settings    *settings.Settings
 	gamesDB     *gamesDB
 	stopDeamon  *context.CancelFunc
 	rankingInfo *RankingInfo
@@ -40,7 +42,7 @@ func New(connectionString string, ctx context.Context) (*Data, error) {
 		log.Fatalf("Error unmarshalling teams data: %v", err)
 	}
 
-	db, err := newDatabase(connectionString, ctx)
+	db, err := database.NewDatabase(connectionString, ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -52,7 +54,7 @@ func New(connectionString string, ctx context.Context) (*Data, error) {
 		return nil, err
 	}
 
-	data.settings, err = newSettings(db, ctx)
+	data.settings, err = settings.NewSettings(db, ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -69,11 +71,11 @@ func (d *Data) GetGame(id string, context context.Context) (*DbGame, error) {
 }
 
 func (d *Data) GetStats() *Stats {
-	return &Stats{d.gamesDB.totalGameCount, d.settings.EndTime()}
+	return &Stats{d.gamesDB.totalGameCount, d.settings.GetSettings().EndTime}
 }
 
 func (d *Data) IsExpired() bool {
-	return time.Now().After(d.settings.EndTime())
+	return time.Now().After(d.settings.GetSettings().EndTime)
 }
 
 func (d *Data) ListGames(context context.Context, limit, page int) ([]*DbGame, error) {
@@ -102,11 +104,15 @@ func (d *Data) GetTeamMapping() map[string]string {
 	return teamIds
 }
 
-func (d *Data) SetEndTime(endTime time.Time, ctx context.Context) error {
-	return d.settings.SetEndTime(endTime, ctx)
+func (d *Data) SetSettings(settings map[string]string, ctx context.Context) error {
+	return d.settings.SetSettings(settings, ctx)
+}
+
+func (d *Data) GetSettings() *settings.SettingsEntries {
+	return d.settings.GetSettings()
 }
 
 func (d *Data) Close(ctx context.Context) {
-	d.db.close()
+	d.db.Close()
 	(*d.stopDeamon)()
 }

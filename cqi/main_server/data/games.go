@@ -2,6 +2,7 @@ package data
 
 import (
 	"context"
+	"cqiprog/data/database"
 	_ "embed"
 	"sync"
 
@@ -29,14 +30,14 @@ type cache struct {
 }
 
 type gamesDB struct {
-	db    *Database
+	db    *database.Database
 	cache *cache
 	lock  sync.RWMutex
 
 	totalGameCount int
 }
 
-func newGamesDB(db *Database, ctx context.Context) (*gamesDB, error) {
+func newGamesDB(db *database.Database, ctx context.Context) (*gamesDB, error) {
 	games := gamesDB{
 		db: db,
 		cache: &cache{
@@ -60,8 +61,8 @@ func newGamesDB(db *Database, ctx context.Context) (*gamesDB, error) {
 	return &games, nil
 }
 
-func getTotalGameCount(db *Database, ctx context.Context) (int, error) {
-	conn, err := db.acquireConnection(ctx)
+func getTotalGameCount(db *database.Database, ctx context.Context) (int, error) {
+	conn, err := db.AcquireConnection(ctx)
 
 	if err != nil {
 		return 0, err
@@ -94,7 +95,7 @@ func (p *gamesDB) getGame(id string, ctx context.Context) (*DbGame, error) {
 		return game, nil
 	}
 
-	conn, err := p.db.acquireConnection(ctx)
+	conn, err := p.db.AcquireConnection(ctx)
 
 	if err != nil {
 		return nil, err
@@ -123,7 +124,7 @@ func (p *gamesDB) getGamesWithPagination(ctx context.Context, limit int, page in
 		return list, nil
 	}
 
-	conn, err := p.db.acquireConnection(ctx)
+	conn, err := p.db.AcquireConnection(ctx)
 
 	if err != nil {
 		return nil, err
@@ -164,7 +165,7 @@ func (p *gamesDB) addGame(game *DbGame, ctx context.Context) error {
 	p.lock.Lock()
 	defer p.lock.Unlock()
 
-	conn, err := p.db.acquireConnection(ctx)
+	conn, err := p.db.AcquireConnection(ctx)
 
 	if err != nil {
 		return err
