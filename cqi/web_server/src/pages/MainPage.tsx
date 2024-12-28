@@ -1,5 +1,5 @@
 import {Grid, Title} from "@mantine/core";
-import React, {useEffect, useState} from "react";
+import {useEffect, useState} from "react";
 import LeaderBoard from "../components/Leaderboard/Leaderboard.tsx";
 import {getDataFetcher} from "../Data.ts";
 import {Stats} from "../interfaces/Stats.ts";
@@ -8,8 +8,7 @@ import {MatchPane} from "../components/Panes/MatchPane.tsx";
 import {Match} from "../interfaces/Match.ts";
 import Ranking from "../components/Panes/Ranking.tsx";
 
-function MainPage({setGameId, stats}: {
-    setGameId: React.Dispatch<React.SetStateAction<string | undefined>>,
+function MainPage({stats}: {
     stats: Stats
 }) {
     const [currentPage, setCurrentPage] = useState(1);
@@ -52,8 +51,7 @@ function MainPage({setGameId, stats}: {
                         }, gameData: gameData
                     }}
                     setCurrentPage={setCurrentPage}
-                    setItemPerPage={setItemPerPage}
-                    setGameId={setGameId}/>
+                    setItemPerPage={setItemPerPage}/>
             </Grid.Col>
             <Grid.Col span={{base: 12, md: 6, lg: 3}}>
                 <Title order={2} style={{textAlign: "center"}}>Classement</Title>

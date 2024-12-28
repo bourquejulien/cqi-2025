@@ -7,19 +7,19 @@ import {getDataFetcher, getPlayerService} from "./Data.ts";
 import {Stats} from "./interfaces/Stats.ts";
 import {GameOverPage} from "./pages/GameOverPage.tsx";
 import {LoadingPage} from "./pages/LoadingPage.tsx";
+import {Route, Routes} from "react-router";
 
 function Content({stats}: { stats: Stats | undefined }) {
-    const [gameId, setGameId] = useState<string | undefined>(undefined)
-
     if (stats === undefined) {
         return <></>
     }
 
-    if (gameId === undefined) {
-        return <MainPage setGameId={setGameId} stats={stats}/>
-    }
-
-    return <GamePage gameId={gameId} setGameId={setGameId}/>
+    return (
+        <Routes>
+            <Route index element={<MainPage stats={stats}/>}/>
+            <Route path="match/:id" element={<GamePage/>}/>
+        </Routes>
+    )
 }
 
 function PageContainer() {

@@ -5,6 +5,7 @@ import {
 import TextBox from "../TextBlock/TextBlock.tsx";
 import {Stats} from "../../interfaces/Stats.ts";
 import {useEffect, useState} from "react";
+import {NavLink} from "react-router";
 
 function getCountdown(endingTime: Date): string {
     const gap = Math.max(0, endingTime.getTime() - new Date().getTime());
@@ -42,7 +43,9 @@ function Header({stats}: { stats: Stats }) {
                 <TextBox text={"Match joués:\n" + totalMatchPlayed}/>
             </Grid.Col>
             <Grid.Col span={4}>
-                <Image src={"/logo_dark.png"} alt="Logo" w={"min(100%, 20rem)"} style={{margin: "auto"}}/>
+                <NavLink to={"/"}>
+                    <Image src={"/logo_dark.png"} alt="Logo" w={"min(100%, 20rem)"} style={{margin: "auto"}}/>
+                </NavLink>
             </Grid.Col>
             <Grid.Col span={4}>
                 <TextBox text={countdown}/>

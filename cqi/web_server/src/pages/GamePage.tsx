@@ -1,10 +1,11 @@
-import {Container} from "@mantine/core";
+import {Container, Text} from "@mantine/core";
+import {useParams} from "react-router";
 
-// @ts-expect-error TS6198
-function GamePage({gameId, setGameId}: { gameId: string; setGameId: (id: string) => void }) {
+function GamePage() {
+    const {id} = useParams();
     return (
         <Container>
-
+            <Text>{id}</Text>
         </Container>
     )
 }

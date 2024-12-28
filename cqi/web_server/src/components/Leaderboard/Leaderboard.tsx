@@ -1,7 +1,9 @@
-import {Pagination, Stack, Table, Text} from "@mantine/core";
 import React from "react";
+import classes from "./Leaderboard.module.css";
+import {Pagination, Stack, Table, Text} from "@mantine/core";
 import {GameDataBase} from "../../interfaces/GameData.ts";
 import {getPlayerService} from "../../Data.ts";
+import {useNavigate} from "react-router";
 
 export interface PaginationData {
     page: number;
@@ -22,16 +24,16 @@ function formatDuration(startTime: Date, endTime: Date): string {
 
     const duration = new Date(durationMs);
     const minutes = duration.getMinutes() > 0 ? `${duration.getMinutes()}m` : "";
-    return  minutes + `${duration.getSeconds()}s`;
+    return minutes + `${duration.getSeconds()}s`;
 }
 
 // @ts-expect-error TS6198
-const LeaderBoard = ({leaderBoardData, setCurrentPage, setItemPerPage, setGameId}: {
+const LeaderBoard = ({leaderBoardData, setCurrentPage, setItemPerPage}: {
     leaderBoardData: LeaderboardData,
     setCurrentPage: React.Dispatch<React.SetStateAction<number>>,
     setItemPerPage: React.Dispatch<React.SetStateAction<number>>,
-    setGameId: React.Dispatch<React.SetStateAction<string | undefined>>
 }) => {
+    const navigate = useNavigate();
     const playerService = getPlayerService();
 
     const rows = leaderBoardData.gameData.map((game) => {
@@ -42,13 +44,18 @@ const LeaderBoard = ({leaderBoardData, setCurrentPage, setItemPerPage, setGameId
         const team2Color = game.isError ? "dark.9" : game.winnerId === game.team2Id ? "green.7" : "dark.9";
 
         return (
-            <Table.Tr key={game.id}>
-                <Table.Td style={{textAlign: "center"}}><Text c={team1Color}>{playerService.getPlayerNameOrDefault(game.team1Id)}</Text></Table.Td>
-                <Table.Td style={{textAlign: "center"}}><Text c={team2Color}>{playerService.getPlayerNameOrDefault(game.team2Id)}</Text></Table.Td>
+            <Table.Tr className={classes.row} key={game.id} onClick={()=>navigate(`match/${game.id}`)}>
+                <Table.Td style={{textAlign: "center"}}><Text
+                    c={team1Color}>{playerService.getPlayerNameOrDefault(game.team1Id)}</Text></Table.Td>
+                <Table.Td style={{textAlign: "center"}}><Text
+                    c={team2Color}>{playerService.getPlayerNameOrDefault(game.team2Id)}</Text></Table.Td>
                 <Table.Td style={{textAlign: "center"}}>{team1Score}</Table.Td>
                 <Table.Td style={{textAlign: "center"}}>{team2Score}</Table.Td>
                 <Table.Td style={{textAlign: "center"}}>{game.isError ? "❌" : "✅"}</Table.Td>
-                <Table.Td style={{textAlign: "center", textWrap: "nowrap"}}>{formatDuration(game.startTime, game.endTime)}</Table.Td>
+                <Table.Td style={{
+                    textAlign: "center",
+                    textWrap: "nowrap"
+                }}>{formatDuration(game.startTime, game.endTime)}</Table.Td>
             </Table.Tr>
         )
     });
@@ -60,6 +67,7 @@ const LeaderBoard = ({leaderBoardData, setCurrentPage, setItemPerPage, setGameId
             align="center"
             justify="flex-start"
             gap="lg"
+            className={"gdfgdfgdf"}
         >
             <Table>
                 <Table.Thead>
