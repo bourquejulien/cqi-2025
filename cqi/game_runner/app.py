@@ -4,15 +4,12 @@ import os
 import signal
 import boto3
 import docker
-import time
 import boto3.session
 import base64
 import logging
 import docker
 from docker import DockerClient
 from docker.models.images import Image
-from docker.models.containers import Container
-from docker.models.networks import Network
 
 from stop_token import StopToken
 from match_runner import MatchRunner
@@ -32,6 +29,7 @@ def main() -> None:
     logging.basicConfig(level=logging.INFO,
                     format="%(asctime)s %(levelname)s%(module)s-%(funcName)s: %(message)s",
                     datefmt="%d-%m-%Y %H:%M:%S")
+
     # Grab secret from AWS Secrets Manager
     session = boto3.session.Session()
     secret_manager_client = session.client(service_name="secretsmanager", region_name="us-east-1")
@@ -54,8 +52,7 @@ def main() -> None:
     signal.signal(signal.SIGINT, stop_token.cancel)
 
     while not stop_token.is_canceled():
-        # TODO - Evaluate how many games can run concurrently
-        matches_to_run = main_server_client.get_next_matches(2)
+        matches_to_run = main_server_client.get_next_matches(match_runner.currently_running)
         match_runner.run_matches(stop_token, matches_to_run)
 
         results = match_runner.get_results()

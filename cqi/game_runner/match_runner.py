@@ -58,7 +58,10 @@ class MatchRunner:
 
         self.current_matches = {}
         self.results = []
-
+    
+    @property
+    def currently_running(self) -> int:
+        return len(self.current_matches)
     
     def run_matches(self, stop_token: StopToken, matches: list[Match]) -> None:
         for match in matches:

@@ -19,6 +19,11 @@ type Match struct {
 	ImageTeam2 string `json:"image_team2"`
 }
 
+type MatchInfo struct {
+	MaxConcurrentMatch int      `json:"maxConcurrentMatch"`
+	Matches            []*Match `json:"matches"`
+}
+
 type OngoingMatch struct {
 	Id        string    `json:"id"`
 	Team1Id   string    `json:"team1Id"`

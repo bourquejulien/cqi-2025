@@ -156,7 +156,7 @@ func (s *Scheduler) ForceAddMatch(team1Id string, team2Id string, ctx context.Co
 	return true
 }
 
-func (s *Scheduler) PopMatch(n int, ctx context.Context) []Match {
+func (s *Scheduler) PopMatch(n int, ctx context.Context) []*Match {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
@@ -166,13 +166,13 @@ func (s *Scheduler) PopMatch(n int, ctx context.Context) []Match {
 
 	n = max(0, min(n, s.data.GetSettings().MaxConcurrentMatch-len(s.ongoingMatches)))
 
-	matches := make([]Match, n)
+	matches := make([]*Match, n)
 	launchTime := time.Now().UTC()
 	for i, match := range s.plannedMatches[:n] {
 		match.LaunchTime = &launchTime
 		s.ongoingMatches[match.Id] = match
 
-		matches[i] = *match
+		matches[i] = match
 	}
 
 	s.plannedMatches = s.plannedMatches[n:]

@@ -163,9 +163,9 @@ func (p *Server) popMatch(w http.ResponseWriter, r *http.Request) {
 
 	matches := p.Scheduler.PopMatch(n, r.Context())
 
-	resultMatches := make([]Match, len(matches))
+	resultMatches := make([]*Match, len(matches))
 	for i, match := range matches {
-		resultMatches[i] = Match{
+		resultMatches[i] = &Match{
 			Id:         match.Id,
 			Team1Id:    match.Team1Id,
 			Team2Id:    match.Team2Id,
@@ -174,7 +174,7 @@ func (p *Server) popMatch(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	render.JSON(w, r, resultMatches)
+	render.JSON(w, r, MatchInfo{MaxConcurrentMatch: p.Data.GetSettings().MaxConcurrentMatchPerRunner, Matches: resultMatches})
 }
 
 func (p *Server) addMatchResults(w http.ResponseWriter, r *http.Request) {
