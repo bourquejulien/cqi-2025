@@ -3,12 +3,18 @@ package scheduler
 import (
 	"context"
 	"cqiprog/scheduler/autoplay"
+	b64 "encoding/base64"
+	"encoding/json"
 	"log"
 	"time"
 
 	"github.com/google/uuid"
 	"golang.org/x/exp/rand"
 )
+
+type ErrorData struct {
+	ErrorType string `json:"errorType"`
+}
 
 func daemon(scheduler *Scheduler, ctx context.Context) {
 	for {
@@ -101,9 +107,29 @@ func cleanupMatches(scheduler *Scheduler, ctx context.Context) {
 	scheduler.lock.Lock()
 	defer scheduler.lock.Unlock()
 
+	getTimeoutErrorData := func() string {
+		errorData := ErrorData{
+			ErrorType: "timeout",
+		}
+
+		jsonData, err := json.Marshal(errorData)
+		if err != nil {
+			panic(err)
+		}
+
+		return b64.StdEncoding.EncodeToString(jsonData)
+	}
+
+	errorData := getTimeoutErrorData()
+
 	for id, match := range scheduler.ongoingMatches {
 		if match.LaunchTime.Add(MATCH_TIMEOUT).Before(time.Now().UTC()) {
-			scheduler.addResult(&GameResult{Id: id, IsError: true}, ctx)
+			gameResult := &GameResult{
+				Id:        id,
+				IsError:   true,
+				ErrorData: &errorData,
+			}
+			scheduler.addResult(gameResult, ctx)
 		}
 	}
 }
