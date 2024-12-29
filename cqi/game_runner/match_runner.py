@@ -1,4 +1,6 @@
+import base64
 from dataclasses import dataclass
+import json
 import logging
 import socket
 import time
@@ -13,6 +15,10 @@ import requests
 
 from stop_token import StopToken
 from interfaces import GameResult, Match, RunnerStatus
+
+MAX_LOGS = 100
+MAX_LOG_LINE_SIZE = 100
+MATCH_EXPIRATION_TIMEOUT_MINUTES = 5
 
 def get_available_port() -> int:
     with socket.socket() as sock:
@@ -41,6 +47,34 @@ def safe_execute(func: callable, **args) -> bool:
         return True
     except Exception as _:
         return False
+
+def stop_and_remove(container: Container) -> None:
+    safe_execute(container.stop, timeout=3)
+    safe_execute(container.remove, force=True)
+
+def stop_and_remove_all(*containers: list[Container]) -> None:
+    for container in containers:
+        stop_and_remove(container)
+
+def get_logs_and_remove(container: Container) -> list[str]:
+    logs = []
+
+    safe_execute(container.stop, timeout=3)
+    
+    try:
+        logs = container.logs().decode().split("\n")[-MAX_LOGS:]
+        logs = [log[:MAX_LOG_LINE_SIZE] for log in logs]
+    except:
+        logging.warning("Failed to get logs for container %s", container.name)
+        pass
+
+    safe_execute(container.remove, force=True)
+
+    return logs
+
+def to_base_64(data) -> str:
+    data = json.dumps(data)
+    return base64.b64encode(data).decode()
     
 GAME_RUNNER_BASE_NAME = "game-runner-managed"
 DEFAULT_TIMEOUT = 2
@@ -205,8 +239,6 @@ class MatchRunner:
         self.current_matches[match_data.game.id] = match_data
 
     def get_match_results(self, stop_token: StopToken, match_data: MatchData) -> list[GameResult]:
-        # Wait for games to finish
-
         if stop_token.is_canceled():
             return
 
@@ -222,33 +254,39 @@ class MatchRunner:
         except:
             status2 = None
         
-        is_expired = match_data.start_time + timedelta(seconds=180) < datetime.now(timezone.utc)
+        is_expired = match_data.start_time + timedelta(seconds=MATCH_EXPIRATION_TIMEOUT_MINUTES*60) < datetime.now(timezone.utc)
         if not is_expired and status1 is not None and status2 is not None and not status1.is_over or not status2.is_over:
             return
 
         # Delete containers
-        # TODO - Add remove retries
-        safe_execute(match_data.game_1.game_server.remove, force=True)
-        safe_execute(match_data.game_2.game_server.remove, force=True)
-        safe_execute(match_data.game_1.offense.remove, force=True)
-        safe_execute(match_data.game_1.defense.remove, force=True)
-        safe_execute(match_data.game_2.offense.remove, force=True)
-        safe_execute(match_data.game_2.defense.remove, force=True)
+        stop_and_remove_all(match_data.game_1.game_server, match_data.game_2.game_server)
+
+        logs_1_offense = get_logs_and_remove(match_data.game_1.offense)
+        logs_1_defense = get_logs_and_remove(match_data.game_1.defense)
+        logs_2_offense = get_logs_and_remove(match_data.game_2.offense)
+        logs_2_defense = get_logs_and_remove(match_data.game_2.defense)
 
         # Delete networks
-        # TODO - Add remove retries
         safe_execute(match_data.game_1.game_network.remove)
         safe_execute(match_data.game_2.game_network.remove)
 
-        if is_expired:
-            game_result = GameResult(id=match_data.game.id, winner_id=None, is_error=True, team1_score=None, team2_score=None, error_data=None, game_data=None)
-            logging.info("Match %s expired", match_data.game.id)
+        if status1 is None or status2 is None:
+            simple_error = {
+                "errorType": "simple",
+                "message": "Game server error"
+            }
+            game_result = GameResult(id=match_data.game.id, winner_id=None, is_error=True, team1_score=None, team2_score=None, error_data=to_base_64(simple_error), game_data=None)
+            logging.warning("Game server crashed for match %s", match_data.game.id)
             self.results.append(game_result)
             return
-
-        if status1 is None or status2 is None:
-            game_result = GameResult(id=match_data.game.id, winner_id=None, is_error=True, team1_score=None, team2_score=None, error_data=None, game_data=None)
-            logging.warning("Game server crashed for match %s", match_data.game.id)
+        
+        if is_expired:
+            simple_error = {
+                "errorType": "simple",
+                "message": f"Game killed after being stuck for too long ({MATCH_EXPIRATION_TIMEOUT_MINUTES} minutes)"
+            }
+            game_result = GameResult(id=match_data.game.id, winner_id=None, is_error=True, team1_score=None, team2_score=None, error_data=to_base_64(simple_error), game_data=None)
+            logging.info("Match %s expired", match_data.game.id)
             self.results.append(game_result)
             return
 
