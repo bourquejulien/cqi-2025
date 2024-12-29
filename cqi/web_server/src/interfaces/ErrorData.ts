@@ -12,7 +12,11 @@ export interface SimpleError extends ErrorDataBase {
 export interface DetailedError extends ErrorDataBase {
     errorType: "detailed";
     message: string;
-    logs: TeamLogs;
+    matches: {
+        offenseTeamId: string;
+        defenseTeamId: string;
+        logs: TeamLogs
+    }[];
 }
 
 export interface ErrorDataOther {

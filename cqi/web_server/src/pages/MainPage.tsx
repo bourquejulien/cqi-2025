@@ -40,7 +40,7 @@ function MainPage({stats, setIsReady}: {
     return (
         <Grid gutter={"xl"}>
             <Grid.Col span={{base: 12, md: 6, lg: 3}}>
-                <Title order={2} style={{textAlign: "center"}}>Match en cours</Title>
+                <Title order={2} style={{textAlign: "center"}}>Parties en cours</Title>
                 <MatchPane matches={ongoingMatches}/>
             </Grid.Col>
             <Grid.Col span={{base: 12, md: 6, lg: 6}}>

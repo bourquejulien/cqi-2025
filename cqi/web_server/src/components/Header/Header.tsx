@@ -40,7 +40,7 @@ function Header({stats}: { stats: Stats }) {
     return (
         <Grid align="center" gutter={{base: 5, xs: 'md', md: 'xl', xl: 50}}>
             <Grid.Col span={4}>
-                <TextBox text={"Match joués:\n" + totalMatchPlayed}/>
+                <TextBox text={"Parties joués:\n" + totalMatchPlayed}/>
             </Grid.Col>
             <Grid.Col span={4}>
                 <NavLink to={"/"}>

@@ -44,7 +44,7 @@ const LeaderBoard = ({leaderBoardData, setCurrentPage, setItemPerPage}: {
         const team2Color = game.isError ? "dark.9" : game.winnerId === game.team2Id ? "green.7" : "dark.9";
 
         return (
-            <Table.Tr className={classes.row} key={game.id} onClick={()=>navigate(`match/${game.id}`)}>
+            <Table.Tr className={classes.row} key={game.id} onClick={()=>navigate(`game/${game.id}`)}>
                 <Table.Td style={{textAlign: "center"}}><Text
                     c={team1Color}>{playerService.getPlayerNameOrDefault(game.team1Id)}</Text></Table.Td>
                 <Table.Td style={{textAlign: "center"}}><Text

@@ -17,7 +17,7 @@ function Content({stats, setIsReady}: { stats: Stats | undefined, setIsReady: (i
     return (
         <Routes>
             <Route index element={<MainPage stats={stats} setIsReady={setIsReady}/>}/>
-            <Route path="match/:id" element={<GamePage/>}/>
+            <Route path="game/:id" element={<GamePage/>}/>
         </Routes>
     )
 }
