@@ -48,7 +48,7 @@ async def run_game(request: Request):
 
     offense_bot_url = request.rel_url.query[OFFENSE]
     defense_bot_url = request.rel_url.query[DEFENSE]
-    
+
     seed: str
     if SEED in query_param:
         seed = request.rel_url.query[SEED]
@@ -98,7 +98,7 @@ def setup_web_server() -> Application:
     return app
 
 
-def demo() -> None:
+def debug() -> None:
     offense_url = os.environ["OFFENSE_URL"]
     defense_url = os.environ["DEFENSE_URL"]
 
@@ -111,7 +111,7 @@ def demo() -> None:
     signal.signal(signal.SIGINT, stop)
     signal.signal(signal.SIGTERM, stop)
 
-    game_runner.launch_game(offense_url, defense_url, "42")
+    game_runner.launch_game(offense_url, defense_url, uuid.uuid4().hex)
 
     DURATION = 15
     for _ in range(DURATION):
@@ -124,6 +124,17 @@ def demo() -> None:
 
     status = game_runner.status()
     logging.info("Final score: %s", status.score)
+
+
+def public() -> None:
+    offense_url = os.environ["OFFENSE_URL"]
+    defense_url = os.environ["DEFENSE_URL"]
+
+    seed = os.environ.get("SEED", uuid.uuid4().hex)
+    game_runner.launch_game(offense_url, defense_url, seed=seed)
+
+    run()
+
 
 def run() -> None:
     port = int(os.environ[ENV_PORT]) \
@@ -142,7 +153,15 @@ def main() -> None:
 
     initialize(is_debug)
 
-    launch = demo if mode in {"test", "public"} else run
+    launch: Callable[[], None]
+    match mode:
+        case "debug":
+            launch = debug
+        case "test", "public":
+            launch = public
+        case _:
+            launch = run
+
     try:
         launch()
     finally:
