@@ -9,14 +9,14 @@ import {GameOverPage} from "./pages/GameOverPage.tsx";
 import {LoadingPage} from "./pages/LoadingPage.tsx";
 import {Route, Routes} from "react-router";
 
-function Content({stats}: { stats: Stats | undefined }) {
+function Content({stats, setIsReady}: { stats: Stats | undefined, setIsReady: (isReady: boolean) => void }) {
     if (stats === undefined) {
         return <></>
     }
 
     return (
         <Routes>
-            <Route index element={<MainPage stats={stats}/>}/>
+            <Route index element={<MainPage stats={stats} setIsReady={setIsReady}/>}/>
             <Route path="match/:id" element={<GamePage/>}/>
         </Routes>
     )
@@ -73,7 +73,7 @@ function PageContainer() {
                 h={"100%"}
                 gap="3vh">
                 <Header stats={stats}/>
-                <Content stats={stats}></Content>
+                <Content stats={stats} setIsReady={setIsReady}></Content>
             </Stack>
         </Container>
     )

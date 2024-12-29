@@ -8,8 +8,9 @@ import {MatchPane} from "../components/Panes/MatchPane.tsx";
 import {Match} from "../interfaces/Match.ts";
 import Ranking from "../components/Panes/Ranking.tsx";
 
-function MainPage({stats}: {
+function MainPage({stats, setIsReady}: {
     stats: Stats
+    setIsReady: (isReady: boolean) => void
 }) {
     const [currentPage, setCurrentPage] = useState(1);
     const [itemPerPage, setItemPerPage] = useState(20);
@@ -24,6 +25,8 @@ function MainPage({stats}: {
             if (response.isSuccess && matches.isSuccess) {
                 setGameData(response.data.results);
                 setOngoingMatches(matches.data);
+            } else if (!response.isSuccess && !response.isGameEnded) {
+                setIsReady(false);
             }
         }
 
@@ -32,7 +35,7 @@ function MainPage({stats}: {
         return () => {
             clearInterval(interval);
         };
-    }, [currentPage, itemPerPage]);
+    }, [currentPage, itemPerPage, setIsReady]);
 
     return (
         <Grid gutter={"xl"}>
