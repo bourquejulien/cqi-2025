@@ -5,25 +5,28 @@ import signal
 import boto3
 import docker
 import boto3.session
-import base64
 import logging
 import docker
 from docker import DockerClient
 from docker.models.images import Image
 
+from helpers import *
 from stop_token import StopToken
 from match_runner import MatchRunner
 from main_server_client import MainServerClient
 
 GAME_SERVER_IMAGE_NAME = "ghcr.io/bourquejulien/cqi-2024-game-server"
+MAX_DISK_USAGE = 0.9
 
-def get_internal_key(session: boto3.session.Session) -> str:
-    ecr_client = session.client(service_name="ecr", region_name="us-east-1")
-    token = ecr_client.get_authorization_token()
-    username, password = base64.b64decode(token["authorizationData"][0]["authorizationToken"]).decode().split(":")
-    registry = token["authorizationData"][0]["proxyEndpoint"]
+def prune_images(docker_client: docker.DockerClient) -> None:
+    if not is_running_on_ec2():
+        logging.warning("Not running on EC2, skipping cleanup")
+        return
+    
+    logging.warning("Pruning images...")
+    docker_client.images.prune()
+    logging.warning(f"Done pruning images, new disck usage: {get_disk_usage()}")
 
-    return username, password, registry
 
 def main() -> None:
     logging.basicConfig(level=logging.INFO,
@@ -52,8 +55,13 @@ def main() -> None:
     signal.signal(signal.SIGINT, stop_token.cancel)
 
     while not stop_token.is_canceled():
-        matches_to_run = main_server_client.get_next_matches(match_runner.currently_running)
-        match_runner.run_matches(stop_token, matches_to_run)
+        disk_usage = get_disk_usage()
+        if disk_usage < MAX_DISK_USAGE:
+            matches_to_run = main_server_client.get_next_matches(match_runner.currently_running)
+            match_runner.run_matches(stop_token, matches_to_run)
+        else:
+            logging.warning(f"Disk usage is too high ({disk_usage})")
+            prune_images(docker_client)
 
         results = match_runner.get_results()
         for result in results:
