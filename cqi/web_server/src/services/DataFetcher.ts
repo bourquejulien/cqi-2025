@@ -1,7 +1,7 @@
-import {GameData, GameResults} from "../interfaces/GameData.ts";
-import {Stats} from "../interfaces/Stats.ts";
-import {Match} from "../interfaces/Match.ts";
-import {LaunchData} from "../interfaces/LaunchData.ts";
+import { GameResults, GameSuccess, GameFailure, GameData } from "../interfaces/GameData.ts";
+import { Stats } from "../interfaces/Stats.ts";
+import { Match } from "../interfaces/Match.ts";
+import { LaunchData } from "../interfaces/LaunchData.ts";
 
 export interface FetcherResponseBase {
     isSuccess: boolean;
@@ -30,10 +30,64 @@ function handleErrors<T>(response: Promise<Response>): FetcherResponse<T> {
             } as ErrorResponse;
         }
 
-        return {isSuccess: true, data: await response.json()} as OkResponse<T>
+        return { isSuccess: true, data: await response.json() } as OkResponse<T>
     }).catch((error) => {
-        return {isSuccess: false, isGameEnded: false, error: error} as ErrorResponse;
+        return { isSuccess: false, isGameEnded: false, error: error } as ErrorResponse;
     });
+}
+
+function handleGameDataError(gameData: GameData): GameFailure {
+    let data = "";
+    if ("errorData" in gameData) {
+        data = gameData["errorData"] as unknown as string;
+    }
+
+    if (data.length == 0) {
+        const failure = gameData as GameFailure;
+        failure.isError = true;
+        failure.errorData = {
+            errorType: "nodata"
+        };
+        return failure;
+    }
+
+    const failure = gameData as GameFailure;
+    failure.errorData = JSON.parse(btoa(data));
+
+    return failure;
+}
+
+function handleGameDataSuccess(gameData: GameData): GameData {
+    let data = "";
+    if ("gameData" in gameData) {
+        data = gameData["gameData"] as unknown as string;
+    }
+
+    if (data.length == 0) {
+        const failure = gameData as GameFailure;
+        failure.isError = true;
+        failure.errorData = {
+            errorType: "nodata"
+        };
+        return failure;
+    }
+
+    const gameSuccess = gameData as GameSuccess;
+    gameSuccess.gameData = JSON.parse(btoa(data));
+
+    return gameSuccess;
+}
+
+function handleGameData(gameData: GameData): GameData {
+    gameData.startTime = new Date(gameData.startTime);
+    gameData.endTime = new Date(gameData.endTime);
+
+    console.log(gameData);
+
+    if (gameData.isError) {
+        return handleGameDataError(gameData);
+    }
+    return handleGameDataSuccess(gameData);
 }
 
 class DataFetcher {
@@ -47,7 +101,13 @@ class DataFetcher {
         const url = new URL(`${this.baseUrl}/game/get`);
         url.searchParams.append("id", id);
 
-        return handleErrors(fetch(url.toString()));
+        return handleErrors<GameData>(fetch(url.toString())).then((response) => {
+            if (!response.isSuccess) {
+                return response;
+            }
+            response.data = handleGameData(response.data);
+            return response;
+        });
     }
 
     getOngoingMatches(): FetcherResponse<Match[]> {
