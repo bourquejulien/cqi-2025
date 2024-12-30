@@ -48,8 +48,18 @@ func (p *cache) addGame(game *DbGame) {
 	defer p.lock.Unlock()
 
 	p.mapping[game.Id] = game
-	p.list = append(p.list, game)
 
+	if slices.ContainsFunc(p.list, func(g *DbGame) bool {
+		return g.Id == game.Id
+	}) {
+		return
+	}
+
+	gameCopy := *game
+	gameCopy.GameData = nil
+	gameCopy.ErrorData = nil
+
+	p.list = append(p.list, &gameCopy)
 	sort.Slice(p.list, func(i, j int) bool {
 		return p.list[i].EndTime.After(p.list[j].EndTime)
 	})

@@ -12,17 +12,17 @@ import (
 )
 
 const (
-	DEFAULT_END_TIME = "2025-01-17T12:00:00Z"
-	DEFAULT_RANKING_PERIOD = 30 * time.Minute
-	DEFAULT_MAX_CONCURRENT_MATCH = 10
+	DEFAULT_END_TIME                        = "2025-01-17T12:00:00Z"
+	DEFAULT_RANKING_PERIOD                  = 30 * time.Minute
+	DEFAULT_MAX_CONCURRENT_MATCH            = 10
 	DEFAULT_MAX_CONCURRENT_MATCH_PER_RUNNER = 1
 )
 
 type SettingsEntries struct {
-	EndTime time.Time
-	RankingPeriod time.Duration
-	MaxConcurrentMatch int
-	MaxConcurrentMatchPerRunner int
+	EndTime            time.Time     `json:"endTime"`
+	RankingPeriod      time.Duration `json:"rankingPeriod"`
+	MaxConcurrentMatch int           `json:"maxConcurrentMatch"`
+	MaxMatchPerRunner  int           `json:"maxMatchPerRunner"`
 }
 
 type Settings struct {
@@ -64,7 +64,7 @@ func setSetting(db *database.Database, key string, value string, ctx context.Con
 }
 
 func loadSettings(db *database.Database, ctx context.Context) (*SettingsEntries, error) {
-	defaultEndTime, err :=  time.Parse(time.RFC3339, DEFAULT_END_TIME)
+	defaultEndTime, err := time.Parse(time.RFC3339, DEFAULT_END_TIME)
 
 	if err != nil {
 		return nil, err
@@ -72,13 +72,13 @@ func loadSettings(db *database.Database, ctx context.Context) (*SettingsEntries,
 
 	entries := SettingsEntries{defaultEndTime, DEFAULT_RANKING_PERIOD, DEFAULT_MAX_CONCURRENT_MATCH, DEFAULT_MAX_CONCURRENT_MATCH_PER_RUNNER}
 
-	endTime, err := getSetting(db, ctx, "end_time")
+	endTime, err := getSetting(db, ctx, "endTime")
 	if err != nil {
 		return nil, err
 	}
 
 	if endTime == nil {
-		setSetting(db, "end_time", entries.EndTime.Format(time.RFC3339), ctx)
+		setSetting(db, "endTime", entries.EndTime.Format(time.RFC3339), ctx)
 	} else {
 		entries.EndTime, err = time.Parse(time.RFC3339, *endTime)
 		if err != nil {
@@ -86,13 +86,13 @@ func loadSettings(db *database.Database, ctx context.Context) (*SettingsEntries,
 		}
 	}
 
-	rankingPeriod, err := getSetting(db, ctx, "ranking_period")
+	rankingPeriod, err := getSetting(db, ctx, "rankingPeriod")
 	if err != nil {
 		return nil, err
 	}
 
 	if rankingPeriod == nil {
-		setSetting(db, "ranking_period", durationToString(entries.RankingPeriod), ctx)
+		setSetting(db, "rankingPeriod", durationToString(entries.RankingPeriod), ctx)
 	} else {
 		entries.RankingPeriod, err = time.ParseDuration(*rankingPeriod)
 		if err != nil {
@@ -100,7 +100,7 @@ func loadSettings(db *database.Database, ctx context.Context) (*SettingsEntries,
 		}
 	}
 
-	setNumeric := func (name string, defaultValue int) (int, error) {
+	setNumeric := func(name string, defaultValue int) (int, error) {
 		value, err := getSetting(db, ctx, name)
 		if err != nil {
 			return 0, nil
@@ -120,13 +120,13 @@ func loadSettings(db *database.Database, ctx context.Context) (*SettingsEntries,
 		return result, nil
 	}
 
-	entries.MaxConcurrentMatch, err = setNumeric("max_concurrent_match", DEFAULT_MAX_CONCURRENT_MATCH)
+	entries.MaxConcurrentMatch, err = setNumeric("maxConcurrentMatch", DEFAULT_MAX_CONCURRENT_MATCH)
 
 	if err != nil {
 		return nil, err
 	}
 
-	entries.MaxConcurrentMatchPerRunner, err = setNumeric("max_match_per_runner", DEFAULT_MAX_CONCURRENT_MATCH_PER_RUNNER)
+	entries.MaxMatchPerRunner, err = setNumeric("maxMatchPerRunner", DEFAULT_MAX_CONCURRENT_MATCH_PER_RUNNER)
 
 	if err != nil {
 		return nil, err
@@ -156,7 +156,7 @@ func (p *Settings) GetSettings() *SettingsEntries {
 	return p.entries
 }
 
-func (p* Settings) SetSettings(entries map[string]string, ctx context.Context) error {
+func (p *Settings) SetSettings(entries map[string]string, ctx context.Context) error {
 	p.statsLock.Lock()
 	defer p.statsLock.Unlock()
 
@@ -164,35 +164,39 @@ func (p* Settings) SetSettings(entries map[string]string, ctx context.Context) e
 
 	var err error
 
-	if value, ok := entries["end_time"]; ok {
-		if endTime, err := getTimeFromString(value); err != nil {
+	if value, ok := entries["endTime"]; ok {
+		var endTime time.Time
+		if endTime, err = getTimeFromString(value); err == nil {
 			currentEntries.EndTime = endTime
-			err = setSetting(p.db, "end_time", timeToString(endTime), ctx)
+			err = setSetting(p.db, "endTime", timeToString(endTime), ctx)
 		}
 	}
 
-	if value, ok := entries["ranking_period"]; ok {
-		if rankingPeriod, err := getDurationFromString(value); err != nil {
+	if value, ok := entries["rankingPeriod"]; ok {
+		var rankingPeriod time.Duration
+		if rankingPeriod, err = getDurationFromString(value); err == nil {
 			currentEntries.RankingPeriod = rankingPeriod
-			err = setSetting(p.db, "ranking_period", durationToString(rankingPeriod), ctx)
+			err = setSetting(p.db, "rankingPeriod", durationToString(rankingPeriod), ctx)
 		}
 	}
 
-	if value, ok := entries["max_concurrent_match"]; ok {
-		if maxConcurrentMatch, err := getIntFromString(value); err != nil {
+	if value, ok := entries["maxConcurrentMatch"]; ok {
+		var maxConcurrentMatch int
+		if maxConcurrentMatch, err = getIntFromString(value); err == nil {
 			currentEntries.MaxConcurrentMatch = maxConcurrentMatch
-			err = setSetting(p.db, "max_concurrent_match", intToString(maxConcurrentMatch), ctx)
+			err = setSetting(p.db, "maxConcurrentMatch", intToString(maxConcurrentMatch), ctx)
 		}
 	}
 
-	if value, ok := entries["max_match_per_runner"]; ok {
-		if maxMatchPerRunner, err := getIntFromString(value); err != nil {
-			currentEntries.MaxConcurrentMatchPerRunner = maxMatchPerRunner
-			err = setSetting(p.db, "max_match_per_runner", intToString(maxMatchPerRunner), ctx)
+	if value, ok := entries["maxMatchPerRunner"]; ok {
+		var maxMatchPerRunner int
+		if maxMatchPerRunner, err = getIntFromString(value); err == nil {
+			currentEntries.MaxMatchPerRunner = maxMatchPerRunner
+			err = setSetting(p.db, "maxMatchPerRunner", intToString(maxMatchPerRunner), ctx)
 		}
 	}
 
 	p.entries = &currentEntries
 
-	return err 
+	return err
 }

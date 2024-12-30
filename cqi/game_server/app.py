@@ -161,6 +161,8 @@ def main() -> None:
             launch = demo_mode
         case "public":
             launch = public_mode
+        case _:
+            raise ValueError(f"Unknown mode: {mode}")
 
     try:
         launch()

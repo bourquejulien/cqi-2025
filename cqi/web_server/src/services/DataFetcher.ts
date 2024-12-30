@@ -20,6 +20,11 @@ export interface ErrorResponse extends FetcherResponseBase {
 
 export type FetcherResponse<T> = Promise<OkResponse<T> | ErrorResponse>;
 
+function parseEncodedField<T>(data: string): T {
+    const decodedString = new TextDecoder().decode(Uint8Array.from(atob(data), c => c.charCodeAt(0)));
+    return JSON.parse(decodedString) as T;
+}
+
 function handleErrors<T>(response: Promise<Response>): FetcherResponse<T> {
     return response.then(async (response) => {
         if (!response.ok) {
@@ -52,7 +57,7 @@ function handleGameDataError(gameData: GameData): GameFailure {
     }
 
     const failure = gameData as GameFailure;
-    failure.errorData = JSON.parse(btoa(data));
+    failure.errorData = parseEncodedField(data);
 
     return failure;
 }
@@ -73,7 +78,7 @@ function handleGameDataSuccess(gameData: GameData): GameData {
     }
 
     const gameSuccess = gameData as GameSuccess;
-    gameSuccess.gameData = JSON.parse(btoa(data));
+    gameSuccess.gameData = parseEncodedField(data);
 
     return gameSuccess;
 }

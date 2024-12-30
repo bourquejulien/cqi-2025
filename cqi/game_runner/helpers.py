@@ -30,5 +30,4 @@ def get_internal_key(session: boto3.session.Session) -> str:
     token = ecr_client.get_authorization_token()
     username, password = base64.b64decode(token["authorizationData"][0]["authorizationToken"]).decode().split(":")
     registry = token["authorizationData"][0]["proxyEndpoint"]
-
     return username, password, registry

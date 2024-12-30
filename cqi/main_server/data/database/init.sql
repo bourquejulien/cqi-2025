@@ -6,9 +6,9 @@ CREATE TABLE IF NOT EXISTS games (
   team2_id VARCHAR(100),
   winner_id VARCHAR(100),
   is_error BOOLEAN,
-  error_data VARCHAR(100),
   team1_score REAL,
   team2_score REAL,
+  error_data TEXT,
   game_data TEXT
 );
 
