@@ -161,8 +161,11 @@ def main() -> None:
             launch = demo_mode
         case "public":
             launch = public_mode
+        case "release":
+            launch = launch_web_server
         case _:
-            raise ValueError(f"Unknown mode: {mode}")
+            logging.error("Unknown mode: %s", mode)
+            launch = public_mode
 
     try:
         launch()

@@ -286,13 +286,16 @@ class MatchRunner:
         for _ in range(5):
             time.sleep(1)
 
-            if not game_1_started:
-                r1 = requests.post(f"http://localhost:{port_1}/run_game", timeout=DEFAULT_TIMEOUT, params={"offense_url": f"http://offense:5000", "defense_url": f"http://defense:5000", "seed": match.id})
-                game_1_started = r1.ok
-            
-            if not game_2_started:
-                r2 = requests.post(f"http://localhost:{port_2}/run_game", timeout=DEFAULT_TIMEOUT, params={"offense_url": f"http://offense:5000", "defense_url": f"http://defense:5000", "seed": match.id})
-                game_2_started = r2.ok
+            try:
+                if not game_1_started:
+                    r1 = requests.post(f"http://localhost:{port_1}/run_game", timeout=DEFAULT_TIMEOUT, params={"offense_url": f"http://offense:5000", "defense_url": f"http://defense:5000", "seed": match.id})
+                    game_1_started = r1.ok
+                
+                if not game_2_started:
+                    r2 = requests.post(f"http://localhost:{port_2}/run_game", timeout=DEFAULT_TIMEOUT, params={"offense_url": f"http://offense:5000", "defense_url": f"http://defense:5000", "seed": match.id})
+                    game_2_started = r2.ok
+            except:
+                pass
 
         if not game_1_started or not game_2_started:
             self._handle_error(match, "Failed to start games")
@@ -347,12 +350,13 @@ class MatchRunner:
             return
         
         if status1.game_status["errorMessage"] is not None or status2.game_status["errorMessage"] is not None:           
-            error_data = build_detailed_error(match_data, status1, status2)
+            error_data = build_detailed_error(match_data, status1, status2, logs)
             game_result = GameResult(id=match_data.game.id, winner_id=None, is_error=True, team1_score=None, team2_score=None, error_data=to_base_64(error_data), game_data=None)
             self.results.append(game_result)
             logging.info("Match %s finished on error", match_data.game.id)
+            return
 
-        game_data = build_game_data(match_data, status1, status2)
+        game_data = build_game_data(match_data, status1, status2, logs)
 
         if status1.score == status2.score:
             game_result = GameResult(id=match_data.game.id, winner_id=None, is_error=False, team1_score=status1.score, team2_score=status2.score, error_data=None, game_data=to_base_64(game_data))
