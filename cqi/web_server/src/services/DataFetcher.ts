@@ -97,71 +97,89 @@ function handleGameData(gameData: GameData): GameData {
 
 class DataFetcher {
     baseUrl: string;
+    internalKey: string | undefined;
 
     constructor(baseUrl: string) {
         this.baseUrl = baseUrl + "/api";
+        this.internalKey = localStorage.getItem("internalKey") ?? undefined;
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (window as any).setInternalKey = this.setInternalKey.bind(this);
     }
 
-    getGameData(id: string): FetcherResponse<GameData> {
+    private setInternalKey(internalKey: string) {
+        this.internalKey = internalKey;
+        localStorage.setItem("internalKey", internalKey);
+    }
+
+    private getHeaders(): Headers {
+        const headers = new Headers();
+        if (this.internalKey) {
+            headers.append("Authorization", this.internalKey);
+        }
+        return headers;
+    }
+
+    private fetch<T>(url: string, init?: RequestInit): FetcherResponse<T> {
+        return handleErrors(fetch(url, {
+            method: "GET",
+            headers: this.getHeaders(),
+            ...init
+        }));
+    }
+
+    async getGameData(id: string): FetcherResponse<GameData> {
         const url = new URL(`${this.baseUrl}/game/get`);
         url.searchParams.append("id", id);
 
-        return handleErrors<GameData>(fetch(url.toString())).then((response) => {
-            if (!response.isSuccess) {
-                return response;
-            }
-            response.data = handleGameData(response.data);
+        const response = await this.fetch<GameData>(url.toString());
+        if (!response.isSuccess) {
             return response;
-        });
+        }
+        response.data = handleGameData(response.data);
+        return response;
     }
 
-    getOngoingMatches(): FetcherResponse<Match[]> {
-        return handleErrors<Match[]>(fetch(`${this.baseUrl}/ongoing_matches`))
-            .then((response) => {
-                if (response.isSuccess) {
-                    response.data.forEach((match) => {
-                        match.startTime = new Date(match.startTime);
-                    });
-                }
-                return response;
+    async getOngoingMatches(): FetcherResponse<Match[]> {
+        const response = await this.fetch<Match[]>(`${this.baseUrl}/ongoing_matches`);
+        if (response.isSuccess) {
+            response.data.forEach((match) => {
+                match.startTime = new Date(match.startTime);
             });
+        }
+        return response;
     }
 
-    getLaunchData(): FetcherResponse<LaunchData> {
-        return handleErrors<LaunchData>(fetch(`${this.baseUrl}/launch_data`))
-            .then((response) => {
-                if (response.isSuccess) {
-                    response.data.endTime = new Date(response.data.endTime);
-                }
-                return response;
-            });
+    async getLaunchData(): FetcherResponse<LaunchData> {
+        const response = await this.fetch<LaunchData>(`${this.baseUrl}/launch_data`);
+        if (response.isSuccess) {
+            response.data.endTime = new Date(response.data.endTime);
+        }
+
+        return response;
     }
 
-    getLeaderBoardData(limit: number, page: number): FetcherResponse<GameResults> {
+    async getLeaderBoardData(limit: number, page: number): FetcherResponse<GameResults> {
         const url = new URL(`${this.baseUrl}/game/list`);
         url.searchParams.append("limit", String(limit));
         url.searchParams.append("page", String(page));
 
-        return handleErrors<GameResults>(fetch(url.toString()))
-            .then((response) => {
-                if (response.isSuccess) {
-                    response.data.results.forEach((game) => {
-                        game.startTime = new Date(game.startTime);
-                        game.endTime = new Date(game.endTime);
-                    });
-                }
-                return response;
+        const response = await this.fetch<GameResults>(url.toString());
+        if (response.isSuccess) {
+            response.data.results.forEach((game) => {
+                game.startTime = new Date(game.startTime);
+                game.endTime = new Date(game.endTime);
             });
+        }
+        return response;
     }
 
-    getStatsData(): FetcherResponse<Stats> {
-        return handleErrors<Stats>(fetch(`${this.baseUrl}/stats`))
-            .then((response) => {
-                if (response.isSuccess) {
-                    response.data.endTime = new Date(response.data.endTime);
-                }
-                return response;
-            });
+    async getStatsData(): FetcherResponse<Stats> {
+        const response = await this.fetch<Stats>(`${this.baseUrl}/stats`);
+        if (response.isSuccess) {
+            response.data.endTime = new Date(response.data.endTime);
+        }
+        return response;
     }
 }
 

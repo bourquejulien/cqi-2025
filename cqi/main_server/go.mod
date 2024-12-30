@@ -4,7 +4,10 @@ go 1.23
 
 require github.com/jmoiron/sqlx v1.4.0
 
-require github.com/ajg/form v1.5.1 // indirect
+require (
+	github.com/ajg/form v1.5.1 // indirect
+	github.com/go-chi/cors v1.2.1 // indirect
+)
 
 require (
 	github.com/aws/aws-sdk-go-v2 v1.32.6 // indirect

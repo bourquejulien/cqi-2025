@@ -11,6 +11,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/cors"
 	"github.com/go-chi/render"
 )
 
@@ -28,7 +29,14 @@ func (p *Server) Init() {
 	r := chi.NewRouter()
 
 	r.Use(middleware.Logger)
-	r.Use(middleware.SetHeader("Access-Control-Allow-Origin", "*"))
+	r.Use(cors.Handler(cors.Options{
+		AllowedOrigins:   []string{"https://*", "http://*"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type"},
+		ExposedHeaders:   []string{},
+		AllowCredentials: false,
+		MaxAge:           7200,
+	}))
 
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 		render.PlainText(w, r, "OK")
