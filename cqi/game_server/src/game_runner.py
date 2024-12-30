@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from threading import RLock
+import time
 
 from src.game_handler import GameHandler, GameData
 
@@ -34,26 +35,41 @@ class Runner:
         self._update_status()
 
     @property
-    def is_running(self) -> bool:
+    def is_active(self) -> bool:
         return self.game_handler is not None
+
+    @property
+    def is_running(self) -> bool:
+        with self.game_lock:
+            return self.is_active and not self.game_handler.is_over
 
     def run(self):
         while not self.should_stop:
+            if not self.is_running:
+                time.sleep(1)
             with self.game_lock:
                 self._handle_game()
-        self._force_end_game()
+        self.force_end_game()
 
     def stop(self):
         self.should_stop = True
 
     def launch_game(self, offense_bot_url: str, defense_bot_url: str, seed: str) -> None:
+        if self.is_active:
+            return
+
         with self.game_lock:
+            if self.is_active:
+                return
             self.game_handler = GameHandler(offense_bot_url, defense_bot_url, seed)
         self._update_status()
 
-    def _force_end_game(self) -> bool:
+    def force_end_game(self) -> bool:
+        if not self.is_active:
+            return False
+
         with self.game_lock:
-            if not self.is_running:
+            if not self.is_active:
                 return False
 
             self.game_handler.end_game()
@@ -64,21 +80,19 @@ class Runner:
         return self.game_status
 
     def _handle_game(self) -> None:
-        if self.game_handler is None:
+        if not self.is_running:
             self._update_status()
             return
 
         if not self.game_handler.is_started:
             self.game_handler.start_game()
         
-        if not self.game_handler.is_over:
-            self.game_handler.play()
-
+        self.game_handler.play()
         self._update_status()
 
     def _update_status(self) -> None:
         game_status = GameServerStatus(self.is_running,
-                                        self.game_handler.is_over if self.is_running else False,
-                                        self.game_handler.score if self.is_running else 0,
-                                        self.game_handler.get_data() if self.is_running else None)
+                                        self.game_handler.is_over if self.is_active else False,
+                                        self.game_handler.score if self.is_active else 0,
+                                        self.game_handler.get_data() if self.is_active else None)
         self.game_status = game_status

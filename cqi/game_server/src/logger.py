@@ -29,7 +29,7 @@ class Logger:
         self._current_step = GameStep([], [], 0)
     
     def get(self) -> list[GameStep]:
-        return self._history
+        return self._history.copy()
 
     def add(self, message: str, level: Level):
         logging.log(level.value, message)

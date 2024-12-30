@@ -61,7 +61,7 @@ async def run_game(request: Request):
 
 
 async def end_game(request: Request):
-    game_running = await run_async(game_runner._force_end_game)
+    game_running = await run_async(game_runner.force_end_game)
     if not game_running:
         return Response(text="No game running", status=400)
 
@@ -166,6 +166,9 @@ def main() -> None:
         case _:
             logging.error("Unknown mode: %s", mode)
             launch = public_mode
+
+    if mode != "public":
+        logging.info("Starting game server in %s mode", mode)
 
     try:
         launch()
