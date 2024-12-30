@@ -11,7 +11,7 @@ class RunnerStatus:
     is_running: bool
     is_over: bool
     score: int | None
-    game_status: GameStatus | None
+    game_status: dict | None
 
 @dataclass
 class GameResult:

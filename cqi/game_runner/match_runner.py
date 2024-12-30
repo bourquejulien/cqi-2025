@@ -19,6 +19,8 @@ from interfaces import GameResult, Match, RunnerStatus
 MAX_LOGS = 100
 MAX_LOG_LINE_SIZE = 100
 MATCH_EXPIRATION_TIMEOUT_MINUTES = 5
+GAME_RUNNER_BASE_NAME = "game-runner-managed"
+DEFAULT_TIMEOUT = 2
 
 def get_available_port() -> int:
     with socket.socket() as sock:
@@ -72,12 +74,77 @@ def get_logs_and_remove(container: Container) -> list[str]:
 
     return logs
 
+def get_logs_and_remove_all(*containers: list[Container]) -> list[list[str]]:
+    logs = []
+
+    for container in containers:
+        logs.append(get_logs_and_remove(container))
+    
+    return logs
+
 def to_base_64(data) -> str:
     data = json.dumps(data)
     return base64.b64encode(data).decode()
+
+def build_simple_error(message: str) -> dict:
+    return {
+        "errorType": "simple",
+        "message": message
+    }
+
+def build_detailed_error(data: MatchData, status1: RunnerStatus, status2: RunnerStatus, logs: list[list[str]]) -> dict:
+    message = ""
+
+    if status1.game_status["errorMessage"] is not None:
+        message += f"{data.game.team1_id}: " + status1.game_status["errorMessage"]
+    if status2.game_status["errorMessage"] is not None:
+        message += "\n" if len(message) > 0 else ""
+        message += f"{data.game.team2_id}: " + status1.game_status["errorMessage"]
     
-GAME_RUNNER_BASE_NAME = "game-runner-managed"
-DEFAULT_TIMEOUT = 2
+    return {
+        "errorType": "detailed",
+        "message": message,
+        "matches": [{
+                "offenseTeamId": data.game.team1_id,
+                "defenseTeamId": data.game.team2_id,
+                "logs": {
+                    "offense": logs[0],
+                    "defense": logs[1]
+                }
+            },
+            {
+                "offenseTeamId": data.game.team2_id,
+                "defenseTeamId": data.game.team1_id,
+                "logs": {
+                    "offense": logs[2],
+                    "defense": logs[3]
+            }
+        }]
+    }
+
+def build_game_data(data: MatchData, status1: RunnerStatus, status2: RunnerStatus, logs: list[list[str]]) -> dict:
+    return {
+        "matches": [
+            {
+                "offenseTeamId": data.game.team1_id,
+                "defenseTeamId": data.game.team2_id,
+                "logs": {
+                    "offense": logs[0],
+                    "defense": logs[1]
+                },
+                "steps": status1.game_status["steps"]
+            },
+            {
+                "offenseTeamId": data.game.team2_id,
+                "defenseTeamId": data.game.team1_id,
+                "logs": {
+                    "offense": logs[2],
+                    "defense": logs[3]
+                },
+                "steps": status2.game_status["steps"]
+            }
+        ]
+    }
 
 class MatchRunner:
     game_server_image: Image
@@ -137,12 +204,7 @@ class MatchRunner:
         self.cleanup(match.id)
         logging.error("Failed to run match %s: %s", match.id, error)
 
-        simple_error = {
-            "errorType": "simple",
-            "message": error
-        }
-
-        self.results.append(GameResult(id=match.id, winner_id=None, is_error=True, team1_score=None, team2_score=None, error_data=to_base_64(simple_error), game_data=None))
+        self.results.append(GameResult(id=match.id, winner_id=None, is_error=True, team1_score=None, team2_score=None, error_data=to_base_64(build_simple_error(error)), game_data=None))
 
     def _run_match(self, stop_token: StopToken, match: Match) -> None:
         if stop_token.is_canceled():
@@ -265,43 +327,41 @@ class MatchRunner:
         # Delete containers
         stop_and_remove_all(match_data.game_1.game_server, match_data.game_2.game_server)
 
-        logs_1_offense = get_logs_and_remove(match_data.game_1.offense)
-        logs_1_defense = get_logs_and_remove(match_data.game_1.defense)
-        logs_2_offense = get_logs_and_remove(match_data.game_2.offense)
-        logs_2_defense = get_logs_and_remove(match_data.game_2.defense)
+        logs = get_logs_and_remove_all(match_data.game_1.offense, match_data.game_1.defense, match_data.game_2.offense, match_data.game_2.defense)
 
         # Delete networks
         safe_execute(match_data.game_1.game_network.remove)
         safe_execute(match_data.game_2.game_network.remove)
 
         if status1 is None or status2 is None:
-            simple_error = {
-                "errorType": "simple",
-                "message": "Game server error"
-            }
-            game_result = GameResult(id=match_data.game.id, winner_id=None, is_error=True, team1_score=None, team2_score=None, error_data=to_base_64(simple_error), game_data=None)
+            game_result = GameResult(id=match_data.game.id, winner_id=None, is_error=True, team1_score=None, team2_score=None, error_data=to_base_64(build_simple_error("Game server error")), game_data=None)
             logging.warning("Game server crashed for match %s", match_data.game.id)
             self.results.append(game_result)
             return
         
         if is_expired:
-            simple_error = {
-                "errorType": "simple",
-                "message": f"Game killed after being stuck for too long ({MATCH_EXPIRATION_TIMEOUT_MINUTES} minutes)"
-            }
-            game_result = GameResult(id=match_data.game.id, winner_id=None, is_error=True, team1_score=None, team2_score=None, error_data=to_base_64(simple_error), game_data=None)
+            error_message = f"Game killed after being stuck for too long ({MATCH_EXPIRATION_TIMEOUT_MINUTES} minutes)"
+            game_result = GameResult(id=match_data.game.id, winner_id=None, is_error=True, team1_score=None, team2_score=None, error_data=to_base_64(build_simple_error(error_message)), game_data=None)
             logging.info("Match %s expired", match_data.game.id)
             self.results.append(game_result)
             return
-
-        # TODO Add error data and game data
-        if status1.score == status2.score:
-            game_result = GameResult(id=match_data.game.id, winner_id=None, is_error=False, team1_score=status1.score, team2_score=status2.score, error_data=None, game_data=None)
+        
+        if status1.game_status["errorMessage"] is not None or status2.game_status["errorMessage"] is not None:           
+            error_data = build_detailed_error(match_data, status1, status2)
+            game_result = GameResult(id=match_data.game.id, winner_id=None, is_error=True, team1_score=None, team2_score=None, error_data=to_base_64(error_data), game_data=None)
             self.results.append(game_result)
+            logging.info("Match %s finished on error", match_data.game.id)
+
+        game_data = build_game_data(match_data, status1, status2)
+
+        if status1.score == status2.score:
+            game_result = GameResult(id=match_data.game.id, winner_id=None, is_error=False, team1_score=status1.score, team2_score=status2.score, error_data=None, game_data=to_base_64(game_data))
+            self.results.append(game_result)
+            logging.info("Match %s finished with tie", match_data.game.id)
             return
 
         winner_id = match_data.game.team1_id if status1.score > status2.score else match_data.game.team2_id
-        game_result = GameResult(id=match_data.game.id, winner_id=winner_id, is_error=False, team1_score=status1.score, team2_score=status2.score, error_data=None, game_data=None)
+        game_result = GameResult(id=match_data.game.id, winner_id=winner_id, is_error=False, team1_score=status1.score, team2_score=status2.score, error_data=None, game_data=to_base_64(game_data))
         self.results.append(game_result)
 
         logging.info("Match %s finished", match_data.game.id)
