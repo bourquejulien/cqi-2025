@@ -3,6 +3,7 @@
 import os
 import signal
 import boto3
+import boto3.session
 import docker
 import boto3.session
 import logging
@@ -30,21 +31,18 @@ def prune_images(docker_client: docker.DockerClient) -> None:
 
 def main() -> None:
     logging.basicConfig(level=logging.INFO,
-                    format="%(asctime)s %(levelname)s%(module)s-%(funcName)s: %(message)s",
+                    format="%(asctime)s %(levelname)    s%(module)s-%(funcName)s: %(message)s",
                     datefmt="%d-%m-%Y %H:%M:%S")
 
-    # Grab secret from AWS Secrets Manager
     session = boto3.session.Session()
-    secret_manager_client = session.client(service_name="secretsmanager", region_name="us-east-1")
-    secret = secret_manager_client.get_secret_value(SecretId="internal_key")["SecretString"]
-
     docker_client: DockerClient = docker.from_env()
 
-    username, password, registry = get_internal_key(session)
-    docker_client.login(username=username, password=password, registry=registry)
+    internal_key = get_internal_key(session)
+    if ex := login_to_ecr(session, docker_client):
+        raise ex
 
     base_address = os.environ.get("SERVER_ADDRESS", "http://localhost:8000")
-    main_server_client = MainServerClient(secret=secret, base_url=base_address)
+    main_server_client = MainServerClient(secret=internal_key, base_url=base_address)
 
     gameServerImage: Image = docker_client.images.pull(GAME_SERVER_IMAGE_NAME)
 
@@ -68,6 +66,7 @@ def main() -> None:
             main_server_client.add_result(result)
 
         logging.info("Added %s results", len(results))
+        login_to_ecr(session, docker_client)
         stop_token.wait(5)
 
 if __name__ == "__main__":

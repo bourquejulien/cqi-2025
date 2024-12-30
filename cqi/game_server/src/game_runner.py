@@ -61,8 +61,7 @@ class Runner:
             self._update_status()
 
     def status(self) -> GameServerStatus:
-        with self.data_lock:
-            return self.game_status
+        return self.game_status
 
     def _handle_game(self) -> None:
         if self.game_handler is None:
@@ -78,8 +77,8 @@ class Runner:
         self._update_status()
 
     def _update_status(self) -> None:
-        with self.data_lock:
-            self.game_status = GameServerStatus(self.is_running,
-                                            self.game_handler.is_over if self.is_running else None,
-                                            self.game_handler.score if self.is_running else None,
-                                            self.game_handler.get_data() if self.is_running else None)
+        game_status = GameServerStatus(self.is_running,
+                                        self.game_handler.is_over if self.is_running else False,
+                                        self.game_handler.score if self.is_running else 0,
+                                        self.game_handler.get_data() if self.is_running else None)
+        self.game_status = game_status

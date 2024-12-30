@@ -3,15 +3,12 @@ import numpy as np
 
 
 @dataclass
-class GameStatus:
-    map: np.ndarray
-
-@dataclass
-class RunnerStatus:
-    is_running: bool
-    is_over: bool
+class GameServerStatus:
+    isRunning: bool
+    isOver: bool
     score: int | None
-    game_status: dict | None
+    gameData: dict | None
+
 
 @dataclass
 class GameResult:
@@ -22,6 +19,7 @@ class GameResult:
     team2_score: float
     error_data: str | None
     game_data: str | None
+
 
 @dataclass
 class Match:
