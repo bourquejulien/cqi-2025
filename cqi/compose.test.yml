@@ -1,7 +1,7 @@
 services:
   game-server:
     environment:
-      - MODE=test
+      - MODE=public
       - OFFENSE_URL=http://bot_1:5001
       - DEFENSE_URL=http://bot_2:5002
   bot-1:

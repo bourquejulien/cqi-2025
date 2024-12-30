@@ -28,7 +28,7 @@ class Map(CommonMap):
     def __repr__(self) -> str:
         return repr(self.map)
     
-    def to_list(self) -> list:
+    def to_list(self) -> list[list[str]]:
         return self.map.tolist()
     
     def to_img_64(self, offense_position: Position, visibility_range: int = None) -> bytes:

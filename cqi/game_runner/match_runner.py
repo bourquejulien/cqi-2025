@@ -137,8 +137,12 @@ class MatchRunner:
         self.cleanup(match.id)
         logging.error("Failed to run match %s: %s", match.id, error)
 
-        # TODO - Add error data
-        self.results.append(GameResult(id=match.id, winner_id=None, is_error=True, team1_score=None, team2_score=None, error_data=None, game_data=None))
+        simple_error = {
+            "errorType": "simple",
+            "message": error
+        }
+
+        self.results.append(GameResult(id=match.id, winner_id=None, is_error=True, team1_score=None, team2_score=None, error_data=to_base_64(simple_error), game_data=None))
 
     def _run_match(self, stop_token: StopToken, match: Match) -> None:
         if stop_token.is_canceled():
@@ -192,7 +196,7 @@ class MatchRunner:
             team1Offense.start()
             team1Defense.start()
         except:
-            self._handle_error(match, "Failed to create team 1 bots")
+            self._handle_error(match, f"Failed to create team {match.team1_id} bots")
             return
         
         if stop_token.is_canceled():
@@ -207,7 +211,7 @@ class MatchRunner:
             team2Defense.start()
             team2Offense.start()
         except:
-            self._handle_error(match, "Failed to create team 2 bots")
+            self._handle_error(match, f"Failed to create team {match.team2_id} bots")
             return
         
         if stop_token.is_canceled():

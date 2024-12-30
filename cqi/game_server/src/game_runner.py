@@ -1,21 +1,27 @@
 from dataclasses import dataclass
 from threading import RLock
 
-from src.game_handler import GameHandler, GameStatus
+from src.game_handler import GameHandler, GameData
 
 
 @dataclass
-class RunnerStatus:
+class GameServerStatus:
     is_running: bool
     is_over: bool
     score: float
-    game_status: GameStatus | None
+    game_data: GameData | None
+
+    def __iter__(self):
+        yield "isRunning", self.is_running
+        yield "isOver", self.is_over
+        yield "score", self.score
+        yield "gameData", dict(self.game_data) if self.game_data is not None else None
 
 class Runner:
     game_lock: RLock
     data_lock: RLock
     should_stop: bool
-    game_status: RunnerStatus
+    game_status: GameServerStatus
 
     game_handler: GameHandler | None
 
@@ -54,23 +60,26 @@ class Runner:
             self.game_handler = None
             self._update_status()
 
-    def status(self) -> RunnerStatus:
+    def status(self) -> GameServerStatus:
         with self.data_lock:
             return self.game_status
 
     def _handle_game(self) -> None:
-        if self.game_handler is None or self.game_handler.is_over:
+        if self.game_handler is None:
+            self._update_status()
             return
 
         if not self.game_handler.is_started:
             self.game_handler.start_game()
+        
+        if not self.game_handler.is_over:
+            self.game_handler.play()
 
-        self.game_handler.play()
         self._update_status()
 
     def _update_status(self) -> None:
         with self.data_lock:
-            self.game_status = RunnerStatus(self.is_running,
+            self.game_status = GameServerStatus(self.is_running,
                                             self.game_handler.is_over if self.is_running else None,
                                             self.game_handler.score if self.is_running else None,
-                                            self.game_handler.get_status() if self.is_running else None)
+                                            self.game_handler.get_data() if self.is_running else None)

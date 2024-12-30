@@ -1,4 +1,4 @@
-export type GameMap = number[][];
+export type GameMap = string[][];
 
 export interface GameStep {
     score: number;
