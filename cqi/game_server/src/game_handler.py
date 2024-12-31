@@ -102,7 +102,7 @@ class GameHandler:
         self.offense_player = OffensePlayer(self.map)
         self.defense_player = DefensePlayer(self.map, n_walls=N_WALLS)
 
-        logging.info("start_game")
+        self.logger.add(f"Starting game, Goal position: {self.goal}", Level.INFO)
 
         try:
             element_types_color = { "background": ElementType.BACKGROUND.to_color(), "wall": ElementType.WALL.to_color(), "offense_player": ElementType.PLAYER_OFFENSE.to_color(), "goal": ElementType.GOAL.to_color(), "unknow": ElementType.UNKNOW.to_color() }
@@ -119,6 +119,8 @@ class GameHandler:
             self.error_message = f"Failed to start game with exception:\n{
                 str(e)}"
             return
+        
+        self.logger.add_step(self.map.to_list(), self.score)
 
     def _play_defense(self):
         try:

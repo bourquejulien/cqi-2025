@@ -35,7 +35,7 @@ class Logger:
         logging.log(level.value, message)
 
         if level.value >= Level.INFO.value: 
-            self._current_step.logs.append(message)
+            self._current_step.logs.append(f"{level.name}: {message}")
 
     def add_step(self, map: list[list[str]], score: int):
         self._current_step.map = map
