@@ -105,12 +105,14 @@ class GameHandler:
         logging.info("start_game")
 
         try:
+            element_types_color = { "background": ElementType.BACKGROUND.to_color(), "wall": ElementType.WALL.to_color(), "offense_player": ElementType.PLAYER_OFFENSE.to_color(), "goal": ElementType.GOAL.to_color(), "unknow": ElementType.UNKNOW.to_color() }
+
             result = requests.post(self.offense_bot_url + START_ENDPOINT,
-                                   json={"is_offense": True}, timeout=TIMEOUT)
+                                   json={"is_offense": True, "element_types_color": element_types_color}, timeout=TIMEOUT)
             result.raise_for_status()
 
             result = requests.post(self.defense_bot_url + START_ENDPOINT,
-                                   json={"is_offense": False, "n_walls": N_WALLS}, timeout=TIMEOUT)
+                                   json={"is_offense": False, "n_walls": N_WALLS, "element_types_color": element_types_color}, timeout=TIMEOUT)
             result.raise_for_status()
         except Exception as e:
             logging.error(f"Error starting game: {e}")
