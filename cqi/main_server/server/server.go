@@ -6,6 +6,7 @@ import (
 	"cqiprog/scheduler"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -103,6 +104,7 @@ func (p *Server) listGames(w http.ResponseWriter, r *http.Request) {
 
 	games, err := p.Data.ListGames(r.Context(), limit, page)
 	if err != nil {
+		log.Printf("Error listing games: %v", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
@@ -120,6 +122,7 @@ func (p *Server) getGame(w http.ResponseWriter, r *http.Request) {
 	game, err := p.Data.GetGame(r.URL.Query().Get("id"), r.Context())
 
 	if err != nil {
+		log.Printf("Error getting game: %v", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}

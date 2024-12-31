@@ -103,10 +103,10 @@ func (p *gamesDB) getGame(id string, ctx context.Context) (*DbGame, error) {
 
 	defer conn.Release()
 
-	row := conn.QueryRow(ctx, "SELECT id, start_time, end_time, team1_id, team2_id, winner_id, is_error, team1_score, team2_score FROM games WHERE id = $1", id)
-
+	row := conn.QueryRow(ctx, "SELECT * FROM games WHERE id = $1", id)
 	game := DbGame{}
-	err = row.Scan(&game.Id, &game.StartTime, &game.EndTime, &game.Team1Id, &game.Team2Id, &game.WinnerId, &game.IsError, &game.Team1Score, &game.Team2Score)
+
+	err = row.Scan(&game.Id, &game.StartTime, &game.EndTime, &game.Team1Id, &game.Team2Id, &game.WinnerId, &game.IsError, &game.Team1Score, &game.Team2Score, &game.ErrorData, &game.GameData)
 	if err != nil {
 		return nil, err
 	}
