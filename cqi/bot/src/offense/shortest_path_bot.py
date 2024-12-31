@@ -122,10 +122,10 @@ class ShortestPathBot:
         view_range = max(current_map.map.shape[0] - map_pos.x - 1, map_pos.x)
         
         self._aggregate_map(current_map, map_pos)
-        logging.info(f"Map: {self.aggregate_map.to_img_64().decode()}")
+        logging.debug(f"Map: {self.aggregate_map.to_img_64().decode()}")
 
         target: Position = self._identify_target(view_range)
-        logging.info(f"Target: {target}")
+        logging.debug(f"Target: {target}")
 
         # TODO - Compute shortest path to goal
         path_map = self.aggregate_map.map.copy()

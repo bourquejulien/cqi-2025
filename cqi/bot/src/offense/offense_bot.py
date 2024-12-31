@@ -98,7 +98,7 @@ class DumbOffenseBot:
             entry = Entry({move for _, move in moves}, set())
             self.map[self.current_position] = entry
 
-        logging.info(available_moves)
+        logging.debug(available_moves)
 
         chosen_move: tuple[Tile, OffenseMove] | None = None
         if goal_pos is not None:

@@ -18,7 +18,7 @@ ENV_LEVEL = "BOT_LEVEL"
 DEFAULT_PORT = 5001
 
 should_play_offense = True
-offense_bot: DumbOffenseBot | None = None
+offense_bot: DumbOffenseBot | ShortestPathBot | None = None
 defense: Defense | None = None
 level: str = ""
 
@@ -27,7 +27,7 @@ def play_offense(payload: dict) -> Response:
 
     logging.info(f"Playing offense {offense_bot.__class__.__name__}")
     move = offense_bot.play(data)
-    logging.info("Moved played: %s", move)
+    logging.debug("Moved played: %s", move)
 
     if move is None:
         return Response(
@@ -40,7 +40,7 @@ def play_offense(payload: dict) -> Response:
 
 def play_defense(payload: dict) -> Response:
     data = payload["map"]
-    logging.info(f"Playing defense {defense.__class__.__name__}")
+    logging.info(f"Playing defense {defense.bot.__class__.__name__}")
     result = defense.play(data)
     if result is None:
         return Response(
@@ -49,7 +49,7 @@ def play_defense(payload: dict) -> Response:
         )
 
     move, position = result
-    logging.info("%s, %s", move, position)
+    logging.debug("%s, %s", move, position)
 
     return json_response({"x": position.x, "y": position.y, "element": move.value})
 
