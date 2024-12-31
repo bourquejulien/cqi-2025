@@ -199,8 +199,8 @@ class MatchRunner:
         return results
 
     def _handle_error(self, match: Match, error: str) -> None:
-        self.cleanup(match.id)
         logging.error("Failed to run match %s: %s", match.id, error)
+        self.cleanup(match.id)
 
         self.results.append(GameResult(id=match.id, winner_id=None, is_error=True, team1_score=None, team2_score=None, error_data=to_base_64(build_simple_error(error)), game_data=None))
 
@@ -289,7 +289,6 @@ class MatchRunner:
         # Start both games
         game_1_started = False
         game_2_started = False
-
         for _ in range(5):
             time.sleep(1)
 
@@ -306,7 +305,7 @@ class MatchRunner:
 
         if not game_1_started or not game_2_started:
             self._handle_error(match, "Failed to start games")
-            return        
+            return
 
         game_data_1 = GameData(port=port_1, game_network=game_network_1, game_server=game_server_1, offense=team1Offense, defense=team1Defense)
         game_data_2 = GameData(port=port_2, game_network=game_network_2, game_server=game_server_2, offense=team2Offense, defense=team2Defense)
@@ -330,7 +329,6 @@ class MatchRunner:
             statuses.append(GameServerStatus(**requests.get(f"http://localhost:{match_data.game_2.port}/status", timeout=DEFAULT_TIMEOUT).json()))
         except Exception as e:
             logging.error("Failed to get status for match %s: %s", match_data.game.id, e)
-            exit(1)
             pass
         
         is_expired = match_data.start_time + timedelta(seconds=MATCH_EXPIRATION_TIMEOUT_MINUTES*60) < datetime.now(timezone.utc)
@@ -339,7 +337,6 @@ class MatchRunner:
 
         # Delete containers
         stop_and_remove_all(match_data.game_1.game_server, match_data.game_2.game_server)
-
         logs = get_logs_and_remove_all(match_data.game_1.offense, match_data.game_1.defense, match_data.game_2.offense, match_data.game_2.defense)
 
         # Delete networks

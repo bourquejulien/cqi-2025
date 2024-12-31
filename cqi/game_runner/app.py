@@ -31,7 +31,7 @@ def prune_images(docker_client: docker.DockerClient) -> None:
 
 def main() -> None:
     logging.basicConfig(level=logging.INFO,
-                    format="%(asctime)s %(levelname)    s%(module)s-%(funcName)s: %(message)s",
+                    format="%(asctime)s %(levelname)s => %(module)s-%(funcName)s: %(message)s",
                     datefmt="%d-%m-%Y %H:%M:%S")
 
     session = boto3.session.Session()

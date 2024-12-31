@@ -19,7 +19,12 @@ class MainServerClient:
         return {"Authorization": f"{self.secret}"}
 
     def get_next_matches(self, currently_running: int) -> list[Match]:
-        n = max(1, self.max_concurrent_matches - currently_running)
+        n = max(0, self.max_concurrent_matches - currently_running)
+        
+        if n < 1:
+            logging.info("Too many games running, waiting for some to finish")
+            return []
+        
         logging.info("Getting next %s games", n)
 
         response: requests.Response
@@ -37,7 +42,7 @@ class MainServerClient:
         matches = [Match(**match) for match in matches_data["matches"]]
         self.max_concurrent_matches = matches_data["maxConcurrentMatch"]
 
-        logging.info("Got %s matches", len(matches))
+        logging.info("Got %s match", len(matches))
         return matches
 
     def add_result(self, result: GameResult):
