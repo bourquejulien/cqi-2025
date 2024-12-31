@@ -14,7 +14,7 @@ function MatchWrapper({matches}: { matches: MatchData[] }) {
             <Select
                 data={matches.map((match) => ({
                     value: match.offenseTeamId + match.defenseTeamId,
-                    label: playerService.getPlayerNameOrDefault(match.offenseTeamId) + " vs " + playerService.getPlayerNameOrDefault(match.defenseTeamId)
+                    label: playerService.getPlayerNameOrDefault(match.offenseTeamId) + "(O)" + " vs " + playerService.getPlayerNameOrDefault(match.defenseTeamId) + "(D)"
                 }))}
                 placeholder="Sélectionner un match"
                 value={selectedMatch.offenseTeamId + selectedMatch.defenseTeamId}

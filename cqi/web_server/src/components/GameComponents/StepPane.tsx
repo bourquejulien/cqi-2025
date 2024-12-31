@@ -1,5 +1,5 @@
 import {GameStep} from "../../interfaces/SuccessData.ts";
-import {ActionIcon, Flex, Grid, Pagination, Stack, Text, Title} from "@mantine/core";
+import {ActionIcon, Flex, Grid, Pagination, Stack, Text, Title, Tooltip} from "@mantine/core";
 import Map from "./Map.tsx";
 import {useEffect, useState} from "react";
 import LogPane from "./LogPane.tsx";
@@ -39,17 +39,17 @@ function StepPane({steps}: { steps: GameStep[] }) {
                 </Grid.Col>
             </Grid>
             <Flex align={"center"} justify={"center"} gap={"xl"}>
-                <ActionIcon
-                    onClick={() => downloadMap(steps.slice())}
-                    aria-labelledby={"Télécharger les cartes"}
-                    aria-placeholder={"Télécharger les cartes"}
-                    variant="gradient"
-                    size="xl"
-                    aria-label="Gradient action icon"
-                    gradient={{from: 'CQI.1', to: 'CQI.3', deg: 90}}
-                >
-                    <FaDownload/>
-                </ActionIcon>
+                <Tooltip label="Télécharger les cartes">
+                    <ActionIcon
+                        onClick={() => downloadMap(steps.slice())}
+                        variant="gradient"
+                        size="xl"
+                        aria-label="Gradient action icon"
+                        gradient={{from: 'CQI.1', to: 'CQI.3', deg: 90}}
+                    >
+                        <FaDownload/>
+                    </ActionIcon>
+                </Tooltip>
                 <Pagination
                     total={steps.length}
                     value={currentStepIndex + 1}

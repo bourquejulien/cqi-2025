@@ -137,8 +137,8 @@ class DumbOffenseBot:
         available_moves = [tile for tile in nearby_tiles if tile[0].element in [
             ElementType.BACKGROUND, ElementType.GOAL]]
         
-        logging.info(f"Map: {map.to_img_64().decode()}")
-        logging.info(available_moves)
+        logging.debug(f"Map: {map.to_img_64().decode()}")
+        logging.debug(available_moves)
 
         if len(available_moves) == 0:
             return None

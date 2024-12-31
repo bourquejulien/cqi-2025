@@ -62,7 +62,7 @@ class Map:
         return base64.b64encode(buffered.getvalue())
 
     def get_nearby_tiles(self, x: int, y: int) -> list[tuple[Tile, OffenseMove]]:
-        if self.get(x, y) == None:
+        if self.get(x, y) is None:
             return []
 
         tiles: list[Tile | None] = []
