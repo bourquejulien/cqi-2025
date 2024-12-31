@@ -53,10 +53,12 @@ class InternalAPI:
         result.raise_for_status()
 
 def print_settings(settings: dict) -> None:
-    print("~"*40)
+    BORDER = "\u001B[35m" + "~"*40 + "\u001B[0m"
+    ARROW = "\u001B[32m=>\u001B[0m"
+    print(BORDER)
     for key, value in settings.items():
-        print(f"=> {key}: {value}")
-    print("~"*40)
+        print(f"{ARROW} {key}: {value}")
+    print(BORDER)
 
 def update_settings(api: InternalAPI) -> int:
     settings = api.get_settings()
@@ -121,20 +123,35 @@ def force_queue_match(api: InternalAPI) -> int:
     api.force_queue_match(team1_id, team2_id)
     return 0
 
+def is_running_on_local_host() -> bool:
+    try:
+        response = requests.get(LOCAL_URL + "/health", timeout=2)
+        response.raise_for_status()
+        return True
+    except:
+        return False
 
 def main() -> int:
-    base_url = LOCAL_URL if os.environ.get("ENVIRON", "local") == "local" else PROD_URL
+    base_url = LOCAL_URL if os.environ.get("ENVIRON") == "local" or is_running_on_local_host() else PROD_URL
     secret = get_secret("internal_key")
+
+    print("Using base url:", base_url)
 
     api = InternalAPI(secret=secret, base_url=base_url)
 
     modes = [
+        ("Exit", lambda *_: 0),
         ("Update Settings", update_settings),
         ("Set Autoplay", set_autoplay),
         ("Force Queue Match", force_queue_match)
     ]
 
-    mode = input(f"Enter mode ({", ".join(f'{mode[0]}({i})' for i, mode in enumerate(modes))}): ")
+    mode = input(f"Enter mode [{", ".join(f'{mode[0]}({i})' for i, mode in enumerate(modes))}]: ")
+
+    if not mode.isdigit() or int(mode) >= len(modes):
+        print("Invalid mode")
+        return 1
+
     return modes[int(mode)][1](api)
 
 if __name__ == "__main__":
