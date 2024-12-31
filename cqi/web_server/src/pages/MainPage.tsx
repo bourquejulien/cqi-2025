@@ -25,7 +25,7 @@ function MainPage({stats, setIsReady}: {
             if (response.isSuccess && matches.isSuccess) {
                 setGameData(response.data.results);
                 setOngoingMatches(matches.data);
-            } else if (!response.isSuccess && !response.isGameEnded) {
+            } else if (!response.isSuccess && !response.isGameEnded && gameData.length === 0) {
                 setIsReady(false);
             }
         }

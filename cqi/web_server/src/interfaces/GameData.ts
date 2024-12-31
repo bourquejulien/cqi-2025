@@ -1,4 +1,4 @@
-import { ErrorData } from "./ErrorData";
+import {ErrorData} from "./ErrorData";
 import { SuccessData } from "./SuccessData";
 
 export interface GameDataBase {
@@ -7,15 +7,15 @@ export interface GameDataBase {
     endTime: Date;
     team1Id: string;
     team2Id: string;
-    winnerId: string | null;
+    winnerId: string | undefined;
     isError: boolean;
     team1Score: number;
     team2Score: number;
 }
 
-export interface GameFailure extends GameDataBase {
+export interface GameFailure<T extends ErrorData = ErrorData> extends GameDataBase {
     isError: true;
-    errorData: ErrorData;
+    errorData: T;
 }
 
 export interface GameSuccess extends GameDataBase {

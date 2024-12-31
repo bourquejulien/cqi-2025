@@ -4,6 +4,7 @@ import {Pagination, Stack, Table, Text} from "@mantine/core";
 import {GameDataBase} from "../../interfaces/GameData.ts";
 import {getPlayerService} from "../../Data.ts";
 import {useNavigate} from "react-router";
+import {formatDuration} from "../../Helpers.ts";
 
 export interface PaginationData {
     page: number;
@@ -14,17 +15,6 @@ export interface PaginationData {
 export interface LeaderboardData {
     paginationData: PaginationData;
     gameData: GameDataBase[];
-}
-
-function formatDuration(startTime: Date, endTime: Date): string {
-    const durationMs = endTime.getTime() - startTime.getTime();
-    if (durationMs <= 0) {
-        return "0s";
-    }
-
-    const duration = new Date(durationMs);
-    const minutes = duration.getMinutes() > 0 ? `${duration.getMinutes()}m` : "";
-    return minutes + `${duration.getSeconds()}s`;
 }
 
 // @ts-expect-error TS6198
