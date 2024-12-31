@@ -1,3 +1,5 @@
+import React from "react";
+
 type ElementType = "unknown" | "background" | "wall" | "playerOffense" | "goal" | "visited";
 
 interface ElementData {
@@ -23,7 +25,26 @@ function getColor(key: string): string {
     return data.color;
 }
 
-function Map({map}: { map: string[][] }) {
+function computeTileSize(width: number, height: number): number {
+    const size = height > 1.5 * width ? Math.ceil(1.5 * width) : width;
+
+    const MIN_TILE_SIZE = 5;
+    const MAX_TILE_SIZE = 20;
+    const MIN_SIZE = 30;
+    const MAX_SIZE = 100;
+
+    if (size <= MIN_SIZE) {
+        return MAX_TILE_SIZE;
+    }
+
+    if (size > MAX_SIZE) {
+        return MIN_TILE_SIZE;
+    }
+
+    return MAX_TILE_SIZE - Math.ceil(((MAX_TILE_SIZE - MIN_TILE_SIZE) / (MAX_SIZE - MIN_SIZE)) * (size - MIN_SIZE));
+}
+
+const Map = React.forwardRef<SVGSVGElement, { map: string[][] }>(({map}, ref) => {
     const width = map.length;
     if (width == 0) {
         return (
@@ -38,16 +59,18 @@ function Map({map}: { map: string[][] }) {
         );
     }
 
+    const tileSize = computeTileSize(width, height);
+
     return (
-        <svg width={width * 20} height={height * 20}>
+        <svg ref={ref} width={width * tileSize} height={height * tileSize} fill="none" xmlns="http://www.w3.org/2000/svg">
             {map.map((col, colIndex) =>
                 col.map((cell, rowIndex) => (
                     <rect
                         key={`${rowIndex}-${colIndex}`}
-                        x={colIndex * 20}
-                        y={rowIndex * 20}
-                        width={20}
-                        height={20}
+                        x={colIndex * tileSize}
+                        y={rowIndex * tileSize}
+                        width={tileSize}
+                        height={tileSize}
                         fill={getColor(cell)}
                         stroke="black"
                         strokeWidth={0.25}
@@ -56,6 +79,6 @@ function Map({map}: { map: string[][] }) {
             )}
         </svg>
     );
-}
+});
 
 export default Map;

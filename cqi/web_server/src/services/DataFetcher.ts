@@ -87,8 +87,6 @@ function handleGameData(gameData: GameData): GameData {
     gameData.startTime = new Date(gameData.startTime);
     gameData.endTime = new Date(gameData.endTime);
 
-    console.log(gameData);
-
     if (gameData.isError) {
         return handleGameDataError(gameData);
     }

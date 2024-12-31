@@ -1,4 +1,4 @@
-import {Grid, Loader, Stack, Title} from "@mantine/core";
+import {Divider, Grid, Loader, Stack, Title} from "@mantine/core";
 import {useEffect, useState} from "react";
 import {useParams} from "react-router";
 import {GameData, GameFailure, GameSuccess} from "../interfaces/GameData";
@@ -33,9 +33,13 @@ function DetailedErrorLayout({gameFailure}: { gameFailure: GameFailure<DetailedE
     }).flat();
 
     return (
-        <Grid>
-            <InfoPane gameData={gameFailure}/>
-            <OutputLogWrapper teamLogs={logs}/>
+        <Grid align={"stretch"} justify={"space-evenly"} w={"80%"}>
+            <Grid.Col span={{base: 12, md: 5, lg: 5}}>
+                <InfoPane gameData={gameFailure}/>
+            </Grid.Col>
+            <Grid.Col span={{base: 12, md: 5, lg: 5}}>
+                <OutputLogWrapper teamLogs={logs}/>
+            </Grid.Col>
         </Grid>
     );
 }
@@ -55,12 +59,31 @@ function SuccessLayout({gameSuccess}: { gameSuccess: GameSuccess }) {
     }).flat();
 
     return (
-        <Grid>
-            <InfoPane gameData={gameSuccess}/>
-            <OutputLogWrapper teamLogs={logs}/>
+        <Stack w={"80%"}>
+            <Grid align={"stretch"} justify={"space-evenly"} w={"100%"}>
+                <Grid.Col span={{base: 12, md: 5, lg: 5}}>
+                    <InfoPane gameData={gameSuccess}/>
+                </Grid.Col>
+                <Grid.Col span={{base: 12, md: 5, lg: 5}}>
+                    <OutputLogWrapper teamLogs={logs}/>
+                </Grid.Col>
+            </Grid>
+            <Divider variant={"solid"} size={"md"}/>
             <MatchWrapper matches={gameSuccess.gameData.matches}/>
-        </Grid>
+        </Stack>
     );
+}
+
+function Layout({gameData}: { gameData: GameData }) {
+    if (!gameData.isError) {
+        return <SuccessLayout gameSuccess={gameData}/>
+    }
+
+    if (gameData.errorData.errorType === "detailed") {
+        return <DetailedErrorLayout gameFailure={gameData as GameFailure<DetailedError>}/>
+    }
+
+    return <SimpleErrorLayout gameFailure={gameData as GameFailure<SimpleError | ErrorDataOther>}/>
 }
 
 function GamePage() {
@@ -88,27 +111,14 @@ function GamePage() {
         );
     }
 
-    const Layout = () => {
-        if (!gameData.isError) {
-            return <SuccessLayout gameSuccess={gameData}/>
-        }
-
-        if (gameData.errorData.errorType === "detailed") {
-            return <DetailedErrorLayout gameFailure={gameData as GameFailure<DetailedError>}/>
-        }
-
-        return <SimpleErrorLayout gameFailure={gameData as GameFailure<SimpleError | ErrorDataOther>}/>
-    };
-
-
     return (
         <Stack
             align={"center"}
             justify={"space-evenly"}
             gap={"lg"}
         >
-            <Title>{playerService.getPlayerNameOrDefault(gameData.team1Id)} VS {gameData.team2Id}</Title>
-            <Layout/>
+            <Title>{playerService.getPlayerNameOrDefault(gameData.team1Id)} VS {playerService.getPlayerNameOrDefault(gameData.team2Id)}</Title>
+            <Layout gameData={gameData}/>
         </Stack>
     )
 }

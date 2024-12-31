@@ -14,7 +14,7 @@ function InfoBubble({title, value}: { title: string, value: string }) {
     return (
         <Card shadow="sm" padding="lg" radius="md" withBorder>
             <Text size="lg">{title}</Text>
-            <Text size="md" c="dimmed">{value}</Text>
+            <Text size="md" c="CQI.2">{value}</Text>
         </Card>
     )
 }
@@ -28,7 +28,7 @@ function ErrorDescriptionBubble({gameData}: { gameData: GameData }) {
     return (
         <Card shadow="sm" padding="lg" radius="md" withBorder>
             <Text size="lg" c={"red"}>Erreur</Text>
-            <Text size="md" c="dimmed">{errorMessage}</Text>
+            <Text size="md" c="CQI.2">{errorMessage}</Text>
         </Card>
     );
 }
@@ -36,16 +36,14 @@ function ErrorDescriptionBubble({gameData}: { gameData: GameData }) {
 function InfoPane({gameData}: {gameData: GameData}) {
     const playerService = getPlayerService();
 
-    console.log(gameData.winnerId);
-
     return (
         <Stack>
             {gameData.winnerId !== undefined ?
                 <InfoBubble title={"Gagnant"} value={playerService.getPlayerNameOrDefault(gameData.winnerId)}/> : null}
-            <InfoBubble title={"Score: " + playerService.getPlayerNameOrDefault(gameData.team1Id)} value={gameData.team1Score.toString()}/>
-            <InfoBubble title={"Score: " + playerService.getPlayerNameOrDefault(gameData.team2Id)} value={gameData.team2Score.toString()}/>
+            <InfoBubble title={"Score de " + playerService.getPlayerNameOrDefault(gameData.team1Id)} value={gameData.team1Score.toString()}/>
+            <InfoBubble title={"Score de " + playerService.getPlayerNameOrDefault(gameData.team2Id)} value={gameData.team2Score.toString()}/>
             <InfoBubble title={"Durée"} value={formatDuration(gameData.startTime, gameData.endTime)}/>
-            <InfoBubble title={"Début - Fin"} value={gameData.startTime.toLocaleTimeString() + " - " + gameData.endTime.toLocaleTimeString()}/>
+            <InfoBubble title={"Période"} value={`De ${gameData.startTime.toLocaleTimeString()} à ${gameData.endTime.toLocaleTimeString()}`}/>
 
             <ErrorDescriptionBubble gameData={gameData}/>
         </Stack>

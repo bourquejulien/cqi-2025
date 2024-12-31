@@ -11,10 +11,11 @@ function OutputLogWrapper({teamLogs}: {teamLogs: Logs[]}) {
     const [selectedLog, setSelectedLog] = useState<Logs>(teamLogs.length > 0 ? teamLogs[0] : {name: "", logs: []});
 
     return (
-        <Stack>
+        <Stack align={"center"} h={"50rem"} w={"100%"}>
             <Select
                 data={teamLogs.map((log) => log.name)}
                 placeholder="Sélectionner un conteneur"
+                value={selectedLog.name}
                 onChange={(value) => {
                     const selectedLog = teamLogs.find((log) => log.name === value);
                     if (selectedLog) {
