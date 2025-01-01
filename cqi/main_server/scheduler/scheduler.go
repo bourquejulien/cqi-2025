@@ -96,8 +96,8 @@ func (s *Scheduler) addResult(gameResult *GameResult, ctx context.Context) bool 
 		IsError:    gameResult.IsError,
 		Team1Score: gameResult.Team1Score,
 		Team2Score: gameResult.Team2Score,
-		ErrorData:  gameResult.ErrorData,
-		GameData:   gameResult.GameData,
+		ErrorData:  compress(gameResult.ErrorData),
+		GameData:   compress(gameResult.GameData),
 	}
 	err := s.data.AddGame(&gameData, ctx)
 

@@ -1,7 +1,7 @@
-import { GameResults, GameSuccess, GameFailure, GameData } from "../interfaces/GameData.ts";
-import { Stats } from "../interfaces/Stats.ts";
-import { Match } from "../interfaces/Match.ts";
-import { LaunchData } from "../interfaces/LaunchData.ts";
+import {GameResults, GameSuccess, GameFailure, GameData} from "../interfaces/GameData.ts";
+import {Stats} from "../interfaces/Stats.ts";
+import {Match} from "../interfaces/Match.ts";
+import {LaunchData} from "../interfaces/LaunchData.ts";
 
 export interface FetcherResponseBase {
     isSuccess: boolean;
@@ -20,9 +20,15 @@ export interface ErrorResponse extends FetcherResponseBase {
 
 export type FetcherResponse<T> = Promise<OkResponse<T> | ErrorResponse>;
 
-function parseEncodedField<T>(data: string): T {
-    const decodedString = new TextDecoder().decode(Uint8Array.from(atob(data), c => c.charCodeAt(0)));
-    return JSON.parse(decodedString) as T;
+async function parseEncodedField<T>(stringEncodedData: string): Promise<T> {
+    const decompressionStream = new DecompressionStream("gzip");
+
+    const response = await fetch("data:application/octet-stream;base64," + stringEncodedData);
+    const blob_in = await response.blob();
+    const stream_in = blob_in.stream().pipeThrough(decompressionStream);
+    const blob_out = await new Response(stream_in).blob();
+
+    return JSON.parse(await blob_out.text());
 }
 
 function handleErrors<T>(response: Promise<Response>): FetcherResponse<T> {
@@ -35,13 +41,13 @@ function handleErrors<T>(response: Promise<Response>): FetcherResponse<T> {
             } as ErrorResponse;
         }
 
-        return { isSuccess: true, data: await response.json() } as OkResponse<T>
+        return {isSuccess: true, data: await response.json()} as OkResponse<T>
     }).catch((error) => {
-        return { isSuccess: false, isGameEnded: false, error: error } as ErrorResponse;
+        return {isSuccess: false, isGameEnded: false, error: error} as ErrorResponse;
     });
 }
 
-function handleGameDataError(gameData: GameData): GameFailure {
+async function handleGameDataError(gameData: GameData): Promise<GameFailure> {
     let data = "";
     if ("errorData" in gameData) {
         data = gameData["errorData"] as unknown as string;
@@ -57,12 +63,12 @@ function handleGameDataError(gameData: GameData): GameFailure {
     }
 
     const failure = gameData as GameFailure;
-    failure.errorData = parseEncodedField(data);
+    failure.errorData = await parseEncodedField(data);
 
     return failure;
 }
 
-function handleGameDataSuccess(gameData: GameData): GameData {
+async function handleGameDataSuccess(gameData: GameData): Promise<GameData> {
     let data = "";
     if ("gameData" in gameData) {
         data = gameData["gameData"] as unknown as string;
@@ -78,19 +84,19 @@ function handleGameDataSuccess(gameData: GameData): GameData {
     }
 
     const gameSuccess = gameData as GameSuccess;
-    gameSuccess.gameData = parseEncodedField(data);
+    gameSuccess.gameData = await parseEncodedField(data);
 
     return gameSuccess;
 }
 
-function handleGameData(gameData: GameData): GameData {
+async function handleGameData(gameData: GameData): Promise<GameData> {
     gameData.startTime = new Date(gameData.startTime);
     gameData.endTime = new Date(gameData.endTime);
 
     if (gameData.isError) {
-        return handleGameDataError(gameData);
+        return await handleGameDataError(gameData);
     }
-    return handleGameDataSuccess(gameData);
+    return await handleGameDataSuccess(gameData);
 }
 
 class DataFetcher {
@@ -134,7 +140,7 @@ class DataFetcher {
         if (!response.isSuccess) {
             return response;
         }
-        response.data = handleGameData(response.data);
+        response.data = await handleGameData(response.data);
         return response;
     }
 

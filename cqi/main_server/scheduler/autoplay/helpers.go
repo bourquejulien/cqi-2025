@@ -32,4 +32,3 @@ func computeVariance(values []float64, mean float64) float64 {
 func computeStandardDeviation(values []float64, mean float64) float64 {
 	return math.Sqrt(computeVariance(values, mean))
 }
-
