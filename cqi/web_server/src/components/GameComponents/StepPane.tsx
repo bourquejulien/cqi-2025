@@ -1,20 +1,8 @@
 import {GameStep} from "../../interfaces/SuccessData.ts";
-import {ActionIcon, Flex, Grid, Pagination, Stack, Text, Title, Tooltip} from "@mantine/core";
+import {Grid, Pagination, Stack, Text, Title} from "@mantine/core";
 import Map from "./Map.tsx";
 import {useEffect, useState} from "react";
 import LogPane from "./LogPane.tsx";
-import {FaDownload} from "react-icons/fa6";
-import ReactDOMServer from 'react-dom/server';
-import {downloadBlob, generateZip} from "../../Helpers.ts";
-
-async function downloadMap(steps: GameStep[]) {
-    const svgs: [string, string][] = steps
-        .map((step) => ReactDOMServer.renderToStaticMarkup(<Map map={step.map}/>))
-        .map((svg, i) => [`map_${i + 1}.svg`, svg]);
-
-    const zipBlob = await generateZip(svgs);
-    downloadBlob(zipBlob, "maps.zip");
-}
 
 function StepPane({steps}: { steps: GameStep[] }) {
     const [currentStepIndex, setCurrentStepIndex] = useState<number>(0);
@@ -38,25 +26,11 @@ function StepPane({steps}: { steps: GameStep[] }) {
                     <LogPane logs={steps[Math.min(currentStepIndex, steps.length - 1)].logs}/>
                 </Grid.Col>
             </Grid>
-            <Flex align={"center"} justify={"center"} gap={"xl"}>
-                <Tooltip label="Télécharger les cartes">
-                    <ActionIcon
-                        onClick={() => downloadMap(steps.slice())}
-                        variant="gradient"
-                        size="xl"
-                        aria-label="Gradient action icon"
-                        gradient={{from: 'CQI.1', to: 'CQI.3', deg: 90}}
-                    >
-                        <FaDownload/>
-                    </ActionIcon>
-                </Tooltip>
-                <Pagination
-                    total={steps.length}
-                    value={currentStepIndex + 1}
-                    onChange={(value) => setCurrentStepIndex(value - 1)}
-                    mt="sm"/>
-            </Flex>
-
+            <Pagination
+                total={steps.length}
+                value={currentStepIndex + 1}
+                onChange={(value) => setCurrentStepIndex(value - 1)}
+                mt="sm"/>
         </Stack>
     );
 }

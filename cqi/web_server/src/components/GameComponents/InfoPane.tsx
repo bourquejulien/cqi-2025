@@ -24,10 +24,12 @@ function ErrorDescriptionBubble({gameData}: { gameData: GameData }) {
         return <></>;
     }
 
+    const errorDescription = "message" in gameData.errorData ? "Erreur lors du lancement de la partie" : "Erreur";
     const errorMessage = "message" in gameData.errorData ? gameData.errorData.message : errorTypeToMessage[gameData.errorData.errorType];
+
     return (
         <Card shadow="sm" padding="lg" radius="md" withBorder>
-            <Text size="lg" c={"red"}>Erreur</Text>
+            <Text size="lg" c={"red"}>{errorDescription}</Text>
             <Text size="md" c="CQI.2">{errorMessage}</Text>
         </Card>
     );
