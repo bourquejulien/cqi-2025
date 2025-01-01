@@ -222,7 +222,14 @@ func (p *Server) forceQueueMatch(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	p.Scheduler.ForceAddMatch(team1Id, team2Id, r.Context())
+	ok, status := p.Scheduler.ForceAddMatch(team1Id, team2Id, r.Context())
+
+	if !ok {
+		http.Error(w, status, http.StatusBadRequest)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }
 
 func (p *Server) setSettings(w http.ResponseWriter, r *http.Request) {

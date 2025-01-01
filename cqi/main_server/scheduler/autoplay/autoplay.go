@@ -15,10 +15,10 @@ type container struct {
 }
 
 type stats struct {
-	totalCountMean      float64
-	errorCountMean       float64
-	totalVariation float64
-	lostVariation  float64
+	totalCountMean float64
+	errorCountMean float64
+	totalStdDev    float64
+	lostStdDev     float64
 }
 
 func GetNextTeam(rankingInfo *data.RankingInfo, availableTeamImages []*infra.TeamImage, scheduledMatches []string) *infra.TeamImage {
@@ -96,33 +96,23 @@ func GetStats(containers []*container) *stats {
 	errorCountMean := computeMean(totalErrorCount)
 
 	return &stats{
-		totalCountMean:      totalCountMean,
-		errorCountMean:       errorCountMean,
-		totalVariation: computeVariance(totalGameCounts, totalCountMean),
-		lostVariation:  computeVariance(totalErrorCount, errorCountMean),
+		totalCountMean: totalCountMean,
+		errorCountMean: errorCountMean,
+		totalStdDev:    computeStandardDeviation(totalGameCounts, totalCountMean),
+		lostStdDev:     computeStandardDeviation(totalErrorCount, errorCountMean),
 	}
 }
 
 func computeTeamProbabilityMultiplier(totalGames, totalErrors int, stats *stats) float64 {
-	multiplier := 1.0
+	if stats.errorCountMean > 1 && totalErrors > int(stats.errorCountMean+(stats.lostStdDev*2)) {
+		return 0.5
+	}
 
 	if stats.totalCountMean <= 1 {
-		return multiplier
+		return 1.0
 	}
 
-	if totalGames < int(stats.totalCountMean) {
-		multiplier = 1.0 + (float64(int(stats.totalCountMean)-totalGames) / stats.totalCountMean)
-	}
-
-	if stats.errorCountMean <= 1 {
-		return multiplier
-	}
-
-	if totalErrors > int(stats.errorCountMean + stats.lostVariation) {
-		multiplier /= 2
-	}
-
-	return multiplier
+	return (float64(int(stats.totalCountMean)-totalGames)/stats.totalCountMean)*2.0 + 1.0
 }
 
 func selectTeam(containers []*container) *infra.TeamImage {
@@ -130,7 +120,7 @@ func selectTeam(containers []*container) *infra.TeamImage {
 	for _, container := range containers {
 		probabilitiesSum += container.probability
 	}
-	
+
 	randomValue := rand.Float64() * probabilitiesSum
 	accumulator := 0.0
 
