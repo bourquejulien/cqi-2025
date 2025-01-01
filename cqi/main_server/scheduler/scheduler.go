@@ -5,6 +5,7 @@ import (
 	"cqiprog/data"
 	"cqiprog/infra"
 	"log"
+	"slices"
 	"sync"
 	"time"
 
@@ -12,8 +13,8 @@ import (
 )
 
 const (
-	DEFAULT_TAG         = "latest"
-	MATCH_TIMEOUT       = 3 * time.Minute
+	DEFAULT_TAG   = "latest"
+	MATCH_TIMEOUT = 3 * time.Minute
 )
 
 type Match struct {
@@ -109,21 +110,17 @@ func (s *Scheduler) addResult(gameResult *GameResult, ctx context.Context) bool 
 	return true
 }
 
-func (s *Scheduler) ForceAddMatch(team1Id string, team2Id string, ctx context.Context) bool {
+func (s *Scheduler) ForceAddMatch(team1Id string, team2Id string, ctx context.Context) (bool, string) {
 	realTeamIds := make([]string, 0, 2)
 	botIds := make([]string, 0, 2)
 
+	if team1Id == team2Id {
+		return false, "Teams must be different"
+	}
+
 	allBotIds := s.data.GetTeamIds(true)
 	for _, id := range []string{team1Id, team2Id} {
-		isBot := false
-		for _, botId := range allBotIds {
-			if id == botId {
-				isBot = true
-				break
-			}
-		}
-
-		if isBot {
+		if slices.Contains(allBotIds, id) {
 			botIds = append(botIds, id)
 		} else {
 			realTeamIds = append(realTeamIds, id)
@@ -134,26 +131,32 @@ func (s *Scheduler) ForceAddMatch(team1Id string, team2Id string, ctx context.Co
 
 	if err != nil {
 		log.Println(err)
-		return false
+		return false, "Error getting images"
 	}
 
 	botImages := s.infra.ListBotImages(botIds)
 	teamImages = append(teamImages, botImages...)
 
-	s.lock.Lock()
-	defer s.lock.Unlock()
-
-	match := Match{uuid.NewString(), team1Id, team2Id, DEFAULT_TAG, DEFAULT_TAG, nil}
-
+	match := Match{uuid.NewString(), team1Id, team2Id, "", "", nil}
+	
 	for _, teamImage := range teamImages {
 		if len(teamImage.Images) == 0 {
-			return false
+			return false, "No images found for team: " + teamImage.TeamId
+		}
+
+		if teamImage.TeamId == team1Id {
+			match.ImageTeam1 = teamImage.Images[0].FullUrl
+		} else {
+			match.ImageTeam2 = teamImage.Images[0].FullUrl
 		}
 	}
 
+	s.lock.Lock()
+	defer s.lock.Unlock()
+
 	s.plannedMatches = append(s.plannedMatches, &match)
 
-	return true
+	return true, ""
 }
 
 func (s *Scheduler) PopMatch(n int, ctx context.Context) []*Match {

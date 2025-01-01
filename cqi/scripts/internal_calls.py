@@ -49,8 +49,11 @@ class InternalAPI:
         result.raise_for_status()
     
     def force_queue_match(self, team1_id: str, team2_id: str) -> None:
-        result = requests.post(f"{self.base_url}/force_queue?team1_id={team1_id}team2_id={team2_id}", timeout=5, headers=self._headers)
-        result.raise_for_status()
+        result = requests.post(f"{self.base_url}/force_queue?team1_id={team1_id}&team2_id={team2_id}", timeout=5, headers=self._headers)
+        
+        if not result.ok:
+            print("Failed to force queue match: " + result.text)
+            return
 
 def print_settings(settings: dict) -> None:
     BORDER = "\u001B[35m" + "~"*40 + "\u001B[0m"
