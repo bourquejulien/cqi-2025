@@ -94,8 +94,7 @@ def build_simple_error(message: str) -> dict:
 
 def build_detailed_error(data: MatchData, statuses: list[GameServerStatus], logs: list[list[str]]) -> dict:
     assert len(statuses) == 2
-    team_ids = [data.game.team1_id, data.game.team2_id]
-    message = "\n".join([f"{team_ids[i]}: {status.gameData["errorMessage"]}" for i, status in enumerate(statuses) if status.gameData["errorMessage"] is not None])
+    message = "\n\n".join([status.gameData["errorMessage"] for i, status in enumerate(statuses) if status.gameData["errorMessage"] is not None])
    
     return {
         "errorType": "detailed",

@@ -65,7 +65,7 @@ def main() -> None:
         for result in results:
             main_server_client.add_result(result)
 
-        logging.info("Added %s results", len(results))
+        logging.info("Sent %s results", len(results))
         login_to_ecr(session, docker_client)
         stop_token.wait(5)
 
