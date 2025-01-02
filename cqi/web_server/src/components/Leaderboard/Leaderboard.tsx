@@ -53,11 +53,8 @@ const LeaderBoard = ({leaderBoardData, setCurrentPage, setItemPerPage}: {
     return (
         <Stack
             mih={300}
-            bg="var(--mantine-color-body)"
             align="center"
-            justify="flex-start"
             gap="lg"
-            className={"gdfgdfgdf"}
         >
             <Table>
                 <Table.Thead>

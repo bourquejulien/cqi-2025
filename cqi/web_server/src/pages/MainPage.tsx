@@ -40,7 +40,7 @@ function MainPage({stats, setIsReady}: {
     return (
         <Grid gutter={"xl"}>
             <Grid.Col span={{base: 12, md: 6, lg: 3}}>
-                <Title order={2} style={{textAlign: "center"}}>Parties en cours</Title>
+                <Title order={1} style={{textAlign: "center"}}>Parties en cours</Title>
                 <MatchPane matches={ongoingMatches}/>
             </Grid.Col>
             <Grid.Col span={{base: 12, md: 6, lg: 6}}>
@@ -57,7 +57,7 @@ function MainPage({stats, setIsReady}: {
                     setItemPerPage={setItemPerPage}/>
             </Grid.Col>
             <Grid.Col span={{base: 12, md: 6, lg: 3}}>
-                <Title order={2} style={{textAlign: "center"}}>Classement</Title>
+                <Title order={1} style={{textAlign: "center"}}>Classement</Title>
                 <Ranking rankingInfo={stats.rankingInfo}/>
             </Grid.Col>
         </Grid>

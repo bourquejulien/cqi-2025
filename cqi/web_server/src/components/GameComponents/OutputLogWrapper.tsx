@@ -13,6 +13,7 @@ function OutputLogWrapper({teamLogs}: {teamLogs: Logs[]}) {
     return (
         <Stack align={"center"} h={"50rem"} w={"100%"}>
             <Select
+                w={"100%"}
                 data={teamLogs.map((log) => log.name)}
                 placeholder="Sélectionner un conteneur"
                 value={selectedLog.name}

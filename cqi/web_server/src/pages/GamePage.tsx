@@ -87,15 +87,17 @@ function Layout({gameData}: { gameData: GameData }) {
 }
 
 function GamePage() {
+    const gameService = getGameService();
+
     const {id} = useParams();
-    const [gameData, setGameData] = useState<GameData | undefined>(undefined);
+    const [gameData, setGameData] = useState<GameData | undefined>(gameService.getGameDataFromCache(id));
 
     useEffect(() => {
         if (id == undefined) {
             return;
         }
 
-        getGameService().getGameData(id).then(game => {
+        gameService.getGameData(id).then(game => {
             setGameData(game);
         });
     }, [id]);

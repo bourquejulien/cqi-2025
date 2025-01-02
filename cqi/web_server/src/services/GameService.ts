@@ -12,21 +12,33 @@ export class GameService {
         this.history = [];
     }
 
-    getGameData(id: string): Promise<GameData | undefined> {
+    async getGameData(id: string | undefined): Promise<GameData | undefined> {
+        if (id === undefined) {
+            return Promise.resolve(undefined);
+        }
+
         const game = this.getFromHistory(id);
-        if (game) {
+        if (game !== undefined) {
             return Promise.resolve(game);
         }
 
-        return this.dataFetcher.getGameData(id).then(game => {
-            if (game.isSuccess) {
-                this.addToHistory(game.data);
-                return game.data;
-            }
+        const gameData = await this.dataFetcher.getGameData(id);
 
-            console.error(game.error);
+        if (gameData.isSuccess) {
+            this.addToHistory(gameData.data);
+            return gameData.data;
+        }
+
+        console.error(gameData.error);
+        return undefined;
+    }
+
+    getGameDataFromCache(id: string | undefined): GameData | undefined {
+        if (id === undefined) {
             return undefined;
-        });
+        }
+
+        return this.getFromHistory(id);
     }
 
     private getFromHistory(id: string): GameData | undefined {

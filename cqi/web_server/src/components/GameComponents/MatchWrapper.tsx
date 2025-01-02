@@ -52,8 +52,9 @@ function MatchWrapper({matches}: { matches: MatchData[] }) {
         <Stack align={"center"}>
             <Title order={2}>Détails de la partie</Title>
 
-            <Flex align={"center"} justify={"center"} gap={"xl"}>
+            <Flex align={"center"} justify={"center"} gap={"2rem"}>
                 <Select
+                    w={"20rem"}
                     data={matches.map((match) => ({
                         value: match.offenseTeamId + match.defenseTeamId,
                         label: playerService.getPlayerNameOrDefault(match.offenseTeamId) + " (O)" + " vs " + playerService.getPlayerNameOrDefault(match.defenseTeamId) + " (D)"

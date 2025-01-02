@@ -1,19 +1,22 @@
-import {Box, Text} from "@mantine/core";
+import {Card, getGradient, Text, useMantineTheme} from "@mantine/core";
 
 function TextBox({text}: { text: string }) {
     return (
-        <Box
+        <Card
+            shadow="sm"
+            padding="lg"
+            radius="md"
+            h={"7rem"}
+            withBorder
+
             style={{
-                display: "flex",
                 justifyContent: "center",
                 alignItems: "center",
-                height: "100px",
-                backgroundColor: "var(--mantine-color-CQI-2)",
-                borderRadius: "8px",
+                backgroundImage: getGradient({from: 'CQI.0', to: 'CQI.4', deg: 0}, useMantineTheme())
             }}
         >
-            <Text fw={700} size="md">{text}</Text>
-        </Box>
+            <Text fw={800} size="xl">{text}</Text>
+        </Card>
     );
 }
 
