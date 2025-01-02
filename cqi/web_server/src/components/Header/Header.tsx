@@ -38,7 +38,7 @@ function Header({stats}: { stats: Stats }) {
     }, [stats]);
 
     return (
-        <Grid align="center" gutter={{base: 5, xs: 'md', md: 'xl', xl: 50}}>
+        <Grid align="center">
             <Grid.Col span={4}>
                 <TextBox text={"Parties joués:\n" + totalMatchPlayed}/>
             </Grid.Col>

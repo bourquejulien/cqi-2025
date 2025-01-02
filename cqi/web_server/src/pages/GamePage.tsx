@@ -107,7 +107,7 @@ function GamePage() {
             <Stack
                 align="center"
                 justify="space-between">
-                <h1 style={{fontSize: "5rem", textAlign: "center"}}>Chargement...</h1>
+                <Title>Chargement...</Title>
                 <Loader color="CQI.0" size="xl"/>
             </Stack>
         );
