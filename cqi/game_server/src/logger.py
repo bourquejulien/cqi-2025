@@ -38,6 +38,7 @@ class Logger:
             self._current_step.logs.append(f"{level.name}: {message}")
 
     def add_step(self, map: list[list[str]], score: int):
+        logging.info(f"Round {len(self._history)}, Score: {score}" if len(self._history) > 0 else "Game started")
         self._current_step.map = map
         self._current_step.score = score
         self._history.append(self._current_step)
