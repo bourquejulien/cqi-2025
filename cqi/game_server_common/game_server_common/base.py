@@ -60,6 +60,7 @@ class ElementType(Enum):
     WALL = 1
     PLAYER_OFFENSE = 2
     GOAL = 3
+    LARGE_VISION = 4
 
     def to_color(self) -> str:
         return ELEMENT_TYPE_TO_COLOR[self]
@@ -70,5 +71,6 @@ ELEMENT_TYPE_TO_COLOR = {
     ElementType.BACKGROUND: "#FFFFFF",
     ElementType.WALL: "#000000",
     ElementType.PLAYER_OFFENSE: "#FF0000",
-    ElementType.GOAL: "#FFD700"
+    ElementType.GOAL: "#FFD700",
+    ElementType.LARGE_VISION: "#4CBB17"
 }

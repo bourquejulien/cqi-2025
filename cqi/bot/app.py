@@ -79,6 +79,7 @@ async def start(request: Request):
 
 async def next_move(request: Request):
     payload = await request.json()
+    logging.info("Received payload: %s", payload)
 
     if should_play_offense:
         return play_offense(payload)

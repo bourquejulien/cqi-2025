@@ -135,7 +135,7 @@ class DumbOffenseBot:
         nearby_tiles = map.get_nearby_tiles(*map_pos)
         self._set_map_limits(nearby_tiles)
         available_moves = [tile for tile in nearby_tiles if tile[0].element in [
-            ElementType.BACKGROUND, ElementType.GOAL]]
+            ElementType.BACKGROUND, ElementType.GOAL, ElementType.LARGE_VISION]]
         
         logging.debug(f"Map: {map.to_img_64().decode()}")
         logging.debug(available_moves)

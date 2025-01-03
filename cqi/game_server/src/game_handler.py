@@ -38,6 +38,7 @@ class GameHandler:
     offense_player: OffensePlayer | None
     defense_player: DefensePlayer | None
     goal: Position
+    large_vision: Position
 
     logger: Logger
     error_message: str | None
@@ -49,6 +50,9 @@ class GameHandler:
 
         self.map = Map.create_map(random.randint(MIN_MAP_SIZE, MAX_MAP_SIZE), random.randint(MIN_MAP_SIZE, MAX_MAP_SIZE))
         self.goal = self.map.set_goal()
+        self.large_vision = self.map.set_large_vision()
+        while self.large_vision == self.goal:
+            self.large_vision = self.map.set_large_vision()
 
         self.offense_player = None
         self.defense_player = None
@@ -105,7 +109,7 @@ class GameHandler:
         self.logger.add(f"Starting game, Goal position: {self.goal}", Level.INFO)
 
         try:
-            element_types_color = { "background": ElementType.BACKGROUND.to_color(), "wall": ElementType.WALL.to_color(), "offense_player": ElementType.PLAYER_OFFENSE.to_color(), "goal": ElementType.GOAL.to_color(), "unknow": ElementType.UNKNOW.to_color() }
+            element_types_color = { "background": ElementType.BACKGROUND.to_color(), "wall": ElementType.WALL.to_color(), "offense_player": ElementType.PLAYER_OFFENSE.to_color(), "goal": ElementType.GOAL.to_color(), "large_vision": ElementType.LARGE_VISION.to_color(), "unknow": ElementType.UNKNOW.to_color() }
 
             result = requests.post(self.offense_bot_url + START_ENDPOINT,
                                    json={"is_offense": True, "max_moves": MAX_MOVES, "element_types_color": element_types_color}, timeout=TIMEOUT)
@@ -160,8 +164,12 @@ class GameHandler:
 
     def _play_offense(self):
         try:
-            response = requests.post(self.offense_bot_url + NEXT_ENDPOINT, json={
-                                 "map": self.map.to_img_64(self.offense_player.position, 3).decode()}, timeout=TIMEOUT)
+            if self.offense_player.position == self.large_vision:
+                response = requests.post(self.offense_bot_url + NEXT_ENDPOINT, json={
+                                    "map": self.map.to_img_64(self.offense_player.position, 5).decode()}, timeout=TIMEOUT)
+            else:
+                response = requests.post(self.offense_bot_url + NEXT_ENDPOINT, json={
+                                    "map": self.map.to_img_64(self.offense_player.position, 3).decode()}, timeout=TIMEOUT)
         except Exception as e:
             self.logger.add(f"Error getting response from offense bot: {e}", Level.ERROR)
             return
@@ -194,7 +202,7 @@ class GameHandler:
             self.offense_player.position = previous_offense_position
             return
 
-        if next_tile.element not in [ElementType.BACKGROUND, ElementType.GOAL]:
+        if next_tile.element not in [ElementType.BACKGROUND, ElementType.GOAL, ElementType.LARGE_VISION]:
             self.logger.add(f"Offense move not on a valid map element: {self.offense_player.position} is a {next_tile}", Level.INFO)
             self.offense_player.position = previous_offense_position
             return

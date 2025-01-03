@@ -55,6 +55,12 @@ class Map(CommonMap):
         image.save(buffered, format="PNG")
         return base64.b64encode(buffered.getvalue())
 
+    def set_large_vision(self) -> Position:
+        large_vision: Position = Position(random.randint(0, self.width - 1), random.randint(0, self.height - 1))
+        logging.info(f"Large vision set at position: {large_vision}")
+        self.map[large_vision.x, large_vision.y] = ElementType.LARGE_VISION.value
+        return large_vision
+
     def set_goal(self) -> Position:
         goal: Position = Position(self.width - 1, random.randint(0, self.height - 1)) 
         self.map[goal.x, goal.y] = ElementType.GOAL.value
