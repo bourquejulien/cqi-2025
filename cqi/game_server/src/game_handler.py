@@ -109,7 +109,7 @@ class GameHandler:
         self.logger.add(f"Starting game, Goal position: {self.goal}", Level.INFO)
 
         try:
-            element_types_color = { "background": ElementType.BACKGROUND.to_color(), "wall": ElementType.WALL.to_color(), "offense_player": ElementType.PLAYER_OFFENSE.to_color(), "goal": ElementType.GOAL.to_color(), "large_vision": ElementType.LARGE_VISION.to_color(), "unknow": ElementType.UNKNOW.to_color() }
+            element_types_color = {"background": ElementType.BACKGROUND.to_color(), "wall": ElementType.WALL.to_color(), "offense_player": ElementType.PLAYER_OFFENSE.to_color(), "goal": ElementType.GOAL.to_color(), "large_vision": ElementType.LARGE_VISION.to_color()}
 
             result = requests.post(self.offense_bot_url + START_ENDPOINT,
                                    json={"is_offense": True, "max_moves": MAX_MOVES, "element_types_color": element_types_color}, timeout=TIMEOUT)

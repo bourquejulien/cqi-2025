@@ -1,6 +1,6 @@
 import React from "react";
 
-type ElementType = "unknown" | "background" | "wall" | "playerOffense" | "goal" | "visited";
+type ElementType = "unknown" | "background" | "wall" | "playerOffense" | "goal" | "visited" | "largeVision";
 
 interface ElementData {
     color: string;
@@ -13,7 +13,8 @@ const ELEMENT_MAPPING: { [id: string]: ElementData } = {
     "0": {color: "#FFFFFF", type: "background"},
     "1": {color: "#000000", type: "wall"},
     "2": {color: "#FF0000", type: "playerOffense"},
-    "3": {color: "#FFD700", type: "goal"}
+    "3": {color: "#FFD700", type: "goal"},
+    "4": {color: "#4CBB17", type: "largeVision"}
 }
 
 function getColor(key: string): string {
