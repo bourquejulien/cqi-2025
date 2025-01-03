@@ -9,9 +9,12 @@ import {downloadBlob, generateZip} from "../../Helpers.ts";
 import {FaDownload} from "react-icons/fa";
 
 async function downloadMap(steps: GameStep[]) {
-    const svgs: [string, string][] = steps
-        .map((step) => ReactDOMServer.renderToStaticMarkup(<Map map={step.map}/>))
-        .map((svg, i) => [`map_${i + 1}.svg`, svg]);
+    const svgs: [string, string][] = await Promise.all(steps
+        .map(async (step) => {
+            await new Promise((resolve) => setTimeout(resolve, 5));
+            return ReactDOMServer.renderToStaticMarkup(<Map map={step.map}/>);
+        })
+        .map(async (svg, i) => [`map_${i + 1}.svg`, await svg]));
 
     const zipBlob = await generateZip(svgs);
     downloadBlob(zipBlob, "maps.zip");
@@ -22,7 +25,6 @@ function MapDownloadButton({steps}: { steps: GameStep[] }) {
 
     const download = async (steps: GameStep[]) => {
         setLoading(true);
-        await new Promise((resolve) => setTimeout(resolve, 50));
         await downloadMap(steps).catch(console.error);
         setLoading(false);
     }
@@ -30,7 +32,7 @@ function MapDownloadButton({steps}: { steps: GameStep[] }) {
     return (
         <Tooltip label="Télécharger les cartes">
             <ActionIcon
-                loaderProps={{ type: 'dots' }}
+                loaderProps={{type: 'dots'}}
                 loading={loading}
                 onClick={async () => await download(steps.slice())}
                 variant="gradient"
