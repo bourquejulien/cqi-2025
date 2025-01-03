@@ -105,7 +105,7 @@ func GetStats(containers []*container) *stats {
 
 func computeTeamProbabilityMultiplier(totalGames, totalErrors int, stats *stats) float64 {
 	if stats.errorCountMean > 1 && totalErrors > int(stats.errorCountMean+(stats.lostStdDev*2)) {
-		return 0.5
+		return 0.75
 	}
 
 	if stats.totalCountMean <= 1 {
