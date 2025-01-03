@@ -9,6 +9,7 @@ services:
     # Swap to test offense or defense
       - OFFENSE_URL=http://bot:5000
       - DEFENSE_URL=http://your_bot:5000
+      # - SEED=42 # Optional seed for reproducibility
   bot:
     image: ghcr.io/bourquejulien/cqi-2024-easy-bot:latest
     hostname: bot
