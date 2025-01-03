@@ -139,8 +139,11 @@ class GameHandler:
             y = response_json["y"]
             assert isinstance(y, int)
 
-            if response_json["element"] == "WALL":
+            if response_json["element"] == "wall":
                 element = ElementType.WALL
+            elif response_json["element"] == "skip":
+                self.logger.add("Defense move was skipped", Level.INFO)
+                return
             else:
                 self.logger.add(f"Defense bot returned invalid element: {response_json['element']}", Level.INFO)
                 return
@@ -172,7 +175,7 @@ class GameHandler:
             return
 
         if move is None:
-            self.logger.add("Move was skipped", Level.INFO)
+            self.logger.add("Offense move was skipped", Level.INFO)
             return
 
         if self.available_moves <= 0:

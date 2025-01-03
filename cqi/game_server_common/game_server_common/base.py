@@ -28,7 +28,8 @@ class Position:
 
 
 class DefenseMove(Enum):
-    WALL = "WALL"
+    WALL = "wall"
+    SKIP = "skip"
 
 
 class OffenseMove(Enum):
