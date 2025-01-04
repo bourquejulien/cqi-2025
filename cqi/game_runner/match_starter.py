@@ -78,15 +78,20 @@ class MatchStarter:
         if stop_token.is_canceled():
             return
 
-        base_docker_id = f"{
-            GAME_RUNNER_BASE_NAME}-{self._random_id[:8]}-{self._match_id}"
+        base_docker_id = f"{GAME_RUNNER_BASE_NAME}-{self._random_id[:8]}-{self._match_id}"
+        offense_docker_id = f"{base_docker_id}-{self._offense_team.team_id}"
+        defense_docker_id = f"{base_docker_id}-{self._defense_team.team_id}"
 
-        game_network: Network
-        try:
-            game_network = self._docker_client.networks.create(
-                base_docker_id, driver="bridge")  # TODO - Make network internal only
-        except:
-            self._error = "Failed to create network"
+        game_network = self._create_network(base_docker_id, internal=False)
+        if game_network is None:
+            return
+
+        offense_network = self._create_network(offense_docker_id, internal=True)
+        if offense_network is None:
+            return
+        
+        defense_network = self._create_network(defense_docker_id, internal=True)
+        if defense_network is None:
             return
 
         if stop_token.is_canceled():
@@ -95,10 +100,36 @@ class MatchStarter:
         # Create containers
         port = get_available_port()
 
+        # Start offense bot
+        offenseBot: Container
+        try:
+            offenseBot = self._docker_client.containers.create(self._offense_team.image, name=offense_docker_id, hostname=f"offense", network=offense_network.name, nano_cpus=int(self._config.max_cpu * 1e9), mem_limit=f"{self._config.max_memory_MiB}m")
+            offenseBot.start()
+        except Exception as e:
+            self._error = f"Failed to create team {self._offense_team.team_id} bots"
+            logging.error(f"Failed to create offense bot: {base_docker_id}: %s", e)
+            return
+
+        # Start defense bot
+        defenseBot: Container
+        try:
+            defenseBot = self._docker_client.containers.create(self._defense_team.image, name=defense_docker_id, hostname=f"defense", network=defense_network.name, nano_cpus=int(self._config.max_cpu * 1e9), mem_limit=f"{self._config.max_memory_MiB}m")
+            defenseBot.start()
+        except Exception as e:
+            self._error = f"Failed to create team {self._defense_team.team_id} bots"
+            logging.error(f"Failed to create defense bot: {base_docker_id}: %s", e)
+            return
+        
+        if stop_token.is_canceled():
+            return
+
         game_server: Container
         try:
             game_server = self._docker_client.containers.create(
                 game_server_image, name=base_docker_id, hostname="game_server", ports={"5000": port}, network=game_network.name)
+            
+            defense_network.connect(game_server)
+            offense_network.connect(game_server)
 
             game_server.start()
         except Exception as e:
@@ -109,31 +140,11 @@ class MatchStarter:
         if stop_token.is_canceled():
             return
 
-        # Start offense bot
-        offenseBot: Container
-        try:
-            offenseBot = self._docker_client.containers.create(self._offense_team.image, name=f"{base_docker_id}-{self._offense_team.team_id}", hostname=f"offense", network=game_network.name, nano_cpus=int(self._config.max_cpu * 1e9), mem_limit=f"{self._config.max_memory_MiB}m")
-            offenseBot.start()
-        except Exception as e:
-            self._error = f"Failed to create team {self._offense_team.team_id} bots"
-            logging.error(f"Failed to create offense bot: {base_docker_id}: %s", e)
-            return
-
-        if stop_token.is_canceled():
-            return
-
-        # Start defense bot
-        defenseBot: Container
-        try:
-            defenseBot = self._docker_client.containers.create(self._defense_team.image, name=f"{base_docker_id}-{self._defense_team.team_id}", hostname=f"defense", network=game_network.name, nano_cpus=int(self._config.max_cpu * 1e9), mem_limit=f"{self._config.max_memory_MiB}m")
-            defenseBot.start()
-        except Exception as e:
-            self._error = f"Failed to create team {self._defense_team.team_id} bots"
-            logging.error(f"Failed to create defense bot: {base_docker_id}: %s", e)
-            return
-
-        self._game_data = GameData(port=port, game_network=game_network,
-                                   game_server=game_server, offense=offenseBot, defense=defenseBot)
+        self._game_data = GameData(port=port,
+                                   game_networks=[game_network, offense_network, defense_network],
+                                   game_server=game_server,
+                                   offense=offenseBot,
+                                   defense=defenseBot)
 
     def start(self) -> None:
         if self.game_data is None:
@@ -150,3 +161,11 @@ class MatchStarter:
             self._is_started = True
         except:
             pass
+    
+    def _create_network(self, name: str, internal: bool) -> Network | None:
+        try:
+            return self._docker_client.networks.create(name, driver="bridge", internal=internal)
+        except Exception as e:
+            logging.error(f"Failed to create network: {name}: {e}")
+            self._error = "Failed to create network"
+            return None

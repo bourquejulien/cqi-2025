@@ -37,11 +37,15 @@ class Runner:
     @property
     def is_active(self) -> bool:
         return self.game_handler is not None
+    
+    @property
+    def is_over(self) -> bool:
+        return self.game_handler is not None and self.game_handler.is_over
 
     @property
     def is_running(self) -> bool:
         with self.game_lock:
-            return self.is_active and not self.game_handler.is_over
+            return self.is_active and not self.is_over
 
     def run(self):
         while not self.should_stop:
@@ -92,7 +96,7 @@ class Runner:
 
     def _update_status(self) -> None:
         game_status = GameServerStatus(self.is_running,
-                                        self.game_handler.is_over if self.is_active else False,
+                                        self.is_over,
                                         self.game_handler.score if self.is_active else 0,
-                                        self.game_handler.get_data() if self.is_active else None)
+                                        self.game_handler.get_data() if self.is_over else None)
         self.game_status = game_status

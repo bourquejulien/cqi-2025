@@ -235,8 +235,8 @@ class MatchRunner:
         logs = get_logs_and_remove_all(match_data.game_1.offense, match_data.game_1.defense, match_data.game_2.offense, match_data.game_2.defense)
 
         # Delete networks
-        safe_execute(match_data.game_1.game_network.remove)
-        safe_execute(match_data.game_2.game_network.remove)
+        for network in match_data.game_1.game_networks:
+            safe_execute(network.remove)
 
         if len(statuses) != 2 or any(status.gameData is None for status in statuses):
             game_result = GameResult(id=match_data.game.id, winner_id=None, is_error=True, team1_score=None, team2_score=None, error_data=to_base_64(build_simple_error("Game server error")), game_data=None)

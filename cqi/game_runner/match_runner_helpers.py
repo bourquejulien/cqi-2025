@@ -16,7 +16,7 @@ GAME_RUNNER_BASE_NAME = "game-runner-managed"
 @dataclass
 class GameData:
     port: int
-    game_network: Network
+    game_networks: list[Network]
     game_server: Container
     offense: Container
     defense: Container
