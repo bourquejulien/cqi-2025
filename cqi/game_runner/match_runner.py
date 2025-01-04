@@ -1,8 +1,4 @@
-import base64
-from dataclasses import dataclass
-import json
 import logging
-import socket
 import time
 from datetime import datetime, timezone, timedelta
 
@@ -13,20 +9,13 @@ from docker.models.images import Image
 
 import requests
 
+from match_starter import MatchStarter, MatchStarterTeam
 from stop_token import StopToken
 from interfaces import GameResult, Match, GameServerStatus
 
 from match_runner_helpers import *
 
 MATCH_EXPIRATION_TIMEOUT_MINUTES = 5
-GAME_RUNNER_BASE_NAME = "game-runner-managed"
-DEFAULT_TIMEOUT = 2
-
-def get_available_port() -> int:
-    with socket.socket() as sock:
-        sock.bind(("localhost", 0))
-        port = sock.getsockname()[1]
-        return port
 
 class MatchRunner:
     game_server_image: Image
@@ -88,113 +77,62 @@ class MatchRunner:
 
         self.results.append(GameResult(id=match.id, winner_id=None, is_error=True, team1_score=None, team2_score=None, error_data=to_base_64(build_simple_error(error)), game_data=None))
 
+    def _pull_image(self, image: str) -> Image | None:
+        try:
+            return self.docker_client.images.pull(image)
+        except:
+            return None
+
     def _run_match(self, stop_token: StopToken, match: Match) -> None:
         if stop_token.is_canceled():
             return
-
-        # Pull images
-        try:
-            team1_image: Image = self.docker_client.images.pull(match.image_team1)
-        except:
-            self._handle_error(match, "Failed to pull image: " + match.image_team1)
-            return
-
-        try:
-            team2_image: Image = self.docker_client.images.pull(match.image_team2)
-        except:
-            self._handle_error(match, "Failed to pull image" + match.image_team2)
-            return
-
-        # Create network
-        base_docker_id = f"{GAME_RUNNER_BASE_NAME}-{match.id[:8]}"
-
-        game_network_1: Network
-        game_network_2: Network
-        try:
-            game_network_1 = self.docker_client.networks.create(f"{base_docker_id}-1", driver="bridge") # TODO - Make network internal only
-            game_network_2 = self.docker_client.networks.create(f"{base_docker_id}-2", driver="bridge") # TODO - Make network internal only
-        except:
-            self._handle_error(match, "Failed to create network")
-            return
         
-        if stop_token.is_canceled():
+        team1_image = self._pull_image(match.image_team1)
+        if team1_image is None:
+            self._handle_error(match, f"Failed to pull {match.image_team1} image")
             return
 
-        # Create containers
-        # TODO - Add memory limit and CPU limit
-        port_1 = get_available_port()
-        port_2 = get_available_port()
-
-        game_server_1: Container
-        game_server_2: Container
-        try:
-            game_server_1 = self.docker_client.containers.create(self.game_server_image, name=f"{base_docker_id}-1", hostname="game_server", ports={"5000":port_1}, network=game_network_1.name)
-            game_server_2 = self.docker_client.containers.create(self.game_server_image, name=f"{base_docker_id}-2", hostname="game_server", ports={"5000":port_2}, network=game_network_2.name)
-
-            game_server_1.start()
-            game_server_2.start()
-        except:
-            self._handle_error(match, "Failed to create game server")
+        team2_image = self._pull_image(match.image_team2)
+        if team2_image is None:
+            self._handle_error(match, f"Failed to pull {match.image_team2} image")
             return
-        
+
         if stop_token.is_canceled():
             return
         
-        # Start team 1 bots
-        team1Offense: Container
-        team1Defense: Container
-        try:
-            team1Offense = self.docker_client.containers.create(team1_image, name=f"{base_docker_id}-{match.team1_id}-O", hostname=f"offense", network=game_network_1.name)
-            team1Defense = self.docker_client.containers.create(team1_image, name=f"{base_docker_id}-{match.team1_id}-D", hostname=f"defense", network=game_network_2.name)
-            team1Offense.start()
-            team1Defense.start()
-        except:
-            self._handle_error(match, f"Failed to create team {match.team1_id} bots")
-            return
+        team1 = MatchStarterTeam(team_id=match.team1_id, image=team1_image)
+        team2 = MatchStarterTeam(team_id=match.team2_id, image=team2_image)
         
-        if stop_token.is_canceled():
+        match1 = MatchStarter(team1, team2, match.id, "1", self.docker_client)
+        match2 = MatchStarter(team2, team1, match.id, "2", self.docker_client)
+
+        match1.init(self.game_server_image, stop_token)
+        if match1.is_error:
+            self._handle_error(match, match1.error)
             return
-        
-        # Start team 2 bots
-        team2Offense: Container
-        team2Defense: Container
-        try:
-            team2Offense = self.docker_client.containers.create(team2_image, name=f"{base_docker_id}-{match.team2_id}-O", hostname=f"offense", network=game_network_2.name)
-            team2Defense = self.docker_client.containers.create(team2_image, name=f"{base_docker_id}-{match.team2_id}-D", hostname=f"defense", network=game_network_1.name)
-            team2Defense.start()
-            team2Offense.start()
-        except:
-            self._handle_error(match, f"Failed to create team {match.team2_id} bots")
+
+        match2.init(self.game_server_image, stop_token)
+        if match2.is_error:
+            self._handle_error(match, match2.error)
             return
         
         if stop_token.is_canceled():
             return
 
         # Start both games
-        game_1_started = False
-        game_2_started = False
         for _ in range(5):
+            if match1.is_started and match2.is_started:
+                break
+            
+            match1.start()
+            match2.start()
             time.sleep(1)
 
-            try:
-                if not game_1_started:
-                    r1 = requests.post(f"http://localhost:{port_1}/run_game", timeout=DEFAULT_TIMEOUT, params={"offense_url": f"http://offense:5000", "defense_url": f"http://defense:5000", "seed": match.id})
-                    game_1_started = r1.ok
-                
-                if not game_2_started:
-                    r2 = requests.post(f"http://localhost:{port_2}/run_game", timeout=DEFAULT_TIMEOUT, params={"offense_url": f"http://offense:5000", "defense_url": f"http://defense:5000", "seed": match.id})
-                    game_2_started = r2.ok
-            except:
-                pass
-
-        if not game_1_started or not game_2_started:
+        if not match1.is_started or not match2.is_started:
             self._handle_error(match, "Failed to start games")
             return
 
-        game_data_1 = GameData(port=port_1, game_network=game_network_1, game_server=game_server_1, offense=team1Offense, defense=team1Defense)
-        game_data_2 = GameData(port=port_2, game_network=game_network_2, game_server=game_server_2, offense=team2Offense, defense=team2Defense)
-        match_data = MatchData(game=match, start_time=datetime.now(timezone.utc), game_1=game_data_1, game_2=game_data_2)
-
+        match_data = MatchData(game=match, start_time=datetime.now(timezone.utc), game_1=match1.game_data, game_2=match2.game_data)
         self.current_matches[match_data.game.id] = match_data
 
     def get_match_results(self, stop_token: StopToken, match_data: MatchData) -> list[GameResult]:

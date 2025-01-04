@@ -10,6 +10,8 @@ from interfaces import Match, GameServerStatus
 
 MAX_LOGS = 100
 MAX_LOG_LINE_SIZE = 100
+DEFAULT_TIMEOUT = 2
+GAME_RUNNER_BASE_NAME = "game-runner-managed"
 
 @dataclass
 class GameData:
