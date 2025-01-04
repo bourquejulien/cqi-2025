@@ -6,10 +6,17 @@ import LogPane from "./LogPane.tsx";
 
 function StepPane({steps}: { steps: GameStep[] }) {
     const [currentStepIndex, setCurrentStepIndex] = useState<number>(0);
+    const [width, setWidth] = useState(window.innerWidth);
 
     useEffect(() => {
         setCurrentStepIndex(0)
     }, [steps.length]);
+
+    useEffect(() => {
+        const handleResize = () => setWidth(window.innerWidth);
+        window.addEventListener("resize", () => setWidth(window.innerWidth));
+        return () => window.removeEventListener("resize", handleResize);
+    }, []);
 
     if (steps.length === 0) {
         return <Text>Aucune donnée n'est disponible</Text>
@@ -17,9 +24,9 @@ function StepPane({steps}: { steps: GameStep[] }) {
 
     return (
         <Stack w={"100%"} align={"center"} gap={"xl"}>
-            <Grid align={"stretch"} w={"100%"}>
-                <Grid.Col span={{base: 12, md: 8, lg: 8}}>
-                    <Map map={steps[Math.min(currentStepIndex, steps.length - 1)].map}/>
+            <Grid justify={"space-evenly"} align={"stretch"} w={"inherit"}>
+                <Grid.Col span={"content"}>
+                    <Map maxWidth={width} map={steps[Math.min(currentStepIndex, steps.length - 1)].map}/>
                 </Grid.Col>
                 <Grid.Col span={{base: 12, md: 4, lg: 4}}>
                     <Title order={3}>Logs du serveur de partie</Title>

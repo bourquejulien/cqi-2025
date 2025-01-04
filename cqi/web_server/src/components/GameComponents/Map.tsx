@@ -1,5 +1,3 @@
-import React from "react";
-
 type ElementType = "unknown" | "background" | "wall" | "playerOffense" | "goal" | "visited" | "largeVision";
 
 interface ElementData {
@@ -26,8 +24,8 @@ function getColor(key: string): string {
     return data.color;
 }
 
-function computeTileSize(width: number, height: number): number {
-    const size = height > 1.5 * width ? Math.ceil(1.5 * width) : width;
+function computeTileSize(mapWidth: number, mapHeight: number): number {
+    const size = mapHeight > 1.5 * mapWidth ? Math.ceil(1.5 * mapWidth) : mapWidth;
 
     const MIN_TILE_SIZE = 5;
     const MAX_TILE_SIZE = 20;
@@ -45,25 +43,33 @@ function computeTileSize(width: number, height: number): number {
     return MAX_TILE_SIZE - Math.ceil(((MAX_TILE_SIZE - MIN_TILE_SIZE) / (MAX_SIZE - MIN_SIZE)) * (size - MIN_SIZE));
 }
 
-const Map = React.forwardRef<SVGSVGElement, { map: string[][] }>(({map}, ref) => {
-    const width = map.length;
-    if (width == 0) {
+function floorTileSize(tileSize: number, mapWidth: number, maxWidth?: number): number {
+    if (maxWidth === undefined || mapWidth * tileSize <= maxWidth) {
+        return tileSize;
+    }
+
+    return Math.floor(maxWidth / mapWidth);
+}
+
+function Map({map, maxWidth, fixedSize}: { map: string[][], maxWidth?: number, fixedSize?: boolean }) {
+    const mapWidth = map.length;
+    if (mapWidth == 0) {
         return (
             <></>
         );
     }
 
-    const height = map[0].length;
-    if (height == 0) {
+    const mapHeight = map[0].length;
+    if (mapHeight == 0) {
         return (
             <></>
         );
     }
 
-    const tileSize = computeTileSize(width, height);
+    const tileSize = fixedSize ? 20 : floorTileSize(computeTileSize(mapWidth, mapHeight), mapWidth, maxWidth);
 
     return (
-        <svg ref={ref} width={width * tileSize} height={height * tileSize} fill="none" xmlns="http://www.w3.org/2000/svg">
+        <svg width={mapWidth * tileSize} height={mapHeight * tileSize} fill="none" xmlns="http://www.w3.org/2000/svg">
             {map.map((col, colIndex) =>
                 col.map((cell, rowIndex) => (
                     <rect
@@ -80,6 +86,6 @@ const Map = React.forwardRef<SVGSVGElement, { map: string[][] }>(({map}, ref) =>
             )}
         </svg>
     );
-});
+}
 
 export default Map;

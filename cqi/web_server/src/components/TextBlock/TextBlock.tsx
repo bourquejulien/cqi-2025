@@ -8,14 +8,13 @@ function TextBox({text}: { text: string }) {
             radius="md"
             h={"7rem"}
             withBorder
-
             style={{
                 justifyContent: "center",
                 alignItems: "center",
                 backgroundImage: getGradient({from: 'CQI.0', to: 'CQI.4', deg: 0}, useMantineTheme())
             }}
         >
-            <Text fw={800} size="xl">{text}</Text>
+            <Text fw={700} size="xl">{text}</Text>
         </Card>
     );
 }

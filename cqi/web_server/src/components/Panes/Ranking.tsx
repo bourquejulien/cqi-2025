@@ -20,8 +20,8 @@ function getRows(results: RankResult[]): JSX.Element[] {
         return (
             <Table.Tr key={rankResult.teamId}>
                 <Table.Td style={{textAlign: "center"}}><Text>{playerService.getPlayerNameOrDefault(rankResult.teamId)}</Text></Table.Td>
-                <Table.Td style={{textAlign: "center"}}>
-                    <Group wrap={"nowrap"}>
+                <Table.Td>
+                    <Group wrap={"nowrap"} align={"center"} justify={"center"}>
                         <Text c={"green.7"}>{rankResult.totalWins}</Text>
                         <Text>|</Text>
                         <Text c={"gray.7"}>{rankResult.totalDraws}</Text>
