@@ -60,7 +60,7 @@ def print_settings(settings: dict) -> None:
     ARROW = "\u001B[32m=>\u001B[0m"
     print(BORDER)
     for key, value in settings.items():
-        print(f"{ARROW} {key}: {value}")
+        print(f"{ARROW} {key}= {value}")
     print(BORDER)
 
 def update_settings(api: InternalAPI) -> int:
