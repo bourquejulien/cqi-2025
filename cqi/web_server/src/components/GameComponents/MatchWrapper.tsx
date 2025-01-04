@@ -6,7 +6,7 @@ import {useState} from "react";
 import ReactDOMServer from "react-dom/server";
 import Map from "./Map.tsx";
 import {downloadBlob, generateZip} from "../../Helpers.ts";
-import {FaDownload} from "react-icons/fa";
+import {FaDownload} from "react-icons/fa6";
 
 async function downloadMap(steps: GameStep[]) {
     const svgs: [string, string][] = await Promise.all(steps

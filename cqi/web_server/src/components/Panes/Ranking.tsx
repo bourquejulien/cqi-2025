@@ -2,6 +2,7 @@ import {Group, Stack, Table, Text} from "@mantine/core";
 import {JSX} from "react";
 import {getPlayerService} from "../../Data.ts";
 import {RankingInfo, RankResult} from "../../interfaces/Stats.ts";
+import {FaCheck, FaXmark , FaEquals} from "react-icons/fa6";
 
 function compare(a: RankResult, b: RankResult): number {
     const result = (b.totalWins / Math.max(b.totalGames, 1)) - (a.totalWins / Math.max(a.totalGames, 1));
@@ -48,7 +49,7 @@ function Ranking({rankingInfo}: { rankingInfo: RankingInfo }) {
                 <Table.Thead>
                     <Table.Tr>
                         <Table.Th style={{textAlign: "center"}}>Équipe</Table.Th>
-                        <Table.Th style={{textAlign: "center"}}>Résultats <br/> [ ✅ | 🟰 | ❌ ]</Table.Th>
+                        <Table.Th style={{textAlign: "center"}}>Résultats <br/> [ <FaCheck color={"green"}/> | <FaEquals/> | <FaXmark color={"red"}/> ]</Table.Th>
                     </Table.Tr>
                 </Table.Thead>
                 <Table.Tbody>{getRows(rankingInfo.results)}</Table.Tbody>

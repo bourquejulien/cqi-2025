@@ -7,6 +7,7 @@ import {DetailedError, ErrorDataOther, SimpleError} from "../interfaces/ErrorDat
 import InfoPane from "../components/GameComponents/InfoPane.tsx";
 import OutputLogWrapper, {Logs} from "../components/GameComponents/OutputLogWrapper.tsx";
 import MatchWrapper from "../components/GameComponents/MatchWrapper.tsx";
+import {useMediaQuery} from "@mantine/hooks";
 
 const playerService = getPlayerService();
 
@@ -92,6 +93,8 @@ function GamePage() {
     const {id} = useParams();
     const [gameData, setGameData] = useState<GameData | undefined>(gameService.getGameDataFromCache(id));
 
+    const isSmallPage = useMediaQuery("(max-width: 50rem)");
+
     useEffect(() => {
         if (id == undefined) {
             return;
@@ -119,7 +122,14 @@ function GamePage() {
             justify={"space-evenly"}
             gap={"lg"}
         >
-            <Title>{playerService.getPlayerNameOrDefault(gameData.team1Id)} VS {playerService.getPlayerNameOrDefault(gameData.team2Id)}</Title>
+            {isSmallPage ?
+                <Stack align={"center"} justify={"center"} gap={"xs"}>
+                    <Title order={3}>{playerService.getPlayerNameOrDefault(gameData.team1Id)}</Title>
+                    <Title order={3}>VS</Title>
+                    <Title order={3}>{playerService.getPlayerNameOrDefault(gameData.team2Id)}</Title>
+                </Stack> :
+                <Title>{playerService.getPlayerNameOrDefault(gameData.team1Id)} VS {playerService.getPlayerNameOrDefault(gameData.team2Id)}</Title>
+            }
             <Layout gameData={gameData}/>
         </Stack>
     )

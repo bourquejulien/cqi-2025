@@ -5,6 +5,9 @@ import {GameDataBase} from "../../interfaces/GameData.ts";
 import {getPlayerService} from "../../Data.ts";
 import {useNavigate} from "react-router";
 import {formatDuration} from "../../Helpers.ts";
+import {FaExclamationTriangle} from "react-icons/fa";
+import {FaCircleCheck} from "react-icons/fa6";
+import {useMediaQuery} from "@mantine/hooks";
 
 export interface PaginationData {
     page: number;
@@ -17,6 +20,12 @@ export interface LeaderboardData {
     gameData: GameDataBase[];
 }
 
+function ScalableText({isSmallPage, text, c}: { isSmallPage: boolean, text: string, c?: string }) {
+    return (
+        <Text size={isSmallPage ? "xs" : "md"} c={c}>{text}</Text>
+    );
+}
+
 // @ts-expect-error TS6198
 const LeaderBoard = ({leaderBoardData, setCurrentPage, setItemPerPage}: {
     leaderBoardData: LeaderboardData,
@@ -26,22 +35,30 @@ const LeaderBoard = ({leaderBoardData, setCurrentPage, setItemPerPage}: {
     const navigate = useNavigate();
     const playerService = getPlayerService();
 
+    const isSmallPage = useMediaQuery("(max-width: 30rem)") ?? false;
+
     const rows = leaderBoardData.gameData.map((game) => {
         const team1Score = game.isError ? "N/A" : game.team1Score;
         const team2Score = game.isError ? "N/A" : game.team2Score;
 
-        const team1Color = game.isError ? "dark.9" : game.winnerId === game.team1Id ? "green.7" : "dark.9";
-        const team2Color = game.isError ? "dark.9" : game.winnerId === game.team2Id ? "green.7" : "dark.9";
+        const team1Color = game.isError ? "dark.9" : game.winnerId === game.team1Id ? "green.8" : "dark.9";
+        const team2Color = game.isError ? "dark.9" : game.winnerId === game.team2Id ? "green.8" : "dark.9";
 
         return (
-            <Table.Tr className={classes.row} key={game.id} onClick={()=>navigate(`game/${game.id}`)}>
-                <Table.Td style={{textAlign: "center"}}><Text
-                    c={team1Color}>{playerService.getPlayerNameOrDefault(game.team1Id)}</Text></Table.Td>
-                <Table.Td style={{textAlign: "center"}}><Text
-                    c={team2Color}>{playerService.getPlayerNameOrDefault(game.team2Id)}</Text></Table.Td>
+            <Table.Tr className={classes.row} key={game.id} onClick={() => navigate(`game/${game.id}`)}>
+                <Table.Td style={{textAlign: "center"}}>
+                    <ScalableText c={team1Color} text={playerService.getPlayerNameOrDefault(game.team1Id)}
+                                  isSmallPage={isSmallPage}/>
+                </Table.Td>
+                <Table.Td style={{textAlign: "center"}}>
+                    <ScalableText c={team2Color} text={playerService.getPlayerNameOrDefault(game.team2Id)}
+                                  isSmallPage={isSmallPage}/>
+                </Table.Td>
                 <Table.Td style={{textAlign: "center"}}>{team1Score}</Table.Td>
                 <Table.Td style={{textAlign: "center"}}>{team2Score}</Table.Td>
-                <Table.Td style={{textAlign: "center"}}>{game.isError ? "❌" : "✅"}</Table.Td>
+                <Table.Td style={{textAlign: "center"}}>{game.isError ?
+                    <FaExclamationTriangle color={"var(--mantine-color-red-8)"}/> :
+                    <FaCircleCheck color={"var(--mantine-color-green-8)"}/>}</Table.Td>
                 <Table.Td style={{
                     textAlign: "center",
                     textWrap: "nowrap"
@@ -56,7 +73,7 @@ const LeaderBoard = ({leaderBoardData, setCurrentPage, setItemPerPage}: {
             align="center"
             gap="lg"
         >
-            <Table>
+            <Table withColumnBorders>
                 <Table.Thead>
                     <Table.Tr>
                         <Table.Th style={{textAlign: "center"}}>Équipe 1</Table.Th>

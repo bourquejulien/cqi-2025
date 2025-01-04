@@ -29,8 +29,10 @@ function StepPane({steps}: { steps: GameStep[] }) {
                     <Map maxWidth={width} step={steps[Math.min(currentStepIndex, steps.length - 1)]}/>
                 </Grid.Col>
                 <Grid.Col span={{base: 12, md: 4, lg: 4}}>
-                    <Title order={3}>Logs du serveur de partie</Title>
-                    <LogPane logs={steps[Math.min(currentStepIndex, steps.length - 1)].logs}/>
+                    <Stack align={"center"} h={"100%"}>
+                        <Title order={3}>Logs du serveur de partie</Title>
+                        <LogPane logs={steps[Math.min(currentStepIndex, steps.length - 1)].logs}/>
+                    </Stack>
                 </Grid.Col>
             </Grid>
             <Pagination
