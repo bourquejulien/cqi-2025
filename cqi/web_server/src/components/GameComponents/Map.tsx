@@ -1,3 +1,5 @@
+import {GameMap, GameStep} from "../../interfaces/SuccessData.ts";
+
 type ElementType = "unknown" | "background" | "wall" | "playerOffense" | "goal" | "visited" | "largeVision";
 
 interface ElementData {
@@ -5,6 +7,12 @@ interface ElementData {
     type: ElementType;
 }
 
+interface Position {
+    x: number;
+    y: number;
+}
+
+const HIDDEN_BACKGROUND_COLOR = "#e5e5e5";
 const ELEMENT_MAPPING: { [id: string]: ElementData } = {
     "-2": {color: "#DFDFDF", type: "unknown"},
     "-1": {color: "#FFFFFF", type: "visited"},
@@ -15,13 +23,33 @@ const ELEMENT_MAPPING: { [id: string]: ElementData } = {
     "4": {color: "#4CBB17", type: "largeVision"}
 }
 
-function getColor(key: string): string {
+function getColor(key: string, isVisible: boolean): string {
     const data = ELEMENT_MAPPING[key];
-    if (data === undefined) {
-        return ELEMENT_MAPPING["-2"].color;
+
+    if (data !== undefined && data.type !== "background") {
+        return data.color;
     }
 
-    return data.color;
+    return isVisible ? ELEMENT_MAPPING["0"].color : HIDDEN_BACKGROUND_COLOR;
+}
+
+function getPlayerPosition(map: GameMap): Position | undefined {
+    for (let x = 0; x < map.length; x++) {
+        for (let y = 0; y < map[x].length; y++) {
+            if (map[x][y].toString() === "2") {
+                return {x, y};
+            }
+        }
+    }
+
+    return undefined
+}
+
+function isVisible(from: Position | undefined, to: Position | undefined, visionRadius: number): boolean {
+    if (from === undefined || to === undefined) {
+        return false;
+    }
+    return Math.abs(from.x - to.x) <= visionRadius && Math.abs(from.y - to.y) <= visionRadius;
 }
 
 function computeTileSize(mapWidth: number, mapHeight: number): number {
@@ -51,7 +79,8 @@ function floorTileSize(tileSize: number, mapWidth: number, maxWidth?: number): n
     return Math.floor(maxWidth / mapWidth);
 }
 
-function Map({map, maxWidth, fixedSize}: { map: string[][], maxWidth?: number, fixedSize?: boolean }) {
+function Map({step, maxWidth, fixedSize}: { step: GameStep, maxWidth?: number, fixedSize?: boolean }) {
+    const {map, score} = step;
     const mapWidth = map.length;
     if (mapWidth == 0) {
         return (
@@ -66,24 +95,27 @@ function Map({map, maxWidth, fixedSize}: { map: string[][], maxWidth?: number, f
         );
     }
 
+    const visionRadius = 3;
+    const playerPosition = getPlayerPosition(map);
     const tileSize = fixedSize ? 20 : floorTileSize(computeTileSize(mapWidth, mapHeight), mapWidth, maxWidth);
 
     return (
         <svg width={mapWidth * tileSize} height={mapHeight * tileSize} fill="none" xmlns="http://www.w3.org/2000/svg">
-            {map.map((col, colIndex) =>
-                col.map((cell, rowIndex) => (
+            {map.map((col, xPos) =>
+                col.map((cell, yPos) => (
                     <rect
-                        key={`${rowIndex}-${colIndex}`}
-                        x={colIndex * tileSize}
-                        y={rowIndex * tileSize}
+                        key={`${yPos}-${xPos}`}
+                        x={xPos * tileSize}
+                        y={yPos * tileSize}
                         width={tileSize}
                         height={tileSize}
-                        fill={getColor(cell)}
+                        fill={getColor(cell.toString(), isVisible(playerPosition, {x: xPos, y: yPos}, visionRadius))}
                         stroke="black"
                         strokeWidth={0.25}
                     />
                 ))
             )}
+            <text fontSize={25} x="0" y="25" fill="black">{score}</text>
         </svg>
     );
 }

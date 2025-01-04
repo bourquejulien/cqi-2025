@@ -12,7 +12,7 @@ async function downloadMap(steps: GameStep[]) {
     const svgs: [string, string][] = await Promise.all(steps
         .map(async (step) => {
             await new Promise((resolve) => setTimeout(resolve, 5));
-            return ReactDOMServer.renderToStaticMarkup(<Map fixedSize map={step.map}/>);
+            return ReactDOMServer.renderToStaticMarkup(<Map fixedSize step={step}/>);
         })
         .map(async (svg, i) => [`map_${i + 1}.svg`, await svg]));
 

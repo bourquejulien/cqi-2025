@@ -26,7 +26,7 @@ function StepPane({steps}: { steps: GameStep[] }) {
         <Stack w={"100%"} align={"center"} gap={"xl"}>
             <Grid justify={"space-evenly"} align={"stretch"} w={"inherit"}>
                 <Grid.Col span={"content"}>
-                    <Map maxWidth={width} map={steps[Math.min(currentStepIndex, steps.length - 1)].map}/>
+                    <Map maxWidth={width} step={steps[Math.min(currentStepIndex, steps.length - 1)]}/>
                 </Grid.Col>
                 <Grid.Col span={{base: 12, md: 4, lg: 4}}>
                     <Title order={3}>Logs du serveur de partie</Title>
