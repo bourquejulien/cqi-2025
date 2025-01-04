@@ -4,7 +4,6 @@ from datetime import datetime, timezone, timedelta
 
 from docker import DockerClient
 from docker.models.containers import Container
-from docker.models.networks import Network
 from docker.models.images import Image
 
 import requests
@@ -36,6 +35,12 @@ class MatchRunner:
         return len(self.current_matches)
     
     def run_matches(self, stop_token: StopToken, matches: list[Match]) -> None:
+        game_server_image = self._pull_image(self.game_server_image.tags[0])
+        if game_server_image is None:
+            logging.error("Failed to pull game server image")
+        else:
+            self.game_server_image = game_server_image
+
         for match in matches:
             self._run_match(stop_token, match)
 

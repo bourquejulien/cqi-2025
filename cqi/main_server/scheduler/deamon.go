@@ -41,6 +41,11 @@ func autoAddMatch(scheduler *Scheduler, ctx context.Context) {
 
 	teamImages, err := scheduler.infra.ListImages(scheduler.data.GetTeamIds(false), []string{DEFAULT_TAG}, ctx)
 
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
 	if len(teamImages) == 0 {
 		return
 	}
@@ -48,11 +53,6 @@ func autoAddMatch(scheduler *Scheduler, ctx context.Context) {
 	botImages := scheduler.infra.ListBotImages(scheduler.data.GetTeamIds(true))
 
 	allImages := append(teamImages, botImages...)
-
-	if err != nil {
-		log.Println(err)
-		return
-	}
 
 	if len(allImages) < 2 {
 		return
