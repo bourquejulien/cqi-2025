@@ -8,7 +8,7 @@ from docker.models.images import Image
 
 import requests
 
-from match_starter import MatchStarter, MatchStarterTeam
+from match_starter import MatchStarter, MatchStarterConfig, MatchStarterTeam
 from stop_token import StopToken
 from interfaces import GameResult, Match, GameServerStatus
 
@@ -16,9 +16,74 @@ from match_runner_helpers import *
 
 MATCH_EXPIRATION_TIMEOUT_MINUTES = 5
 
+@dataclass
+class MatchData:
+    game: Match
+    start_time: float
+    game_1: GameData
+    game_2: GameData
+
+def build_simple_error(message: str) -> dict:
+    return {
+        "errorType": "simple",
+        "message": message
+    }
+
+def build_detailed_error(data: MatchData, statuses: list[GameServerStatus], logs: list[list[str]]) -> dict:
+    assert len(statuses) == 2
+    message = "\n\n".join([status.gameData["errorMessage"] for i, status in enumerate(statuses) if status.gameData["errorMessage"] is not None])
+   
+    return {
+        "errorType": "detailed",
+        "message": message,
+        "matches": [{
+                "offenseTeamId": data.game.team1_id,
+                "defenseTeamId": data.game.team2_id,
+                "logs": {
+                    "offense": logs[0],
+                    "defense": logs[1]
+                }
+            },
+            {
+                "offenseTeamId": data.game.team2_id,
+                "defenseTeamId": data.game.team1_id,
+                "logs": {
+                    "offense": logs[2],
+                    "defense": logs[3]
+            }
+        }]
+    }
+
+def build_game_data(data: MatchData, statuses: list[GameServerStatus], logs: list[list[str]]) -> dict:
+    assert len(statuses) == 2
+
+    return {
+        "matches": [
+            {
+                "offenseTeamId": data.game.team1_id,
+                "defenseTeamId": data.game.team2_id,
+                "logs": {
+                    "offense": logs[0],
+                    "defense": logs[1]
+                },
+                "steps": statuses[0].gameData["steps"]
+            },
+            {
+                "offenseTeamId": data.game.team2_id,
+                "defenseTeamId": data.game.team1_id,
+                "logs": {
+                    "offense": logs[2],
+                    "defense": logs[3]
+                },
+                "steps": statuses[1].gameData["steps"]
+            }
+        ]
+    }
+
 class MatchRunner:
     game_server_image: Image
     docker_client: DockerClient
+    match_starter_config: MatchStarterConfig
 
     current_matches: dict[str, MatchData]
     results: list[GameResult]
@@ -26,6 +91,9 @@ class MatchRunner:
     def __init__(self, game_server_image: Image, docker_client: DockerClient) -> None:
         self.game_server_image = game_server_image
         self.docker_client = docker_client
+        self.match_starter_config = MatchStarterConfig(max_cpu=get_cpu_per_container(), max_memory_MiB=get_memory_per_container())
+
+        logging.info("Container limits: CPU %s, Memory %s MiB", self.match_starter_config.max_cpu, self.match_starter_config.max_memory_MiB)
 
         self.current_matches = {}
         self.results = []
@@ -108,8 +176,8 @@ class MatchRunner:
         team1 = MatchStarterTeam(team_id=match.team1_id, image=team1_image)
         team2 = MatchStarterTeam(team_id=match.team2_id, image=team2_image)
         
-        match1 = MatchStarter(team1, team2, match.id, "1", self.docker_client)
-        match2 = MatchStarter(team2, team1, match.id, "2", self.docker_client)
+        match1 = MatchStarter(team1, team2, match.id, "1", self.match_starter_config, self.docker_client)
+        match2 = MatchStarter(team2, team1, match.id, "2", self.match_starter_config, self.docker_client)
 
         match1.init(self.game_server_image, stop_token)
         if match1.is_error:

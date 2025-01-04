@@ -1,5 +1,7 @@
 import base64
+import os
 import shutil
+import psutil
 from boto3 import session
 import docker
 import requests
@@ -43,3 +45,9 @@ def login_to_ecr(session: session.Session, docker_client: docker.DockerClient) -
         return e
     
     return None
+
+def get_cpu_count() -> int:
+    return os.cpu_count() or 1
+
+def get_memory_MiB() -> float:
+    return psutil.virtual_memory().total / (2 ** 20)
