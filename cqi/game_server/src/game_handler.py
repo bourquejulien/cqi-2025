@@ -19,8 +19,8 @@ N_TIMEBOMBS = 1
 TIMEOUT = 10
 MIN_MAP_SIZE = 20
 MAX_MAP_SIZE = 40
+
 N_FULL_VISION = 3
-OFFENSE_VISION_RADIUS = 3
 
 @dataclass
 class GameData:
@@ -40,7 +40,6 @@ class GameHandler:
     map: Map
     max_move: int
     goal: Position
-    large_vision: Position
     timebomb: Position | None
 
     offense_player: OffensePlayer | None
@@ -60,10 +59,8 @@ class GameHandler:
 
         self.goal = self.map.set_goal()
 
-        for i in range(N_FULL_VISION):
-            self.large_vision = self.map.set_full_vision()
-            while self.large_vision == self.goal:
-                self.large_vision = self.map.set_full_vision()
+        for _ in range(N_FULL_VISION):
+            self.map.set_full_vision()
 
         self.offense_player = None
         self.defense_player = None
@@ -114,10 +111,7 @@ class GameHandler:
         self._play_defense()
         self._play_offense()
 
-        if self.offense_player.position == self.large_vision:
-            self.logger.add_step(self.map.to_list(), self.score, "FULL VISION")
-        else:
-            self.logger.add_step(self.map.to_list(), self.score, OFFENSE_VISION_RADIUS)
+        self.logger.add_step(self.map.to_list(), self.score, self.offense_player.get_vision_radius())
 
     def end_game(self):
         try:
@@ -157,10 +151,8 @@ class GameHandler:
                 str(e)}"
             return
         
-        if self.offense_player.position == self.large_vision:
-            self.logger.add_step(self.map.to_list(), self.score, "FULL VISION")
-        else:
-            self.logger.add_step(self.map.to_list(), self.score, OFFENSE_VISION_RADIUS)
+        self.logger.add_step(self.map.to_list(), self.score, self.offense_player.get_vision_radius())
+
 
     def _play_defense(self):
         try:
@@ -206,12 +198,8 @@ class GameHandler:
 
     def _play_offense(self):
         try:
-            if self.offense_player.position == self.large_vision:
-                response = requests.post(self.offense_bot_url + NEXT_ENDPOINT, json={
-                                    "map": self.map.to_img_64(self.offense_player.position).decode()}, timeout=TIMEOUT)
-            else:
-                response = requests.post(self.offense_bot_url + NEXT_ENDPOINT, json={
-                                    "map": self.map.to_img_64(self.offense_player.position, 3).decode()}, timeout=TIMEOUT)
+            response = requests.post(self.offense_bot_url + NEXT_ENDPOINT, json={
+                                    "map": self.map.to_img_64(self.offense_player.position, self.offense_player.get_vision_radius()).decode()}, timeout=TIMEOUT)
         except Exception as e:
             self.logger.add(f"Error getting response from offense bot: {e}", Level.ERROR)
             return
