@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+import random
 from threading import RLock
 import time
 
@@ -58,14 +59,15 @@ class Runner:
     def stop(self):
         self.should_stop = True
 
-    def launch_game(self, offense_bot_url: str, defense_bot_url: str, seed: str) -> None:
+    def launch_game(self, offense_bot_url: str, defense_bot_url: str, seed: str, max_move: int | None = None) -> None:
         if self.is_active:
             return
 
         with self.game_lock:
             if self.is_active:
                 return
-            self.game_handler = GameHandler(offense_bot_url, defense_bot_url, seed)
+            random.seed(seed)
+            self.game_handler = GameHandler(offense_bot_url, defense_bot_url, max_move)
         self._update_status()
 
     def force_end_game(self) -> bool:

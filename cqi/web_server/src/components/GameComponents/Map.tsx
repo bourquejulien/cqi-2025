@@ -95,7 +95,6 @@ function Map({step, maxWidth, fixedSize}: { step: GameStep, maxWidth?: number, f
         );
     }
 
-    const visionRadius = 3;
     const playerPosition = getPlayerPosition(map);
     const tileSize = fixedSize ? 20 : floorTileSize(computeTileSize(mapWidth, mapHeight), mapWidth, maxWidth);
 
@@ -109,7 +108,7 @@ function Map({step, maxWidth, fixedSize}: { step: GameStep, maxWidth?: number, f
                         y={yPos * tileSize}
                         width={tileSize}
                         height={tileSize}
-                        fill={getColor(cell.toString(), isVisible(playerPosition, {x: xPos, y: yPos}, visionRadius))}
+                        fill={getColor(cell.toString(), isVisible(playerPosition, {x: xPos, y: yPos}, step.visionRadius))}
                         stroke="black"
                         strokeWidth={0.25}
                     />

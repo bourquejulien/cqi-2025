@@ -1,7 +1,8 @@
-export type GameMap = number[][];
+export type GameMap = string[][];
 
 export interface GameStep {
     score: number;
+    visionRadius: number;
     logs: string[];
     map: GameMap;
 }
@@ -19,5 +20,6 @@ export interface MatchData {
 }
 
 export interface SuccessData {
+    maxMoveCount: number;
     matches: MatchData[];
 }

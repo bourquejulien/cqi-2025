@@ -14,7 +14,7 @@ const playerService = getPlayerService();
 function SimpleErrorLayout({gameFailure}: { gameFailure: GameFailure<SimpleError | ErrorDataOther> }) {
     return (
         <Grid>
-            <InfoPane gameData={gameFailure}/>
+            <InfoPane game={gameFailure}/>
         </Grid>
     );
 }
@@ -36,7 +36,7 @@ function DetailedErrorLayout({gameFailure}: { gameFailure: GameFailure<DetailedE
     return (
         <Grid align={"stretch"} justify={"space-evenly"} w={"80%"}>
             <Grid.Col span={{base: 12, md: 5, lg: 5}}>
-                <InfoPane gameData={gameFailure}/>
+                <InfoPane game={gameFailure}/>
             </Grid.Col>
             <Grid.Col span={{base: 12, md: 5, lg: 5}}>
                 <OutputLogWrapper teamLogs={logs}/>
@@ -63,7 +63,7 @@ function SuccessLayout({gameSuccess}: { gameSuccess: GameSuccess }) {
         <Stack w={"80%"}>
             <Grid align={"stretch"} justify={"space-evenly"} w={"100%"}>
                 <Grid.Col span={{base: 12, md: 5, lg: 5}}>
-                    <InfoPane gameData={gameSuccess}/>
+                    <InfoPane game={gameSuccess}/>
                 </Grid.Col>
                 <Grid.Col span={{base: 12, md: 5, lg: 5}}>
                     <OutputLogWrapper teamLogs={logs}/>

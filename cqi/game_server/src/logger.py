@@ -14,11 +14,13 @@ class GameStep:
     map: list[list[str]]
     logs: list[str]
     score: int
+    visionRadius: int
 
     def __iter__(self) -> Iterator:
         yield "map", self.map
         yield "logs", self.logs
         yield "score", self.score
+        yield "visionRadius", self.visionRadius
 
 class Logger:
     _history: list[GameStep]
@@ -26,7 +28,7 @@ class Logger:
 
     def __init__(self):
         self._history = []
-        self._current_step = GameStep([], [], 0)
+        self._current_step = GameStep([], [], 0, 0)
     
     def get(self) -> list[GameStep]:
         return self._history.copy()
@@ -41,5 +43,6 @@ class Logger:
         logging.info(f"Round {len(self._history)}, Score: {score}" if len(self._history) > 0 else "Game started")
         self._current_step.map = map
         self._current_step.score = score
+        self._current_step.visionRadius = 3
         self._history.append(self._current_step)
-        self._current_step = GameStep([], [], 0)
+        self._current_step = GameStep([], [], 0, 0)

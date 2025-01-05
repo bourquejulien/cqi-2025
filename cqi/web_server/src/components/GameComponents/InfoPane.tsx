@@ -2,6 +2,8 @@ import {GameData} from "../../interfaces/GameData.ts";
 import {Card, Text, Stack} from "@mantine/core";
 import {getPlayerService} from "../../Data.ts";
 import {formatDuration} from "../../Helpers.ts";
+import {SuccessData} from "../../interfaces/SuccessData.ts";
+import {useEffect, useState} from "react";
 
 const errorTypeToMessage = {
     "simple": "Une erreur s'est produite",
@@ -10,7 +12,7 @@ const errorTypeToMessage = {
     "nodata": "Aucune information sur la partie n'est disponible"
 }
 
-function InfoBubble({title, value}: { title: string, value: string }) {
+function InfoBubble({title, value}: { title: string, value: string}) {
     return (
         <Card shadow="sm" padding="lg" radius="md" withBorder>
             <Text size="lg">{title}</Text>
@@ -35,19 +37,35 @@ function ErrorDescriptionBubble({gameData}: { gameData: GameData }) {
     );
 }
 
-function InfoPane({gameData}: {gameData: GameData}) {
+function getSuccessInfo(successData: SuccessData): [string, string][] {
+    return [["Nombre de déplacements maximum", successData.maxMoveCount.toString()],]
+}
+
+function InfoPane({game}: {game: GameData}) {
     const playerService = getPlayerService();
+    const [successData, setSuccessData] = useState<SuccessData | undefined>(undefined);
+
+    useEffect(() => {
+        if (game.isError) {
+            return;
+        }
+        setSuccessData(game.gameData as SuccessData);
+    }, [game]);
 
     return (
         <Stack>
-            {gameData.winnerId !== undefined ?
-                <InfoBubble title={"Gagnant"} value={playerService.getPlayerNameOrDefault(gameData.winnerId)}/> : null}
-            <InfoBubble title={"Score de " + playerService.getPlayerNameOrDefault(gameData.team1Id)} value={gameData.team1Score.toString()}/>
-            <InfoBubble title={"Score de " + playerService.getPlayerNameOrDefault(gameData.team2Id)} value={gameData.team2Score.toString()}/>
-            <InfoBubble title={"Durée"} value={formatDuration(gameData.startTime, gameData.endTime)}/>
-            <InfoBubble title={"Période"} value={`De ${gameData.startTime.toLocaleTimeString()} à ${gameData.endTime.toLocaleTimeString()}`}/>
+            {game.winnerId !== undefined ?
+                <InfoBubble title={"Gagnant"} value={playerService.getPlayerNameOrDefault(game.winnerId)}/> : null}
+            <InfoBubble title={"Score de " + playerService.getPlayerNameOrDefault(game.team1Id)} value={game.team1Score.toString()}/>
+            <InfoBubble title={"Score de " + playerService.getPlayerNameOrDefault(game.team2Id)} value={game.team2Score.toString()}/>
+            <InfoBubble title={"Durée"} value={formatDuration(game.startTime, game.endTime)}/>
+            <InfoBubble title={"Période"} value={`De ${game.startTime.toLocaleTimeString()} à ${game.endTime.toLocaleTimeString()}`}/>
 
-            <ErrorDescriptionBubble gameData={gameData}/>
+            {successData !== undefined ? getSuccessInfo(successData).map(([title, value]) => (
+                <InfoBubble title={title} value={value}/>
+            )) : null}
+
+            <ErrorDescriptionBubble gameData={game}/>
         </Stack>
     );
 }

@@ -13,42 +13,66 @@ from .logger import GameStep, Level, Logger
 START_ENDPOINT = "/start"
 NEXT_ENDPOINT = "/next_move"
 END_ENDPOINT = "/end_game"
+
 N_WALLS = 30
-MAX_MOVES = 200
 TIMEOUT = 10
 MIN_MAP_SIZE = 20
 MAX_MAP_SIZE = 40
+
+def get_max_move() -> int:
+    probs = {
+        50: 0.1,
+        100: 0.2,
+        200: 0.3,
+        300: 0.1,
+        400: 0.2,
+        500: 0.1,
+    }
+
+    assert sum(probs.values()) == 1
+
+    r = random.random()
+    for move, prob in probs.items():
+        r -= prob
+        if r <= 0:
+            return move
+
+    return 200
 
 
 @dataclass
 class GameData:
     steps: list[GameStep]
     error_message: str | None
+    max_move_count: int
 
     def __iter__(self) -> Iterator:
         yield "steps", [dict(step) for step in self.steps]
         yield "errorMessage", self.error_message
-
+        yield "maxMoveCount", self.max_move_count
 
 class GameHandler:
     offense_bot_url: str
     defense_bot_url: str
 
     map: Map
-    offense_player: OffensePlayer | None
-    defense_player: DefensePlayer | None
+    max_move: int
     goal: Position
     large_vision: Position
+
+    offense_player: OffensePlayer | None
+    defense_player: DefensePlayer | None
 
     logger: Logger
     error_message: str | None
 
-    def __init__(self, offense_bot_url: str, defense_bot_url: str, seed: str) -> None:
-        random.seed(seed)
+    def __init__(self, offense_bot_url: str, defense_bot_url: str, max_move: int | None) -> None:
         self.offense_bot_url = offense_bot_url
         self.defense_bot_url = defense_bot_url
 
         self.map = Map.create_map(random.randint(MIN_MAP_SIZE, MAX_MAP_SIZE), random.randint(MIN_MAP_SIZE, MAX_MAP_SIZE))
+        self.max_move = max_move or get_max_move()
+
         self.goal = self.map.set_goal()
         self.large_vision = self.map.set_large_vision()
         while self.large_vision == self.goal:
@@ -57,12 +81,12 @@ class GameHandler:
         self.offense_player = None
         self.defense_player = None
 
-        self.error_message = None
         self.logger = Logger()
+        self.error_message = None
 
     @property
     def available_moves(self) -> int:
-        return MAX_MOVES - len(self.logger.get())    
+        return self.max_move - len(self.logger.get())    
 
     @property
     def score(self) -> int | None:
@@ -71,7 +95,7 @@ class GameHandler:
 
         shortest_path = self.map.get_shortest_path(
             self.offense_player.position, self.goal)
-        return MAX_MOVES - len(shortest_path) + (MAX_MOVES - self.available_moves)
+        return self.max_move - len(shortest_path) + (self.max_move - self.available_moves)
 
     @property
     def is_started(self) -> bool:
@@ -112,7 +136,7 @@ class GameHandler:
             element_types_color = {"background": ElementType.BACKGROUND.to_color(), "wall": ElementType.WALL.to_color(), "offense_player": ElementType.PLAYER_OFFENSE.to_color(), "goal": ElementType.GOAL.to_color(), "large_vision": ElementType.LARGE_VISION.to_color()}
 
             result = requests.post(self.offense_bot_url + START_ENDPOINT,
-                                   json={"is_offense": True, "max_moves": MAX_MOVES, "element_types_color": element_types_color}, timeout=TIMEOUT)
+                                   json={"is_offense": True, "max_moves": self.max_move, "element_types_color": element_types_color}, timeout=TIMEOUT)
             result.raise_for_status()
 
             result = requests.post(self.defense_bot_url + START_ENDPOINT,
@@ -216,4 +240,7 @@ class GameHandler:
         self.logger.add(f"Offense new position is: {self.offense_player.position}", Level.DEBUG)
 
     def get_data(self) -> GameData:
-        return GameData(self.logger.get(), error_message=self.error_message)
+        return GameData(
+            steps=self.logger.get(),
+            error_message=self.error_message,
+            max_move_count=self.max_move)

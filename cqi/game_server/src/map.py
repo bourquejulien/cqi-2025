@@ -29,7 +29,7 @@ class Map(CommonMap):
         return repr(self.map)
     
     def to_list(self) -> list[list[str]]:
-        return self.map.tolist()
+        return [[str(row) for row in col] for col in self.map.tolist()]
     
     def to_img_64(self, offense_position: Position, visibility_range: int = None) -> bytes:
         """Creates a base64 image of the map"""

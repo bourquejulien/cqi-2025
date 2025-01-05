@@ -57,7 +57,15 @@ def build_detailed_error(data: MatchData, statuses: list[GameServerStatus], logs
 def build_game_data(data: MatchData, statuses: list[GameServerStatus], logs: list[list[str]]) -> dict:
     assert len(statuses) == 2
 
+    max_move_count = statuses[0].gameData["maxMoveCount"]
+    max_move_count_validation = statuses[1].gameData["maxMoveCount"]
+
+    if max_move_count != max_move_count_validation:
+        logging.warning("Max move count mismatch (%d vs %d) for match %s", max_move_count, max_move_count_validation, data.game.id)
+
+
     return {
+        "maxMoveCount": max_move_count,
         "matches": [
             {
                 "offenseTeamId": data.game.team1_id,

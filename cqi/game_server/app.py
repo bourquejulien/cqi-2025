@@ -111,7 +111,7 @@ def demo_mode() -> None:
     signal.signal(signal.SIGINT, stop)
     signal.signal(signal.SIGTERM, stop)
 
-    game_runner.launch_game(offense_url, defense_url, uuid.uuid4().hex)
+    game_runner.launch_game(offense_url, defense_url, uuid.uuid4().hex, 200)
 
     DURATION = 15
     for _ in range(DURATION):
@@ -131,7 +131,12 @@ def public_mode() -> None:
     defense_url = os.environ["DEFENSE_URL"]
 
     seed = os.environ.get("SEED", uuid.uuid4().hex)
-    game_runner.launch_game(offense_url, defense_url, seed=seed)
+    max_move = os.environ.get("MAX_MOVE")
+
+    if max_move is not None:
+        max_move = int(max_move)
+
+    game_runner.launch_game(offense_url, defense_url, seed=seed, max_move=max_move)
 
     launch_web_server()
 
