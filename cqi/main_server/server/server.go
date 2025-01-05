@@ -185,7 +185,7 @@ func (p *Server) popMatch(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	render.JSON(w, r, MatchInfo{MaxConcurrentMatch: p.Data.GetSettings().MaxMatchPerRunner, Matches: resultMatches})
+	render.JSON(w, r, MatchInfo{MaxConcurrentMatch: *p.Data.GetSettings().MaxMatchPerRunner, Matches: resultMatches})
 }
 
 func (p *Server) addMatchResults(w http.ResponseWriter, r *http.Request) {
@@ -233,8 +233,9 @@ func (p *Server) forceQueueMatch(w http.ResponseWriter, r *http.Request) {
 }
 
 func (p *Server) setSettings(w http.ResponseWriter, r *http.Request) {
-	var settings map[string]string
+	var settings map[string]*string
 	if err := json.NewDecoder(r.Body).Decode(&settings); err != nil {
+		log.Default().Printf("Error decoding settings: %v", err)
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}

@@ -71,11 +71,11 @@ func (d *Data) GetGame(id string, context context.Context) (*DbGame, error) {
 }
 
 func (d *Data) GetStats() *Stats {
-	return &Stats{d.gamesDB.totalGameCount, d.settings.GetSettings().EndTime}
+	return &Stats{d.gamesDB.totalGameCount, *d.settings.GetSettings().EndTime}
 }
 
 func (d *Data) IsExpired() bool {
-	return time.Now().After(d.settings.GetSettings().EndTime)
+	return time.Now().After(*d.settings.GetSettings().EndTime)
 }
 
 func (d *Data) ListGames(context context.Context, limit, page int) ([]*DbGame, error) {
@@ -104,7 +104,7 @@ func (d *Data) GetTeamMapping() map[string]string {
 	return teamIds
 }
 
-func (d *Data) SetSettings(settings map[string]string, ctx context.Context) error {
+func (d *Data) SetSettings(settings map[string]*string, ctx context.Context) error {
 	return d.settings.SetSettings(settings, ctx)
 }
 

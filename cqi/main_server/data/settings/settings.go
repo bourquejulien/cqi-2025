@@ -4,25 +4,54 @@ import (
 	"context"
 	"cqiprog/data/database"
 	_ "embed"
-	"fmt"
-	"strconv"
+	"encoding/json"
 	"sync"
 
 	"time"
 )
 
 const (
-	DEFAULT_END_TIME                        = "2025-01-17T12:00:00Z"
-	DEFAULT_RANKING_PERIOD                  = 30 * time.Minute
-	DEFAULT_MAX_CONCURRENT_MATCH            = 10
-	DEFAULT_MAX_CONCURRENT_MATCH_PER_RUNNER = 1
+	DEFAULT_SETTINGS = `{
+		"endTime": "2025-01-17T12:00:00Z",
+		"rankingPeriod": "30m",
+		"maxConcurrentMatch": 10,
+		"maxMatchPerRunner": 1,
+		"matchTimeout": "5m"
+	}`
 )
 
 type SettingsEntries struct {
-	EndTime            time.Time     `json:"endTime"`
-	RankingPeriod      time.Duration `json:"rankingPeriod"`
-	MaxConcurrentMatch int           `json:"maxConcurrentMatch"`
-	MaxMatchPerRunner  int           `json:"maxMatchPerRunner"`
+	EndTime            *time.Time     `json:"endTime,omitempty"`
+	RankingPeriod      *time.Duration `json:"rankingPeriod,omitempty"`
+	MaxConcurrentMatch *int           `json:"maxConcurrentMatch,omitempty"`
+	MaxMatchPerRunner  *int           `json:"maxMatchPerRunner,omitempty"`
+	MatchTimeout       *time.Duration `json:"matchTimeout,omitempty"`
+}
+
+func (s *SettingsEntries) MarshalJSON() ([]byte, error) {
+	return json.Marshal(&struct {
+		EndTime            string `json:"endTime,omitempty"`
+		RankingPeriod      string `json:"rankingPeriod,omitempty"`
+		MaxConcurrentMatch string `json:"maxConcurrentMatch,omitempty"`
+		MaxMatchPerRunner  string `json:"maxMatchPerRunner,omitempty"`
+		MatchTimeout       string `json:"matchTimeout,omitempty"`
+	}{
+		EndTime:            s.EndTime.Format(time.RFC3339),
+		RankingPeriod:      s.RankingPeriod.String(),
+		MaxConcurrentMatch: intToString(*s.MaxConcurrentMatch),
+		MaxMatchPerRunner:  intToString(*s.MaxMatchPerRunner),
+		MatchTimeout:       s.MatchTimeout.String(),
+	})
+}
+
+func (s *SettingsEntries) UnmarshalJSON(data []byte) error {
+	var m map[string]*string = make(map[string]*string);
+
+	if err := json.Unmarshal(data, &m); err != nil {
+		return err
+	}
+
+	return fromMap(s, m)
 }
 
 type Settings struct {
@@ -64,88 +93,37 @@ func setSetting(db *database.Database, key string, value string, ctx context.Con
 }
 
 func loadSettings(db *database.Database, ctx context.Context) (*SettingsEntries, error) {
-	defaultEndTime, err := time.Parse(time.RFC3339, DEFAULT_END_TIME)
+	entries := make(map[string]*string)
+	json.Unmarshal([]byte(DEFAULT_SETTINGS), &entries)
 
-	if err != nil {
-		return nil, err
-	}
-
-	entries := SettingsEntries{defaultEndTime, DEFAULT_RANKING_PERIOD, DEFAULT_MAX_CONCURRENT_MATCH, DEFAULT_MAX_CONCURRENT_MATCH_PER_RUNNER}
-
-	endTime, err := getSetting(db, ctx, "endTime")
-	if err != nil {
-		return nil, err
-	}
-
-	if endTime == nil {
-		setSetting(db, "endTime", entries.EndTime.Format(time.RFC3339), ctx)
-	} else {
-		entries.EndTime, err = time.Parse(time.RFC3339, *endTime)
+	for key, value := range entries {
+		dbValue, err := getSetting(db, ctx, key)
 		if err != nil {
 			return nil, err
 		}
-	}
 
-	rankingPeriod, err := getSetting(db, ctx, "rankingPeriod")
-	if err != nil {
-		return nil, err
-	}
-
-	if rankingPeriod == nil {
-		setSetting(db, "rankingPeriod", durationToString(entries.RankingPeriod), ctx)
-	} else {
-		entries.RankingPeriod, err = time.ParseDuration(*rankingPeriod)
-		if err != nil {
-			return nil, err
+		if dbValue == nil {
+			setSetting(db, key, *value, ctx)
+		} else {
+			*value = *dbValue
 		}
 	}
 
-	setNumeric := func(name string, defaultValue int) (int, error) {
-		value, err := getSetting(db, ctx, name)
-		if err != nil {
-			return 0, nil
-		}
-
-		if value == nil {
-			setSetting(db, name, fmt.Sprintf("%d", defaultValue), ctx)
-			return defaultValue, nil
-		}
-
-		result, err := strconv.Atoi(*value)
-
-		if err != nil {
-			return 0, err
-		}
-
-		return result, nil
-	}
-
-	entries.MaxConcurrentMatch, err = setNumeric("maxConcurrentMatch", DEFAULT_MAX_CONCURRENT_MATCH)
-
-	if err != nil {
-		return nil, err
-	}
-
-	entries.MaxMatchPerRunner, err = setNumeric("maxMatchPerRunner", DEFAULT_MAX_CONCURRENT_MATCH_PER_RUNNER)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return &entries, nil
+	settingsEntries := SettingsEntries{}
+	err := fromMap(&settingsEntries, entries)
+	
+	return &settingsEntries, err
 }
 
 func NewSettings(db *database.Database, ctx context.Context) (*Settings, error) {
 	settings := Settings{db: db, entries: nil, statsLock: sync.RWMutex{}}
 
 	entries, err := loadSettings(db, ctx)
-
 	if err != nil {
 		return nil, err
 	}
 
 	settings.entries = entries
-
 	return &settings, nil
 }
 
@@ -156,47 +134,21 @@ func (p *Settings) GetSettings() *SettingsEntries {
 	return p.entries
 }
 
-func (p *Settings) SetSettings(entries map[string]string, ctx context.Context) error {
+func (p *Settings) SetSettings(m map[string]*string, ctx context.Context) error {
 	p.statsLock.Lock()
 	defer p.statsLock.Unlock()
 
-	currentEntries := *p.entries
-
-	var err error
-
-	if value, ok := entries["endTime"]; ok {
-		var endTime time.Time
-		if endTime, err = getTimeFromString(value); err == nil {
-			currentEntries.EndTime = endTime
-			err = setSetting(p.db, "endTime", timeToString(endTime), ctx)
-		}
+	settingsEntries := *p.entries
+	err := fromMap(&settingsEntries, m)
+	if err != nil {
+		return err
 	}
 
-	if value, ok := entries["rankingPeriod"]; ok {
-		var rankingPeriod time.Duration
-		if rankingPeriod, err = getDurationFromString(value); err == nil {
-			currentEntries.RankingPeriod = rankingPeriod
-			err = setSetting(p.db, "rankingPeriod", durationToString(rankingPeriod), ctx)
-		}
+	for key, value := range m {
+		setSetting(p.db, key, *value, ctx)
 	}
 
-	if value, ok := entries["maxConcurrentMatch"]; ok {
-		var maxConcurrentMatch int
-		if maxConcurrentMatch, err = getIntFromString(value); err == nil {
-			currentEntries.MaxConcurrentMatch = maxConcurrentMatch
-			err = setSetting(p.db, "maxConcurrentMatch", intToString(maxConcurrentMatch), ctx)
-		}
-	}
-
-	if value, ok := entries["maxMatchPerRunner"]; ok {
-		var maxMatchPerRunner int
-		if maxMatchPerRunner, err = getIntFromString(value); err == nil {
-			currentEntries.MaxMatchPerRunner = maxMatchPerRunner
-			err = setSetting(p.db, "maxMatchPerRunner", intToString(maxMatchPerRunner), ctx)
-		}
-	}
-
-	p.entries = &currentEntries
+	p.entries = &settingsEntries
 
 	return err
 }

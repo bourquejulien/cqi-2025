@@ -61,7 +61,7 @@ func autoAddMatch(scheduler *Scheduler, ctx context.Context) {
 	scheduler.lock.Lock()
 	defer scheduler.lock.Unlock()
 
-	countToAdd := max(min(scheduler.data.GetSettings().MaxConcurrentMatch-len(scheduler.plannedMatches), len(teamImages)), 0)
+	countToAdd := max(min(*scheduler.data.GetSettings().MaxConcurrentMatch-len(scheduler.plannedMatches), len(teamImages)), 0)
 
 	if countToAdd <= 0 {
 		return
