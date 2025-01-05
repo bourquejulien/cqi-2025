@@ -15,6 +15,7 @@ NEXT_ENDPOINT = "/next_move"
 END_ENDPOINT = "/end_game"
 
 N_WALLS = 30
+N_TIMEBOMBS = 1
 TIMEOUT = 10
 MIN_MAP_SIZE = 20
 MAX_MAP_SIZE = 40
@@ -59,12 +60,15 @@ class GameHandler:
     max_move: int
     goal: Position
     large_vision: Position
+    timebomb: Position | None
 
     offense_player: OffensePlayer | None
     defense_player: DefensePlayer | None
 
     logger: Logger
     error_message: str | None
+
+    timebomb_countdown: int
 
     def __init__(self, offense_bot_url: str, defense_bot_url: str, max_move: int | None) -> None:
         self.offense_bot_url = offense_bot_url
@@ -77,6 +81,7 @@ class GameHandler:
         self.large_vision = self.map.set_large_vision()
         while self.large_vision == self.goal:
             self.large_vision = self.map.set_large_vision()
+        self.timebomb = None
 
         self.offense_player = None
         self.defense_player = None
@@ -84,10 +89,12 @@ class GameHandler:
         self.logger = Logger()
         self.error_message = None
 
+        self.timebomb_countdown = -1
+
     @property
     def move_count(self) -> int:
         return len(self.logger.get())
-
+        
     @property
     def available_moves(self) -> int:
         return self.max_move - self.move_count 
@@ -132,12 +139,12 @@ class GameHandler:
 
     def start_game(self):
         self.offense_player = OffensePlayer(self.map)
-        self.defense_player = DefensePlayer(self.map, n_walls=N_WALLS)
+        self.defense_player = DefensePlayer(self.map, n_walls=N_WALLS, n_timebombs=N_TIMEBOMBS)
 
         self.logger.add(f"Starting game, Goal position: {self.goal}", Level.INFO)
 
         try:
-            element_types_color = {"background": ElementType.BACKGROUND.to_color(), "wall": ElementType.WALL.to_color(), "offense_player": ElementType.PLAYER_OFFENSE.to_color(), "goal": ElementType.GOAL.to_color(), "large_vision": ElementType.LARGE_VISION.to_color()}
+            element_types_color = {"background": ElementType.BACKGROUND.to_color(), "wall": ElementType.WALL.to_color(), "offense_player": ElementType.PLAYER_OFFENSE.to_color(), "goal": ElementType.GOAL.to_color(), "large_vision": ElementType.LARGE_VISION.to_color(), "timebomb": ElementType.TIMEBOMB.to_color(), "timebomb_second_round": ElementType.TIMEBOMB_SECOND_ROUND.to_color(), "timebomb_third_round": ElementType.TIMEBOMB_THIRD_ROUND.to_color()}
 
             result = requests.post(self.offense_bot_url + START_ENDPOINT,
                                    json={"is_offense": True, "max_moves": self.max_move, "element_types_color": element_types_color}, timeout=TIMEOUT)
@@ -176,6 +183,8 @@ class GameHandler:
             elif response_json["element"] == "skip":
                 self.logger.add("Defense move was skipped", Level.INFO)
                 return
+            elif response_json["element"] == "timebomb":
+                element = ElementType.TIMEBOMB
             else:
                 self.logger.add(f"Defense bot returned invalid element: {response_json['element']}", Level.INFO)
                 return
@@ -186,9 +195,13 @@ class GameHandler:
             self.logger.add(f"Error parsing response from defense bot: {e}\n{response}", Level.ERROR)
             return
 
-        self.defense_player.move(move=move,
+        is_move_valid = self.defense_player.move(move=move,
                                  player=self.offense_player.position,
                                  goal=self.goal)
+        
+        if is_move_valid and element == ElementType.TIMEBOMB:
+            self.timebomb = Position(x, y)
+            self.timebomb_countdown = 2
 
     def _play_offense(self):
         try:
@@ -242,6 +255,24 @@ class GameHandler:
         self.map.set(self.offense_player.position.x, self.offense_player.position.y, ElementType.PLAYER_OFFENSE)
 
         self.logger.add(f"Offense new position is: {self.offense_player.position}", Level.DEBUG)
+
+        match self.timebomb_countdown:
+            case 2:
+                self.logger.add("Timebomb activated: 2 turns remaining", Level.INFO)
+                self.timebomb_countdown -= 1
+                self.map.set(self.timebomb.x, self.timebomb.y, ElementType.TIMEBOMB_SECOND_ROUND)
+            case 1:
+                self.logger.add("Timebomb activated: 1 turns remaining", Level.INFO)
+                self.timebomb_countdown -= 1
+                self.map.set(self.timebomb.x, self.timebomb.y, ElementType.TIMEBOMB_THIRD_ROUND)
+            case 0:
+                self.map.set(self.timebomb.x, self.timebomb.y, ElementType.BACKGROUND)
+                radius = abs(self.offense_player.position.x - self.timebomb.x) <= 1 and abs(self.offense_player.position.y - self.timebomb.y) <= 1
+                if self.offense_player.position == self.timebomb or (self.timebomb and radius):
+                    self.logger.add("Timebomb exploded", Level.INFO)
+                    # self.available_moves = max(0, self.available_moves - 10) // TODO: Set the available moves to a new value
+                    self.logger.add(f"Remainaing moves: {self.available_moves}" , Level.INFO)
+                    return
 
     def get_data(self) -> GameData:
         return GameData(

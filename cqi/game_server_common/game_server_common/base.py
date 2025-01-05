@@ -29,6 +29,7 @@ class Position:
 
 class DefenseMove(Enum):
     WALL = "wall"
+    TIMEBOMB = "timebomb"
     SKIP = "skip"
 
 
@@ -61,6 +62,9 @@ class ElementType(Enum):
     PLAYER_OFFENSE = 2
     GOAL = 3
     LARGE_VISION = 4
+    TIMEBOMB = 5
+    TIMEBOMB_SECOND_ROUND = 6
+    TIMEBOMB_THIRD_ROUND = 7
 
     def to_color(self) -> str:
         return ELEMENT_TYPE_TO_COLOR[self]
@@ -72,5 +76,8 @@ ELEMENT_TYPE_TO_COLOR = {
     ElementType.WALL: "#000000",
     ElementType.PLAYER_OFFENSE: "#FF0000",
     ElementType.GOAL: "#FFD700",
-    ElementType.LARGE_VISION: "#4CBB17"
+    ElementType.LARGE_VISION: "#4CBB17",
+    ElementType.TIMEBOMB: "#0099CC",
+    ElementType.TIMEBOMB_SECOND_ROUND: "#006699",
+    ElementType.TIMEBOMB_THIRD_ROUND: "#003366"
 }

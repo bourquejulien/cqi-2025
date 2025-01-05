@@ -57,7 +57,6 @@ class Map(CommonMap):
 
     def set_large_vision(self) -> Position:
         large_vision: Position = Position(random.randint(0, self.width - 1), random.randint(0, self.height - 1))
-        logging.info(f"Large vision set at position: {large_vision}")
         self.map[large_vision.x, large_vision.y] = ElementType.LARGE_VISION.value
         return large_vision
 

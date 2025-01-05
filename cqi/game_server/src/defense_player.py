@@ -10,24 +10,30 @@ class DefenseMove:
 class DefensePlayer:
     map: Map
     n_walls: int
+    n_timebombs: int
 
-    def __init__(self, map: Map, n_walls: int) -> None:
+    def __init__(self, map: Map, n_walls: int, n_timebombs: int) -> None:
         self.map = map
         self.n_walls = n_walls
+        self.n_timebombs = n_timebombs
 
-    def move(self, move: DefenseMove, player: Position, goal: Position):
+    def move(self, move: DefenseMove, player: Position, goal: Position) -> bool:
         tile = self.map.get(move.position.x, move.position.y)
         if tile is None:
             logging.info(f"Defense move out of bounds: {move.position} map is {self.map.width}x{self.map.height}")
-            return
+            return False
         
         if tile.element != ElementType.BACKGROUND:
             logging.info(f"Defense move to non-background: {move.position} is a {tile}")
-            return
+            return False
         
         if move.element == ElementType.WALL and self.n_walls <= 0:
             logging.info(f"Defense move of wall to {move.position} with no walls left")
-            return
+            return False
+        
+        if move.element == ElementType.TIMEBOMB and self.n_timebombs <= 0:
+            logging.info(f"Defense move of timebomb to {move.position} with no timebombs left")
+            return False
         
         self.map.set(move.position.x, move.position.y, move.element)
 
@@ -36,4 +42,9 @@ class DefensePlayer:
             self.map.set(move.position.x, move.position.y, ElementType.BACKGROUND)  
 
         logging.info("Defense move valid")
-        self.n_walls -= 1
+        if move.element == ElementType.WALL:
+            self.n_walls -= 1
+        elif move.element == ElementType.TIMEBOMB:
+            self.n_timebombs -= 1
+
+        return True
