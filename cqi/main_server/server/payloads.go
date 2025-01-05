@@ -20,8 +20,9 @@ type Match struct {
 }
 
 type MatchInfo struct {
-	MaxConcurrentMatch int      `json:"maxConcurrentMatch"`
-	Matches            []*Match `json:"matches"`
+	MaxConcurrentMatch  int      `json:"maxConcurrentMatch"`
+	MatchTimeoutSeconds int      `json:"matchTimeoutSeconds"`
+	Matches             []*Match `json:"matches"`
 }
 
 type OngoingMatch struct {

@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	LIST_CACHE_SIZE = 1000
+	LIST_CACHE_SIZE = 3000
 	GAME_CACHE_SIZE = 200
 )
 

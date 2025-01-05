@@ -185,7 +185,11 @@ func (p *Server) popMatch(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	render.JSON(w, r, MatchInfo{MaxConcurrentMatch: *p.Data.GetSettings().MaxMatchPerRunner, Matches: resultMatches})
+	render.JSON(w, r, MatchInfo{
+		MaxConcurrentMatch: *p.Data.GetSettings().MaxMatchPerRunner,
+		MatchTimeoutSeconds: int(p.Data.GetSettings().MatchTimeout.Seconds()),
+		Matches: resultMatches,
+	})
 }
 
 func (p *Server) addMatchResults(w http.ResponseWriter, r *http.Request) {

@@ -15,8 +15,6 @@ from interfaces import GameResult, Match, GameServerStatus
 
 from match_runner_helpers import *
 
-MATCH_EXPIRATION_TIMEOUT_MINUTES = 5
-
 @dataclass
 class MatchData:
     game: Match
@@ -243,7 +241,7 @@ class MatchRunner:
             logging.error("Failed to get status for match %s: %s", match_data.game.id, e)
             pass
         
-        is_expired = match_data.start_time + timedelta(seconds=MATCH_EXPIRATION_TIMEOUT_MINUTES*60) < datetime.now(timezone.utc)
+        is_expired = match_data.start_time + timedelta(seconds=match_data.game.timeout_sec) < datetime.now(timezone.utc)
         if not is_expired and len(statuses) == 2 and not all(status.isOver for status in statuses):
             return
 
@@ -263,7 +261,7 @@ class MatchRunner:
             return
         
         if is_expired:
-            error_message = f"Game killed after being stuck for too long ({MATCH_EXPIRATION_TIMEOUT_MINUTES} minutes)"
+            error_message = f"Game killed after being stuck for too long ({match_data.game.timeout_sec / 60} minutes)"
             game_result = GameResult(id=match_data.game.id, winner_id=None, is_error=True, team1_score=None, team2_score=None, error_data=to_base_64(build_simple_error(error_message)), game_data=None)
             logging.info("Match %s expired", match_data.game.id)
             self.results.append(game_result)

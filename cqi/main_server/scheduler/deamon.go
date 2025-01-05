@@ -122,8 +122,10 @@ func cleanupMatches(scheduler *Scheduler, ctx context.Context) {
 
 	errorData := getTimeoutErrorData()
 
+	timeout := *scheduler.data.GetSettings().MatchTimeout
+	timeout += time.Minute + 30 * time.Second // Give some extra time for the game runner to get the results
 	for id, match := range scheduler.ongoingMatches {
-		if match.LaunchTime.Add(MATCH_TIMEOUT).Before(time.Now().UTC()) {
+		if match.LaunchTime.Add(timeout).Before(time.Now().UTC()) {
 			gameResult := &GameResult{
 				Id:        id,
 				IsError:   true,

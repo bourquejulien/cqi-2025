@@ -24,6 +24,7 @@ class GameResult:
 @dataclass
 class Match:
     id: str
+    timeout_sec: int 
     team1_id: str
     team2_id: str
     image_team1: str
