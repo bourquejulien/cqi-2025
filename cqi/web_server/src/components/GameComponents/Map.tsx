@@ -1,6 +1,6 @@
 import {GameMap, GameStep} from "../../interfaces/SuccessData.ts";
 
-type ElementType = "unknown" | "background" | "wall" | "playerOffense" | "goal" | "visited" | "largeVision";
+type ElementType = "unknown" | "background" | "wall" | "playerOffense" | "goal" | "visited" | "largeVision" | "timebomb" | "timebombSecondRound" | "timebombThirdRound";
 
 interface ElementData {
     color: string;
@@ -20,7 +20,10 @@ const ELEMENT_MAPPING: { [id: string]: ElementData } = {
     "1": {color: "#000000", type: "wall"},
     "2": {color: "#FF0000", type: "playerOffense"},
     "3": {color: "#FFD700", type: "goal"},
-    "4": {color: "#4CBB17", type: "largeVision"}
+    "4": {color: "#4CBB17", type: "largeVision"},
+    "5": {color: "#0099CC", type: "timebomb"},
+    "6": {color: "#006699", type: "timebombSecondRound"},
+    "7": {color: "#003366", type: "timebombThirdRound"}
 }
 
 function getColor(key: string, isVisible: boolean): string {
