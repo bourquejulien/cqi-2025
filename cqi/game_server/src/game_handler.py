@@ -19,27 +19,8 @@ N_TIMEBOMBS = 1
 TIMEOUT = 10
 MIN_MAP_SIZE = 20
 MAX_MAP_SIZE = 40
-
-def get_max_move() -> int:
-    probs = {
-        50: 0.1,
-        100: 0.2,
-        200: 0.3,
-        300: 0.1,
-        400: 0.2,
-        500: 0.1,
-    }
-
-    assert sum(probs.values()) == 1
-
-    r = random.random()
-    for move, prob in probs.items():
-        r -= prob
-        if r <= 0:
-            return move
-
-    return 200
-
+N_FULL_VISION = 3
+OFFENSE_VISION_RADIUS = 3
 
 @dataclass
 class GameData:
@@ -75,13 +56,14 @@ class GameHandler:
         self.defense_bot_url = defense_bot_url
 
         self.map = Map.create_map(random.randint(MIN_MAP_SIZE, MAX_MAP_SIZE), random.randint(MIN_MAP_SIZE, MAX_MAP_SIZE))
-        self.max_move = max_move or get_max_move()
+        self.max_move = max_move or (self.map.width + self.map.height) * 4
 
         self.goal = self.map.set_goal()
-        self.large_vision = self.map.set_large_vision()
-        while self.large_vision == self.goal:
-            self.large_vision = self.map.set_large_vision()
-        self.timebomb = None
+
+        for i in range(N_FULL_VISION):
+            self.large_vision = self.map.set_full_vision()
+            while self.large_vision == self.goal:
+                self.large_vision = self.map.set_full_vision()
 
         self.offense_player = None
         self.defense_player = None
@@ -132,7 +114,10 @@ class GameHandler:
         self._play_defense()
         self._play_offense()
 
-        self.logger.add_step(self.map.to_list(), self.score)
+        if self.offense_player.position == self.large_vision:
+            self.logger.add_step(self.map.to_list(), self.score, "FULL VISION")
+        else:
+            self.logger.add_step(self.map.to_list(), self.score, OFFENSE_VISION_RADIUS)
 
     def end_game(self):
         try:
@@ -148,7 +133,16 @@ class GameHandler:
         self.logger.add(f"Starting game, Goal position: {self.goal}", Level.INFO)
 
         try:
-            element_types_color = {"background": ElementType.BACKGROUND.to_color(), "wall": ElementType.WALL.to_color(), "offense_player": ElementType.PLAYER_OFFENSE.to_color(), "goal": ElementType.GOAL.to_color(), "large_vision": ElementType.LARGE_VISION.to_color(), "timebomb": ElementType.TIMEBOMB.to_color(), "timebomb_second_round": ElementType.TIMEBOMB_SECOND_ROUND.to_color(), "timebomb_third_round": ElementType.TIMEBOMB_THIRD_ROUND.to_color()}
+            element_types_color = {
+                "background": ElementType.BACKGROUND.to_color(), 
+                "wall": ElementType.WALL.to_color(), 
+                "offense_player": ElementType.PLAYER_OFFENSE.to_color(), 
+                "goal": ElementType.GOAL.to_color(), 
+                "large_vision": ElementType.LARGE_VISION.to_color(), 
+                "timebomb": ElementType.TIMEBOMB.to_color(), 
+                "timebomb_second_round": ElementType.TIMEBOMB_SECOND_ROUND.to_color(), 
+                "timebomb_third_round": ElementType.TIMEBOMB_THIRD_ROUND.to_color()
+            }
 
             result = requests.post(self.offense_bot_url + START_ENDPOINT,
                                    json={"is_offense": True, "max_moves": self.max_move, "element_types_color": element_types_color}, timeout=TIMEOUT)
@@ -163,7 +157,10 @@ class GameHandler:
                 str(e)}"
             return
         
-        self.logger.add_step(self.map.to_list(), self.score)
+        if self.offense_player.position == self.large_vision:
+            self.logger.add_step(self.map.to_list(), self.score, "FULL VISION")
+        else:
+            self.logger.add_step(self.map.to_list(), self.score, OFFENSE_VISION_RADIUS)
 
     def _play_defense(self):
         try:
@@ -211,7 +208,7 @@ class GameHandler:
         try:
             if self.offense_player.position == self.large_vision:
                 response = requests.post(self.offense_bot_url + NEXT_ENDPOINT, json={
-                                    "map": self.map.to_img_64(self.offense_player.position, 5).decode()}, timeout=TIMEOUT)
+                                    "map": self.map.to_img_64(self.offense_player.position).decode()}, timeout=TIMEOUT)
             else:
                 response = requests.post(self.offense_bot_url + NEXT_ENDPOINT, json={
                                     "map": self.map.to_img_64(self.offense_player.position, 3).decode()}, timeout=TIMEOUT)
@@ -247,7 +244,7 @@ class GameHandler:
             self.offense_player.position = previous_offense_position
             return
 
-        if next_tile.element not in [ElementType.BACKGROUND, ElementType.GOAL, ElementType.LARGE_VISION]:
+        if next_tile.element not in [ElementType.BACKGROUND, ElementType.GOAL, ElementType.LARGE_VISION, ElementType.PLAYER_OFFENSE]:
             self.logger.add(f"Offense move not on a valid map element: {self.offense_player.position} is a {next_tile}", Level.INFO)
             self.offense_player.position = previous_offense_position
             return

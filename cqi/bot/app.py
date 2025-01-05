@@ -66,10 +66,11 @@ async def start(request: Request):
         else:
             offense_bot = ShortestPathBot()
     else:
+        n_walls = data["n_walls"]
         if level == "easy":
             defense = Defense(RandomDefenseBot())
         else:
-            defense = Defense(BlockerDefenseBot())
+            defense = Defense(BlockerDefenseBot(n_walls=n_walls))
 
     return Response(
         text="OK",

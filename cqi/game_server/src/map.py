@@ -55,7 +55,7 @@ class Map(CommonMap):
         image.save(buffered, format="PNG")
         return base64.b64encode(buffered.getvalue())
 
-    def set_large_vision(self) -> Position:
+    def set_full_vision(self) -> Position:
         large_vision: Position = Position(random.randint(0, self.width - 1), random.randint(0, self.height - 1))
         self.map[large_vision.x, large_vision.y] = ElementType.LARGE_VISION.value
         return large_vision
@@ -83,7 +83,7 @@ class Map(CommonMap):
             next_points = [Position(point.x + 1, point.y), Position(point.x - 1, point.y), Position(point.x, point.y + 1), Position(point.x, point.y - 1)]
             for next_point in next_points:
                 if next_point.x >= 0 and next_point.x < path_map.shape[0] and next_point.y >= 0 and next_point.y < path_map.shape[1]:
-                    if path_map[next_point.x, next_point.y] in [ElementType.BACKGROUND.value, ElementType.GOAL.value, ElementType.UNKNOW.value]:
+                    if path_map[next_point.x, next_point.y] in [ElementType.BACKGROUND.value, ElementType.GOAL.value, ElementType.LARGE_VISION.value]:
                         path_map[next_point.x, next_point.y] = ElementType.VISITED.value
                         queue.append(path + [next_point])
             
@@ -108,7 +108,7 @@ class Map(CommonMap):
             next_points = [Position(point.x + 1, point.y), Position(point.x - 1, point.y), Position(point.x, point.y + 1), Position(point.x, point.y - 1)]
             for next_point in next_points:
                 if next_point.x >= 0 and next_point.x < self.width and next_point.y >= 0 and next_point.y < self.height:
-                    if path_map[next_point.x, next_point.y] == ElementType.BACKGROUND.value or path_map[next_point.x, next_point.y] == ElementType.GOAL.value:
+                    if path_map[next_point.x, next_point.y] in [ElementType.BACKGROUND.value, ElementType.GOAL.value, ElementType.LARGE_VISION.value]:
                         path_map[next_point.x, next_point.y] = ElementType.VISITED.value
                         queue.append(next_point)
 

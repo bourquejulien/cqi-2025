@@ -11,8 +11,7 @@ class ShortestPathBot:
     prev_move: OffenseMove | None
     aggregate_map: Map | None
     map_position: Position | None
-    top_found = False
-    bottom_found = False
+    top_right_found = False
 
     def __init__(self) -> None:
         self.block_size = None
@@ -58,6 +57,8 @@ class ShortestPathBot:
             offset = Position(-1, 0)
         elif self.prev_move == OffenseMove.RIGHT:
             offset = Position(1, 0)
+        elif self.prev_move == OffenseMove.SKIP:
+            offset = Position(0, 0)
 
         map_offset = (self.map_position + offset) - player_rel_pos  # Offset to go from new_map to old_map
 
@@ -97,21 +98,47 @@ class ShortestPathBot:
         else:
             target_x = self.aggregate_map.map.shape[0] - 1
 
-        if self.map_position.y - view_range < 0:
+        # We always go to the top right corner first
+        if self.top_right_found:
             target_y = self.aggregate_map.map.shape[1] - 1
-            self.top_found = True
-        elif self.map_position.y + view_range >= self.aggregate_map.map.shape[1]:
-            target_y = 0
-            self.bottom_found = True
-        elif self.top_found:
-            target_y = self.aggregate_map.map.shape[1] - 1
-        elif self.bottom_found:
-            target_y = 0
         else:
             target_y = 0
         
-        # TODO - Handle cases where target is a wall or obstacle
+        if self.map_position.x + view_range >= self.aggregate_map.map.shape[0] and self.map_position.y - view_range < 0:
+            self.top_right_found = True
+
         return Position(target_x, target_y)        
+
+    def get_shortest_path(self, target: Position) -> list[Position]:
+        # Compute shortest path to goal
+        path_map = self.aggregate_map.map.copy()
+        path_map[target.x, target.y] = ElementType.BACKGROUND.value
+
+        queue: list[list[Position]] = []
+        queue.append([self.map_position])
+        path_map[self.map_position.x, self.map_position.y] = ElementType.VISITED.value
+
+        found = False
+        while(len(queue) > 0):
+            path: list[Position] = queue.pop(0)
+            point = path[-1]
+
+            if point.x == target.x and point.y == target.y:
+                found = True
+                break
+
+            # Check other points
+            next_points = [Position(point.x + 1, point.y), Position(point.x - 1, point.y), Position(point.x, point.y + 1), Position(point.x, point.y - 1)]
+            for next_point in next_points:
+                if next_point.x >= 0 and next_point.x < path_map.shape[0] and next_point.y >= 0 and next_point.y < path_map.shape[1]:
+                    if path_map[next_point.x, next_point.y] in [ElementType.BACKGROUND.value, ElementType.GOAL.value, ElementType.UNKNOW.value, ElementType.LARGE_VISION.value]:
+                        path_map[next_point.x, next_point.y] = ElementType.VISITED.value
+                        queue.append(path + [next_point])
+        
+        if found:
+            return path
+        
+        return None
 
     def play(self, img: str) -> OffenseMove | None:
         if not (data := self._parse_map(img)):
@@ -127,28 +154,14 @@ class ShortestPathBot:
         target: Position = self._identify_target(view_range)
         logging.debug(f"Target: {target}")
 
-        # TODO - Compute shortest path to goal
-        path_map = self.aggregate_map.map.copy()
-        path_map[target.x, target.y] = ElementType.BACKGROUND.value
+        # Compute shortest path to goal
+        path = self.get_shortest_path(target)
 
-        queue: list[list[Position]] = []
-        queue.append([self.map_position])
-        path_map[self.map_position.x, self.map_position.y] = ElementType.VISITED.value
-
-        while(len(queue) > 0):
-            path: list[Position] = queue.pop(0)
-            point = path[-1]
-
-            if point.x == target.x and point.y == target.y:
-                break
-
-            # Check other points
-            next_points = [Position(point.x + 1, point.y), Position(point.x - 1, point.y), Position(point.x, point.y + 1), Position(point.x, point.y - 1)]
-            for next_point in next_points:
-                if next_point.x >= 0 and next_point.x < path_map.shape[0] and next_point.y >= 0 and next_point.y < path_map.shape[1]:
-                    if path_map[next_point.x, next_point.y] in [ElementType.BACKGROUND.value, ElementType.GOAL.value, ElementType.UNKNOW.value]:
-                        path_map[next_point.x, next_point.y] = ElementType.VISITED.value
-                        queue.append(path + [next_point])
+        # If no path found, skip turn
+        if path is None:
+            logging.debug(f"No path found to target")
+            self.prev_move = OffenseMove.SKIP
+            return OffenseMove.SKIP
         
         next_spot = path[1]
         if next_spot.x < self.map_position.x:

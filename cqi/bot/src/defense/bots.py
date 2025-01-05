@@ -8,22 +8,24 @@ from game_server_common.base import ElementType, Position, DefenseMove
 
 class DefenseBot(ABC):
     @abstractmethod
-    def play(self, img: str) -> tuple[DefenseMove, Position] | None:
+    def play(self, img: str) -> tuple[DefenseMove, Position]:
         pass
 
 
 class BlockerDefenseBot(DefenseBot):
     n_turn: int
+    n_walls: int
 
-    def __init__(self) -> None:
+    def __init__(self, n_walls: int) -> None:
+        self.n_walls = n_walls
         self.last_event = None
         self.n_turn = 0
 
-    def play(self, map: Map) -> tuple[DefenseMove, Position] | None:
+    def play(self, map: Map) -> tuple[DefenseMove, Position]:
         # Play once every 2 turns
         self.n_turn += 1
-        if self.n_turn % 2 == 0:
-            return None
+        if self.n_turn % 2 == 0 or self.n_walls == 0:
+            return DefenseMove.SKIP, Position(0, 0)
 
         # Place a block directly in front of the player
         player_x, player_y = np.where(
@@ -40,6 +42,7 @@ class BlockerDefenseBot(DefenseBot):
         else:
             wall_pos: Position = Position(player_pos.x, player_pos.y - 1)
 
+        self.n_walls -= 1
         return DefenseMove.WALL, wall_pos
 
 

@@ -26,7 +26,7 @@ class Defense:
 
         return data[0]
 
-    def play(self, img: str) -> tuple[DefenseMove, Position]:
+    def play(self, img: str) -> tuple[DefenseMove, Position] | None:
         if not (map := self._parse_map(img)):
             return None
 

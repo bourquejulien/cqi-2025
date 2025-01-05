@@ -51,7 +51,7 @@ class OffenseMove(Enum):
             case OffenseMove.LEFT:
                 return Position(-1, 0)
             case OffenseMove.SKIP:
-                return None
+                return Position(0, 0)
 
 
 class ElementType(Enum):
