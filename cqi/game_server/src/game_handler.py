@@ -97,7 +97,11 @@ class GameHandler:
         
     @property
     def available_moves(self) -> int:
-        return self.max_move - self.move_count 
+        return self.max_move - self.move_count
+
+    @available_moves.setter
+    def available_moves(self, value: int) -> None:
+        self.max_move = value + self.move_count
 
     @property
     def score(self) -> int | None:
@@ -258,20 +262,16 @@ class GameHandler:
 
         match self.timebomb_countdown:
             case 2:
-                self.logger.add("Timebomb activated: 2 turns remaining", Level.INFO)
                 self.timebomb_countdown -= 1
                 self.map.set(self.timebomb.x, self.timebomb.y, ElementType.TIMEBOMB_SECOND_ROUND)
             case 1:
-                self.logger.add("Timebomb activated: 1 turns remaining", Level.INFO)
                 self.timebomb_countdown -= 1
                 self.map.set(self.timebomb.x, self.timebomb.y, ElementType.TIMEBOMB_THIRD_ROUND)
             case 0:
                 self.map.set(self.timebomb.x, self.timebomb.y, ElementType.BACKGROUND)
                 radius = abs(self.offense_player.position.x - self.timebomb.x) <= 1 and abs(self.offense_player.position.y - self.timebomb.y) <= 1
                 if self.offense_player.position == self.timebomb or (self.timebomb and radius):
-                    self.logger.add("Timebomb exploded", Level.INFO)
-                    # self.available_moves = max(0, self.available_moves - 10) // TODO: Set the available moves to a new value
-                    self.logger.add(f"Remainaing moves: {self.available_moves}" , Level.INFO)
+                    self.available_moves = max(0, self.available_moves - 10)
                     return
 
     def get_data(self) -> GameData:

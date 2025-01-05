@@ -54,4 +54,4 @@ class RandomDefenseBot(DefenseBot):
         idx = np.random.choice(np.arange(len(xidx)))
         position: Position = Position(int(xidx[idx]), int(yidx[idx]))
 
-        return DefenseMove.WALL, position
+        return DefenseMove.TIMEBOMB, position
