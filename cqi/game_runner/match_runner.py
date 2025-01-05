@@ -8,6 +8,7 @@ from docker.models.images import Image
 
 import requests
 
+from subnet_allocator import SubnetAllocator
 from match_starter import MatchStarter, MatchStarterConfig, MatchStarterTeam
 from stop_token import StopToken
 from interfaces import GameResult, Match, GameServerStatus
@@ -22,6 +23,10 @@ class MatchData:
     start_time: float
     game_1: GameData
     game_2: GameData
+
+    @property
+    def networks(self) -> list[Network]:
+        return self.game_1.game_networks + self.game_2.game_networks
 
 def build_simple_error(message: str) -> dict:
     return {
@@ -91,6 +96,7 @@ def build_game_data(data: MatchData, statuses: list[GameServerStatus], logs: lis
 class MatchRunner:
     game_server_image: Image
     docker_client: DockerClient
+    subnet_allocator: SubnetAllocator
     match_starter_config: MatchStarterConfig
 
     current_matches: dict[str, MatchData]
@@ -99,6 +105,7 @@ class MatchRunner:
     def __init__(self, game_server_image: Image, docker_client: DockerClient) -> None:
         self.game_server_image = game_server_image
         self.docker_client = docker_client
+        self.subnet_allocator = SubnetAllocator()
         self.match_starter_config = MatchStarterConfig(max_cpu=get_cpu_per_container(), max_memory_MiB=get_memory_per_container())
 
         logging.info("Container limits: CPU %s, Memory %s MiB", self.match_starter_config.max_cpu, self.match_starter_config.max_memory_MiB)
@@ -144,6 +151,7 @@ class MatchRunner:
                 for container in network.containers:
                     network.disconnect(container, force=True)
                     container.remove(force=True)
+                self.subnet_allocator.deallocate_from_network(network)
                 network.remove()
     
     def get_results(self) -> list[GameResult]:
@@ -161,7 +169,8 @@ class MatchRunner:
     def _pull_image(self, image: str) -> Image | None:
         try:
             return self.docker_client.images.pull(image)
-        except:
+        except Exception as e:
+            logging.warning("Failed to pull image %s: %s", image, e)
             return None
 
     def _run_match(self, stop_token: StopToken, match: Match) -> None:
@@ -184,8 +193,8 @@ class MatchRunner:
         team1 = MatchStarterTeam(team_id=match.team1_id, image=team1_image)
         team2 = MatchStarterTeam(team_id=match.team2_id, image=team2_image)
         
-        match1 = MatchStarter(team1, team2, match.id, "1", self.match_starter_config, self.docker_client)
-        match2 = MatchStarter(team2, team1, match.id, "2", self.match_starter_config, self.docker_client)
+        match1 = MatchStarter(team1, team2, match.id, "1", self.match_starter_config, self.docker_client, self.subnet_allocator)
+        match2 = MatchStarter(team2, team1, match.id, "2", self.match_starter_config, self.docker_client, self.subnet_allocator)
 
         match1.init(self.game_server_image, stop_token)
         if match1.is_error:
@@ -243,7 +252,8 @@ class MatchRunner:
         logs = get_logs_and_remove_all(match_data.game_1.offense, match_data.game_1.defense, match_data.game_2.offense, match_data.game_2.defense)
 
         # Delete networks
-        for network in match_data.game_1.game_networks:
+        for network in match_data.networks:
+            self.subnet_allocator.deallocate_from_network(network)
             safe_execute(network.remove)
 
         if len(statuses) != 2 or any(status.gameData is None for status in statuses):

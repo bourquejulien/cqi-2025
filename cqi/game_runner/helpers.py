@@ -40,7 +40,7 @@ def get_ecr_login(session: session.Session) -> str:
 def login_to_ecr(session: session.Session, docker_client: docker.DockerClient) -> None | Exception:
     try:
         username, password, registry = get_ecr_login(session)
-        docker_client.login(username=username, password=password, registry=registry)
+        docker_client.login(username=username, password=password, registry=registry, reauth=True)
     except Exception as e:
         return e
     

@@ -17,7 +17,7 @@ from match_runner import MatchRunner
 from main_server_client import MainServerClient
 
 GAME_SERVER_IMAGE_NAME = "ghcr.io/bourquejulien/cqi-2024-game-server"
-MAX_DISK_USAGE = 0.9
+MAX_DISK_USAGE = 0.8
 
 def prune_images(docker_client: docker.DockerClient) -> None:
     if not is_running_on_ec2():
@@ -66,7 +66,10 @@ def main() -> None:
             main_server_client.add_result(result)
 
         logging.info("Sent %s results", len(results))
-        login_to_ecr(session, docker_client)
+        
+        if e := login_to_ecr(session, docker_client):
+            logging.warning(f"Failed to login to ECR: {e}")
+        
         stop_token.wait(5)
 
 if __name__ == "__main__":

@@ -62,7 +62,7 @@ function InfoPane({game}: {game: GameData}) {
             <InfoBubble title={"Période"} value={`De ${game.startTime.toLocaleTimeString()} à ${game.endTime.toLocaleTimeString()}`}/>
 
             {successData !== undefined ? getSuccessInfo(successData).map(([title, value]) => (
-                <InfoBubble title={title} value={value}/>
+                <InfoBubble key={title} title={title} value={value}/>
             )) : null}
 
             <ErrorDescriptionBubble gameData={game}/>

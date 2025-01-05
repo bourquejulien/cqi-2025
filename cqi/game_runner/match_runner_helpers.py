@@ -25,7 +25,8 @@ def safe_execute(func: callable, **args) -> bool:
     try:
         func(**args)
         return True
-    except Exception as _:
+    except Exception as e:
+        logging.warning("Failed to execute %s: %s", func.__name__, e)
         return False
 
 def stop_and_remove(container: Container) -> None:

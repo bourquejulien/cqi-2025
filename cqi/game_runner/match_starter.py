@@ -3,9 +3,11 @@ import logging
 import socket
 
 import requests
+from subnet_allocator import SubnetAllocator
 from match_runner_helpers import DEFAULT_TIMEOUT, GAME_RUNNER_BASE_NAME, GameData
 from stop_token import StopToken
 
+import docker
 from docker import DockerClient
 from docker.models.containers import Container
 from docker.models.networks import Network
@@ -30,7 +32,6 @@ def get_available_port() -> int:
         port = sock.getsockname()[1]
         return port
 
-
 class MatchStarter:
     _offense_team: MatchStarterTeam
     _defense_team: MatchStarterTeam
@@ -39,12 +40,13 @@ class MatchStarter:
 
     _config: MatchStarterConfig
     _docker_client: DockerClient
+    _subnet_allocator: SubnetAllocator
 
     _error: str | None
     _game_data: GameData | None
     _is_started: bool
 
-    def __init__(self, offense_team: MatchStarterTeam, defense_team: MatchStarterTeam, random_id: str, match_id: str, config: MatchStarterConfig, docker_client: DockerClient) -> None:
+    def __init__(self, offense_team: MatchStarterTeam, defense_team: MatchStarterTeam, random_id: str, match_id: str, config: MatchStarterConfig, docker_client: DockerClient, subnet_allocator) -> None:
         self._offense_team = offense_team
         self._defense_team = defense_team
 
@@ -53,6 +55,7 @@ class MatchStarter:
 
         self._config = config
         self._docker_client = docker_client
+        self._subnet_allocator = subnet_allocator
 
         self._error = None
         self._game_data = None
@@ -163,8 +166,13 @@ class MatchStarter:
             pass
     
     def _create_network(self, name: str, internal: bool) -> Network | None:
+        ipam = docker.types.IPAMConfig(
+            driver="default",
+            pool_configs=[docker.types.IPAMPool(subnet=self._subnet_allocator.allocate())]
+        )
+        
         try:
-            return self._docker_client.networks.create(name, driver="bridge", internal=internal)
+            return self._docker_client.networks.create(name, driver="bridge", internal=internal, ipam=ipam)
         except Exception as e:
             logging.error(f"Failed to create network: {name}: {e}")
             self._error = "Failed to create network"

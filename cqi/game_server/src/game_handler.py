@@ -85,8 +85,12 @@ class GameHandler:
         self.error_message = None
 
     @property
+    def move_count(self) -> int:
+        return len(self.logger.get())
+
+    @property
     def available_moves(self) -> int:
-        return self.max_move - len(self.logger.get())    
+        return self.max_move - self.move_count 
 
     @property
     def score(self) -> int | None:
@@ -95,7 +99,7 @@ class GameHandler:
 
         shortest_path = self.map.get_shortest_path(
             self.offense_player.position, self.goal)
-        return self.max_move - len(shortest_path) + (self.max_move - self.available_moves)
+        return self.max_move - len(shortest_path) + (self.max_move - self.move_count)
 
     @property
     def is_started(self) -> bool:
