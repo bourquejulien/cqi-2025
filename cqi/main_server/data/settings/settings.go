@@ -12,7 +12,7 @@ import (
 
 const (
 	DEFAULT_SETTINGS = `{
-		"endTime": "2025-01-17T12:00:00Z",
+		"endTime": "2025-01-17T13:00:00Z",
 		"rankingPeriod": "30m",
 		"maxConcurrentMatch": 10,
 		"maxMatchPerRunner": 1,
