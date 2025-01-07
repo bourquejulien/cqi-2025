@@ -50,6 +50,11 @@
     "isBot": false
   },
   {
+    "id": "uqat",
+    "name": "Université du Québec en Abitibi-Témiscamingue - Campus Macdonald",
+    "isBot": false
+  },
+  {
     "id": "cqi-2024-easy-bot",
     "name": "Dumb Bot",
     "isBot": true
