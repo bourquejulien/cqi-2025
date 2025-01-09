@@ -15,7 +15,6 @@ NEXT_ENDPOINT = "/next_move"
 END_ENDPOINT = "/end_game"
 
 N_WALLS = 30
-N_TIMEBOMBS = 1
 TIMEOUT = 10
 MIN_MAP_SIZE = 20
 MAX_MAP_SIZE = 40
@@ -122,7 +121,7 @@ class GameHandler:
 
     def start_game(self):
         self.offense_player = OffensePlayer(self.map)
-        self.defense_player = DefensePlayer(self.map, n_walls=N_WALLS, n_timebombs=N_TIMEBOMBS)
+        self.defense_player = DefensePlayer(self.map, n_walls=N_WALLS)
 
         self.logger.add(f"Starting game, Goal position: {self.goal}", Level.INFO)
 
@@ -220,44 +219,7 @@ class GameHandler:
             self.logger.add("No more move available", Level.INFO)
             return
 
-        offset = move.to_position()
-        previous_offense_position = self.offense_player.position
-        self.offense_player.position = self.offense_player.position + offset
-
-        next_tile = self.map.get(
-            self.offense_player.position.x, self.offense_player.position.y)
-
-        if next_tile is None:
-            self.logger.add(f"Offense move out of bounds: {self.offense_player.position}", Level.INFO)
-            self.offense_player.position = previous_offense_position
-            return
-
-        if next_tile.element not in [ElementType.BACKGROUND, ElementType.GOAL, ElementType.LARGE_VISION, ElementType.PLAYER_OFFENSE]:
-            self.logger.add(f"Offense move not on a valid map element: {self.offense_player.position} is a {next_tile}", Level.INFO)
-            self.offense_player.position = previous_offense_position
-            return
-
-        self.logger.add(f"Previous offense position: {previous_offense_position}, Goal position: {self.goal}", Level.DEBUG)
-
-        self.logger.add("Offense move valid", Level.INFO)
-        self.map.set(previous_offense_position.x, previous_offense_position.y, ElementType.BACKGROUND)
-        self.map.set(self.offense_player.position.x, self.offense_player.position.y, ElementType.PLAYER_OFFENSE)
-
-        self.logger.add(f"Offense new position is: {self.offense_player.position}", Level.DEBUG)
-
-        match self.timebomb_countdown:
-            case 2:
-                self.timebomb_countdown -= 1
-                self.map.set(self.timebomb.x, self.timebomb.y, ElementType.TIMEBOMB_SECOND_ROUND)
-            case 1:
-                self.timebomb_countdown -= 1
-                self.map.set(self.timebomb.x, self.timebomb.y, ElementType.TIMEBOMB_THIRD_ROUND)
-            case 0:
-                self.map.set(self.timebomb.x, self.timebomb.y, ElementType.BACKGROUND)
-                radius = abs(self.offense_player.position.x - self.timebomb.x) <= 1 and abs(self.offense_player.position.y - self.timebomb.y) <= 1
-                if self.offense_player.position == self.timebomb or (self.timebomb and radius):
-                    self.available_moves = max(0, self.available_moves - 10)
-                    return
+        self.offense_player.move(move)
 
     def get_data(self) -> GameData:
         return GameData(

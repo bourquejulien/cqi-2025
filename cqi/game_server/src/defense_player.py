@@ -10,12 +10,11 @@ class DefenseMove:
 class DefensePlayer:
     map: Map
     n_walls: int
-    n_timebombs: int
+    n_timebombs: int = 1
 
-    def __init__(self, map: Map, n_walls: int, n_timebombs: int) -> None:
+    def __init__(self, map: Map, n_walls: int) -> None:
         self.map = map
         self.n_walls = n_walls
-        self.n_timebombs = n_timebombs
 
     def move(self, move: DefenseMove, player: Position, goal: Position) -> bool:
         tile = self.map.get(move.position.x, move.position.y)
