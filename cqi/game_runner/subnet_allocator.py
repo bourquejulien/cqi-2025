@@ -6,7 +6,7 @@ class SubnetAllocator:
     allocated: set[str]
 
     def __init__(self):
-        self.subnet = "172.18"
+        self.subnet = "172.222"
         self.allocated = set()
 
     def _format(self, i: int) -> str:
