@@ -5,10 +5,12 @@ import random
 import logging
 
 from game_server_common.base import OffenseMove
+
 from .map import Map, Position, ElementType
 from .offense_player import OffensePlayer
 from .defense_player import DefensePlayer, DefenseMove
 from .logger import GameStep, Level, Logger
+from .timebomb import Timebomb
 
 START_ENDPOINT = "/start"
 NEXT_ENDPOINT = "/next_move"
@@ -38,16 +40,14 @@ class GameHandler:
 
     map: Map
     max_move: int
-    goal: Position
-    timebomb: Position | None
-
-    offense_player: OffensePlayer | None
-    defense_player: DefensePlayer | None
 
     logger: Logger
     error_message: str | None
 
-    timebomb_countdown: int
+    offense_player: OffensePlayer | None
+    defense_player: DefensePlayer | None
+    timebomb: Timebomb
+
 
     def __init__(self, offense_bot_url: str, defense_bot_url: str, max_move: int | None) -> None:
         self.offense_bot_url = offense_bot_url
@@ -56,18 +56,16 @@ class GameHandler:
         self.map = Map.create_map(random.randint(MIN_MAP_SIZE, MAX_MAP_SIZE), random.randint(MIN_MAP_SIZE, MAX_MAP_SIZE))
         self.max_move = max_move or (self.map.width + self.map.height) * 4
 
-        self.goal = self.map.set_goal()
-
         for _ in range(N_FULL_VISION):
             self.map.set_full_vision()
-
-        self.offense_player = None
-        self.defense_player = None
 
         self.logger = Logger()
         self.error_message = None
 
-        self.timebomb_countdown = -1
+        self.offense_player = None
+        self.defense_player = None
+        self.timebomb = Timebomb(self.map, self.logger)
+
 
     @property
     def move_count(self) -> int:
@@ -83,11 +81,10 @@ class GameHandler:
 
     @property
     def score(self) -> int | None:
-        if self.goal is None or self.offense_player is None:
+        if self.offense_player is None:
             return None
 
-        shortest_path = self.map.get_shortest_path(
-            self.offense_player.position, self.goal)
+        shortest_path = self.map.get_shortest_path(self.offense_player.position)
         return self.max_move - len(shortest_path) + (self.max_move - self.move_count)
 
     @property
@@ -96,17 +93,18 @@ class GameHandler:
 
     @property
     def is_over(self) -> bool:
-        if self.goal is None or self.offense_player is None:
+        if self.offense_player is None:
             return False
 
         if self.available_moves <= 0 or self.error_message is not None:
             return True
 
-        return self.goal == self.offense_player.position
+        return self.map.goal == self.offense_player.position
 
     def play(self):
         self.logger.add(f"Remaining number of moves: {self.available_moves}", Level.DEBUG)
 
+        self.timebomb.play()
         self._play_defense()
         self._play_offense()
 
@@ -120,10 +118,10 @@ class GameHandler:
             logging.error(f"Error ending game: {e}")
 
     def start_game(self):
-        self.offense_player = OffensePlayer(self.map)
-        self.defense_player = DefensePlayer(self.map, n_walls=N_WALLS)
+        self.offense_player = OffensePlayer(self.map, self.logger)
+        self.defense_player = DefensePlayer(self.map, self.timebomb, self.logger, n_walls=N_WALLS)
 
-        self.logger.add(f"Starting game, Goal position: {self.goal}", Level.INFO)
+        self.logger.add(f"Starting game, Goal position: {self.map.goal}", Level.INFO)
 
         try:
             element_types_color = {
@@ -187,23 +185,21 @@ class GameHandler:
             self.logger.add(f"Error parsing response from defense bot: {e}\n{response}", Level.ERROR)
             return
 
-        is_move_valid = self.defense_player.move(move=move,
-                                 player=self.offense_player.position,
-                                 goal=self.goal)
-        
-        if is_move_valid and element == ElementType.TIMEBOMB:
-            self.timebomb = Position(x, y)
-            self.timebomb_countdown = 2
+        self.defense_player.move(move, self.offense_player.position)
 
     def _play_offense(self):
+        if self.timebomb.skip_offense:
+            self.logger.add("Offense move was skipped, timebomb still active", Level.INFO)
+            return
+
         try:
             response = requests.post(self.offense_bot_url + NEXT_ENDPOINT, json={
-                                    "map": self.map.to_img_64(self.offense_player.position, self.offense_player.get_vision_radius()).decode()}, timeout=TIMEOUT)
+                                    "map": self.map.to_img_64(self.offense_player.position, self.offense_player.get_and_remove_vision_radius()).decode()}, timeout=TIMEOUT)
         except Exception as e:
             self.logger.add(f"Error getting response from offense bot: {e}", Level.ERROR)
             return
 
-        move: OffenseMove
+        move: OffenseMove | None = None
         try:
             data = response.json()
             move = OffenseMove(data["move"])

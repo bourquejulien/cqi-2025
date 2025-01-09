@@ -40,7 +40,7 @@ def play_offense(payload: dict) -> Response:
 
 def play_defense(payload: dict) -> Response:
     data = payload["map"]
-    logging.info(f"Playing defense {defense.bot.__class__.__name__}")
+    logging.debug(f"Playing defense {defense.bot.__class__.__name__}")
     result = defense.play(data)
     if result is None:
         return Response(

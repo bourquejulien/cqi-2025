@@ -17,10 +17,18 @@ class Map(CommonMap):
     width: int
     height: int
 
+    goal: Position
+
     def __init__(self, map: np.ndarray) -> None:
         super().__init__(map)
         self.width = map.shape[0]
         self.height = map.shape[1]
+
+        self._set_goal()
+
+    def _set_goal(self) -> None:
+        self.goal = Position(self.width - 1, random.randint(0, self.height - 1)) 
+        self.map[self.goal.x, self.goal.y] = ElementType.GOAL.value
 
     def __str__(self) -> str:
         return str(self.map)
@@ -58,18 +66,15 @@ class Map(CommonMap):
     def set_full_vision(self):
         large_vision: Position = Position(random.randint(0, self.width - 1), random.randint(0, self.height - 1))
 
-        if self.get(large_vision.x, large_vision.y) != ElementType.BACKGROUND:
-            return self.set_full_vision()
+        if self.get(large_vision.x, large_vision.y).element != ElementType.BACKGROUND:
+            self.set_full_vision()
+            return
 
         self.map[large_vision.x, large_vision.y] = ElementType.LARGE_VISION.value
 
-    def set_goal(self) -> Position:
-        goal: Position = Position(self.width - 1, random.randint(0, self.height - 1)) 
-        self.map[goal.x, goal.y] = ElementType.GOAL.value
-        return goal
-
-    def get_shortest_path(self, start: Position, end: Position) -> list[Position]:
+    def get_shortest_path(self, start: Position) -> list[Position]:
         path_map = self.map.copy()
+        end = self.goal
 
         queue: list[list[Position]] = []
         queue.append([start])
@@ -92,8 +97,9 @@ class Map(CommonMap):
             
         return path
 
-    def path_exists(self, start: Position, end: Position) -> bool:
+    def path_exists(self, start: Position) -> bool:
         path_map = self.map.copy()
+        end = self.goal
 
         queue = []
         queue.append(start)

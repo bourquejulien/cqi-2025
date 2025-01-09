@@ -1,8 +1,8 @@
 import random
 
-from logger import Level, Logger
 from game_server_common.base import ElementType, OffenseMove
 
+from .logger import Level, Logger
 from .map import Map, Position
 
 OFFENSE_VISION_RADIUS = 3
@@ -25,12 +25,20 @@ class OffensePlayer:
     
     def get_vision_radius(self) -> int:
         if self.is_large_vision:
-            self.is_large_vision = False
             return FULL_VISION_RADIUS
         
         return OFFENSE_VISION_RADIUS
     
+    def get_and_remove_vision_radius(self) -> int:
+        radius = self.get_vision_radius()
+        self.is_large_vision = False
+        return radius
+    
     def move(self, move: OffenseMove):
+        if move == OffenseMove.SKIP:
+            self.logger.add(f"Offense move skipped", Level.INFO)
+            return
+
         offset = move.to_position()
         new_position = self.position + offset
 
@@ -41,7 +49,7 @@ class OffensePlayer:
             return
 
         if next_tile.element not in [ElementType.BACKGROUND, ElementType.GOAL, ElementType.LARGE_VISION]:
-            self.logger.add(f"Offense move not on a valid map element: {new_position} is a {next_tile.element}", Level.INFO)
+            self.logger.add(f"Offense move not on a valid map element: {new_position} is a {next_tile}", Level.INFO)
             return
         
         if next_tile.element == ElementType.LARGE_VISION:
@@ -56,17 +64,3 @@ class OffensePlayer:
         self.position = new_position
 
         self.logger.add(f"Offense new position is: {self.position}", Level.DEBUG)
-
-        # match self.timebomb_countdown:
-        #     case 2:
-        #         self.timebomb_countdown -= 1
-        #         self.map.set(self.timebomb.x, self.timebomb.y, ElementType.TIMEBOMB_SECOND_ROUND)
-        #     case 1:
-        #         self.timebomb_countdown -= 1
-        #         self.map.set(self.timebomb.x, self.timebomb.y, ElementType.TIMEBOMB_THIRD_ROUND)
-        #     case 0:
-        #         self.map.set(self.timebomb.x, self.timebomb.y, ElementType.BACKGROUND)
-        #         radius = abs(self.offense_player.position.x - self.timebomb.x) <= 1 and abs(self.offense_player.position.y - self.timebomb.y) <= 1
-        #         if self.offense_player.position == self.timebomb or (self.timebomb and radius):
-        #             self.available_moves = max(0, self.available_moves - 10)
-        #             return

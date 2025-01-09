@@ -1,5 +1,8 @@
 services:
   game-server:
+    depends_on:
+      - bot-1
+      - bot-2
     environment:
       - MODE=public
       - OFFENSE_URL=http://bot_1:5001

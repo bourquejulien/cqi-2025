@@ -21,7 +21,9 @@ class Tile:
     @property
     def y(self) -> int:
         return self.position.y
-
+    
+    def __repr__(self) -> str:
+        return self.element.name
 
 class Map:
     map: np.ndarray

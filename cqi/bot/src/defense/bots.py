@@ -24,7 +24,7 @@ class BlockerDefenseBot(DefenseBot):
     def play(self, map: Map) -> tuple[DefenseMove, Position]:
         # Play once every 2 turns
         self.n_turn += 1
-        if self.n_turn % 2 == 0 or self.n_walls == 0:
+        if self.n_turn % 2 == 0:
             return DefenseMove.SKIP, Position(0, 0)
 
         # Place a block directly in front of the player
@@ -42,6 +42,9 @@ class BlockerDefenseBot(DefenseBot):
         else:
             wall_pos: Position = Position(player_pos.x, player_pos.y - 1)
 
+        if self.n_walls < 0:
+            return DefenseMove.TIMEBOMB, Position(0, 0)
+
         self.n_walls -= 1
         return DefenseMove.WALL, wall_pos
 
@@ -57,4 +60,4 @@ class RandomDefenseBot(DefenseBot):
         idx = np.random.choice(np.arange(len(xidx)))
         position: Position = Position(int(xidx[idx]), int(yidx[idx]))
 
-        return DefenseMove.TIMEBOMB, position
+        return DefenseMove.WALL, position
