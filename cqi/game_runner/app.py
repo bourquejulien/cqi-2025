@@ -16,7 +16,7 @@ from stop_token import StopToken
 from match_runner import MatchRunner
 from main_server_client import MainServerClient
 
-GAME_SERVER_IMAGE_NAME = "ghcr.io/bourquejulien/cqi-2024-game-server"
+GAME_SERVER_IMAGE_NAME = "ghcr.io/bourquejulien/cqi-2025-game-server"
 MAX_DISK_USAGE = 0.8
 
 def prune_images(docker_client: docker.DockerClient) -> None:

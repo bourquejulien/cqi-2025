@@ -1,6 +1,6 @@
 services:
   game-server:
-    image: ghcr.io/bourquejulien/cqi-2024-game-server-public:latest
+    image: ghcr.io/bourquejulien/cqi-2025-game-server-public:latest
     ports:
       - "5000:5000"
     networks:
@@ -12,7 +12,7 @@ services:
       # - SEED=42 # Optional seed for reproducibility
       # - MAX_MOVE=200 # Optional max move for the game
   bot:
-    image: ghcr.io/bourquejulien/cqi-2024-easy-bot:latest
+    image: ghcr.io/bourquejulien/cqi-2025-easy-bot:latest
     hostname: bot
     networks:
       - game-network

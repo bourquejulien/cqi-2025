@@ -1,6 +1,6 @@
 services:
   main_server:
-    image: ghcr.io/bourquejulien/cqi-2024-main-server:latest
+    image: ghcr.io/bourquejulien/cqi-2025-main-server:latest
     restart: unless-stopped
     container_name: main_server
     ports:

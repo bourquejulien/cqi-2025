@@ -2,7 +2,7 @@
 
 set -e
 
-DOCKER_IMAGE="ghcr.io/bourquejulien/cqi-2024-gamer-server:latest"
+DOCKER_IMAGE="ghcr.io/bourquejulien/cqi-2025-gamer-server:latest"
 BUILDX_CONTEXT="cqi"
 
 docker buildx create --use --name $BUILDX_CONTEXT

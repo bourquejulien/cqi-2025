@@ -1,7 +1,7 @@
 services:
   game_runner:
     restart: unless-stopped
-    image: ghcr.io/bourquejulien/cqi-2024-game-runner:latest
+    image: ghcr.io/bourquejulien/cqi-2025-game-runner:latest
     container_name: game_runner
 
     volumes:

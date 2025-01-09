@@ -2,7 +2,9 @@
 
 set -e
 
-IMAGE_NAME="ghcr.io/bourquejulien/cqi-2024-easy-bot:latest"
+IMAGE_NAME_EASY="ghcr.io/bourquejulien/cqi-2025-easy-bot:latest"
+IMAGE_NAME_MEDIUM="ghcr.io/bourquejulien/cqi-2025-easy-medium:latest"
+
 AWS_ECR_NAME="481665101132.dkr.ecr.us-east-1.amazonaws.com"
 
 NAMES=$(aws secretsmanager get-secret-value \

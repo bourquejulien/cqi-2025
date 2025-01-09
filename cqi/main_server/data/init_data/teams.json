@@ -55,12 +55,12 @@
     "isBot": false
   },
   {
-    "id": "cqi-2024-easy-bot",
+    "id": "cqi-2025-easy-bot",
     "name": "Dumb Bot",
     "isBot": true
   },
   {
-    "id": "cqi-2024-medium-bot",
+    "id": "cqi-2025-medium-bot",
     "name": "Less Dumb Bot",
     "isBot": true
   }
