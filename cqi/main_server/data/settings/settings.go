@@ -14,18 +14,18 @@ const (
 	DEFAULT_SETTINGS = `{
 		"endTime": "2025-01-17T13:00:00Z",
 		"rankingPeriod": "30m",
-		"maxConcurrentMatch": 10,
-		"maxMatchPerRunner": 1,
+		"maxConcurrentMatch": "10",
+		"maxMatchPerRunner": "1",
 		"matchTimeout": "5m"
 	}`
 )
 
 type SettingsEntries struct {
-	EndTime            *time.Time     `json:"endTime,omitempty"`
-	RankingPeriod      *time.Duration `json:"rankingPeriod,omitempty"`
-	MaxConcurrentMatch *int           `json:"maxConcurrentMatch,omitempty"`
-	MaxMatchPerRunner  *int           `json:"maxMatchPerRunner,omitempty"`
-	MatchTimeout       *time.Duration `json:"matchTimeout,omitempty"`
+	EndTime            *time.Time    `json:"endTime,omitempty"`
+	RankingPeriod      time.Duration `json:"rankingPeriod,omitempty"`
+	MaxConcurrentMatch int           `json:"maxConcurrentMatch,omitempty"`
+	MaxMatchPerRunner  int           `json:"maxMatchPerRunner,omitempty"`
+	MatchTimeout       time.Duration `json:"matchTimeout,omitempty"`
 }
 
 func (s *SettingsEntries) MarshalJSON() ([]byte, error) {
@@ -38,14 +38,14 @@ func (s *SettingsEntries) MarshalJSON() ([]byte, error) {
 	}{
 		EndTime:            s.EndTime.Format(time.RFC3339),
 		RankingPeriod:      s.RankingPeriod.String(),
-		MaxConcurrentMatch: intToString(*s.MaxConcurrentMatch),
-		MaxMatchPerRunner:  intToString(*s.MaxMatchPerRunner),
+		MaxConcurrentMatch: intToString(s.MaxConcurrentMatch),
+		MaxMatchPerRunner:  intToString(s.MaxMatchPerRunner),
 		MatchTimeout:       s.MatchTimeout.String(),
 	})
 }
 
 func (s *SettingsEntries) UnmarshalJSON(data []byte) error {
-	var m map[string]*string = make(map[string]*string);
+	var m map[string]*string = make(map[string]*string)
 
 	if err := json.Unmarshal(data, &m); err != nil {
 		return err
@@ -105,13 +105,13 @@ func loadSettings(db *database.Database, ctx context.Context) (*SettingsEntries,
 		if dbValue == nil {
 			setSetting(db, key, *value, ctx)
 		} else {
-			*value = *dbValue
+			entries[key] = value
 		}
 	}
 
 	settingsEntries := SettingsEntries{}
 	err := fromMap(&settingsEntries, entries)
-	
+
 	return &settingsEntries, err
 }
 

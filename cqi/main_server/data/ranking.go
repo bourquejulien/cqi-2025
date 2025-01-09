@@ -20,7 +20,7 @@ type RankingInfo struct {
 }
 
 func updateRanking(data *Data, ctx context.Context) {
-	rankingPeriod := *data.settings.GetSettings().RankingPeriod
+	rankingPeriod := data.settings.GetSettings().RankingPeriod
 
 	ranking := RankingInfo{
 		UpdatePeriod: int(rankingPeriod.Milliseconds()),

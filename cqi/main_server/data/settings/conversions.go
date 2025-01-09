@@ -23,7 +23,7 @@ func fromMap(s *SettingsEntries, m map[string]*string) error {
 		if err != nil {
 			return nil
 		}
-		s.RankingPeriod = &rankingPeriod
+		s.RankingPeriod = rankingPeriod
 	}
 
 	if value, ok := m["maxConcurrentMatch"]; ok {
@@ -31,7 +31,7 @@ func fromMap(s *SettingsEntries, m map[string]*string) error {
 		if err != nil {
 			return nil
 		}
-		s.MaxConcurrentMatch = &maxConcurrentMatch
+		s.MaxConcurrentMatch = maxConcurrentMatch
 	}
 
 	if value, ok := m["maxMatchPerRunner"]; ok {
@@ -39,7 +39,7 @@ func fromMap(s *SettingsEntries, m map[string]*string) error {
 		if err != nil {
 			return nil
 		}
-		s.MaxMatchPerRunner = &maxMatchPerRunner
+		s.MaxMatchPerRunner = maxMatchPerRunner
 	}
 
 	if value, ok := m["matchTimeout"]; ok {
@@ -47,7 +47,7 @@ func fromMap(s *SettingsEntries, m map[string]*string) error {
 		if err != nil {
 			return nil
 		}
-		s.MatchTimeout = &matchTimeout
+		s.MatchTimeout = matchTimeout
 	}
 
 	return nil
