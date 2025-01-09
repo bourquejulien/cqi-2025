@@ -36,17 +36,17 @@ class BlockerDefenseBot(DefenseBot):
         goal_pos: Position = Position(int(goal_x[0]), int(goal_y[0]))
 
         if goal_pos.x > player_pos.x:
-            wall_pos: Position = Position(player_pos.x + 1, player_pos.y)
+            obstacle_pos: Position = Position(player_pos.x + 1, player_pos.y)
         elif goal_pos.y > player_pos.y:
-            wall_pos: Position = Position(player_pos.x, player_pos.y + 1)
+            obstacle_pos: Position = Position(player_pos.x, player_pos.y + 1)
         else:
-            wall_pos: Position = Position(player_pos.x, player_pos.y - 1)
+            obstacle_pos: Position = Position(player_pos.x, player_pos.y - 1)
 
         if self.n_walls < 0:
-            return DefenseMove.TIMEBOMB, Position(0, 0)
+            return DefenseMove.TIMEBOMB, obstacle_pos
 
         self.n_walls -= 1
-        return DefenseMove.WALL, wall_pos
+        return DefenseMove.WALL, obstacle_pos
 
 
 class RandomDefenseBot(DefenseBot):
