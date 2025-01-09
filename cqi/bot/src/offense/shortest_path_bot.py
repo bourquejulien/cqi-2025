@@ -67,7 +67,7 @@ class ShortestPathBot:
 
         aggregate_width = max(end_new.x, self.aggregate_map.map.shape[0]) - min(origin_new.x, 0)
         aggregate_height = max(end_new.y, self.aggregate_map.map.shape[1]) - min(origin_new.y, 0)
-        aggregate_map = np.full((aggregate_width, aggregate_height), ElementType.UNKNOW.value)
+        aggregate_map = np.full((aggregate_width, aggregate_height), ElementType.UNKNOWN.value)
 
         # Compute 0,0 of old map in aggregate map
         old_x_offset = 0 if origin_new.x >= 0 else abs(origin_new.x)
@@ -131,7 +131,7 @@ class ShortestPathBot:
             next_points = [Position(point.x + 1, point.y), Position(point.x - 1, point.y), Position(point.x, point.y + 1), Position(point.x, point.y - 1)]
             for next_point in next_points:
                 if next_point.x >= 0 and next_point.x < path_map.shape[0] and next_point.y >= 0 and next_point.y < path_map.shape[1]:
-                    if path_map[next_point.x, next_point.y] in [ElementType.BACKGROUND.value, ElementType.GOAL.value, ElementType.UNKNOW.value, ElementType.LARGE_VISION.value]:
+                    if path_map[next_point.x, next_point.y] in [ElementType.BACKGROUND.value, ElementType.GOAL.value, ElementType.UNKNOWN.value, ElementType.LARGE_VISION.value]:
                         path_map[next_point.x, next_point.y] = ElementType.VISITED.value
                         queue.append(path + [next_point])
         
