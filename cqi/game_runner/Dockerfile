@@ -31,13 +31,14 @@ WORKDIR /app
 
 COPY ./requirements.txt ./requirements.txt
 RUN apk add --no-cache \
+    build-base \
     gcc \
     musl-dev \
     python3-dev \
     linux-headers \
     && pip install --no-cache-dir -r requirements.txt \
     && rm requirements.txt \
-    && apk del gcc musl-dev python3-dev linux-headers
+    && apk del build-base gcc musl-dev python3-dev linux-headers
 
 COPY --from=base --chown=cqi:cqi /dist .
 

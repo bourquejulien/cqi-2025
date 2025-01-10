@@ -7,7 +7,7 @@ function TextBox({text}: { text: string }) {
     return (
         <Card
             shadow="sm"
-            padding="lg"
+            padding={isSmall ? "5px" : "xl"}
             radius="md"
             h={"7rem"}
             withBorder

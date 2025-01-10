@@ -123,7 +123,7 @@ function GamePage() {
             gap={"lg"}
         >
             {isSmallPage ?
-                <Stack align={"center"} justify={"center"} gap={"xs"}>
+                <Stack style={{textAlign: "center"}} align={"center"} justify={"center"} gap={"xs"}>
                     <Title order={3}>{playerService.getPlayerNameOrDefault(gameData.team1Id)}</Title>
                     <Title order={3}>VS</Title>
                     <Title order={3}>{playerService.getPlayerNameOrDefault(gameData.team2Id)}</Title>

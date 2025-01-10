@@ -76,7 +76,7 @@ class Timebomb:
         self._countdown = None
     
     def _explode(self) -> None:
-        if any(tile.element == ElementType.PLAYER_OFFENSE for tile, _ in self._map.get_nearby_tiles(*self._position)):
+        if any(tile.element == ElementType.PLAYER_OFFENSE for tile in self._map.get_surrounding_tiles(*self._position)):
             self._logger.add("Timebomb exploded, player was caught in the explosion", Level.INFO)
             return
 

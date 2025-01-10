@@ -1,7 +1,7 @@
 #!/bin/env python3
 
 from game_server_common.base import *
-from game_server_common.map import Map as CommonMap
+from game_server_common.map import Map as CommonMap, Tile
 
 from PIL import Image
 from io import BytesIO
@@ -35,6 +35,18 @@ class Map(CommonMap):
     
     def __repr__(self) -> str:
         return repr(self.map)
+    
+    def get_surrounding_tiles(self, x, y) -> list[Tile]:
+        if self.get(x, y) is None:
+            return []
+
+        tiles = [tile for tile, _ in self.get_nearby_tiles(x, y)]
+        tiles.append(self.get(x - 1, y + 1))
+        tiles.append(self.get(x + 1, y - 1))
+        tiles.append(self.get(x + 1, y + 1)) 
+        tiles.append(self.get(x - 1, y - 1))
+
+        return [tile for tile in tiles if tile is not None]
     
     def to_list(self) -> list[list[str]]:
         return [[str(row) for row in col] for col in self.map.tolist()]

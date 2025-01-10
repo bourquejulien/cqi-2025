@@ -13,7 +13,7 @@ export function GameOverPage() {
                 align="center"
                 justify="space-around">
                 <h1 style={{fontSize: "5rem", textAlign: "center"}}>C'est terminé</h1>
-                <Text size={"1.5rem"}>
+                <Text style={{textAlign: "center"}} size={"1.5rem"}>
                     Veuillez vous assurer de remettre la dernière version de votre conteneur ansi que l'ensemble de
                     votre code.
                 </Text>
