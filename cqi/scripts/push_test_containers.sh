@@ -2,8 +2,23 @@
 
 set -e
 
+function getArchitecture() {
+    INSTANCE_ID=$(aws ec2 describe-instances \
+    --filters "Name=tag:Name,Values=game_runner_0" \
+    --query "Reservations[*].Instances[*].InstanceId" \
+    --output text)
+
+    ARCHITECTURE=$(aws ec2 describe-instances \
+    --instance-ids "$INSTANCE_ID" \
+    --query "Reservations[*].Instances[*].Architecture" \
+    --output text)
+
+    echo $ARCHITECTURE
+}
+
 IMAGE_NAME_EASY="ghcr.io/bourquejulien/cqi-2025-easy-bot:latest"
 IMAGE_NAME_MEDIUM="ghcr.io/bourquejulien/cqi-2025-medium-bot:latest"
+PLATFORM="linux/$(getArchitecture)"
 
 AWS_ECR_NAME="481665101132.dkr.ecr.us-east-1.amazonaws.com"
 
@@ -13,8 +28,10 @@ NAMES=$(aws secretsmanager get-secret-value \
     --output text \
     | jq "keys[]" -r)
 
-docker pull $IMAGE_NAME_EASY
-docker pull $IMAGE_NAME_MEDIUM
+echo "Pulling images using platform: $PLATFORM"
+
+docker pull --platform "$PLATFORM"  "$IMAGE_NAME_EASY"
+docker pull --platform "$PLATFORM"  "$IMAGE_NAME_MEDIUM"
 
 aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin "$AWS_ECR_NAME"
 
@@ -29,7 +46,7 @@ for NAME in $NAMES; do
     i=$((i + 1))
 
     NAME="${AWS_ECR_NAME}/${NAME}"
-    echo "Image: $IMAGE_NAME to: $NAME"
-    docker tag $IMAGE_NAME "$NAME"
+    echo "Image: "$IMAGE_NAME" to: $NAME"
+    docker tag "$IMAGE_NAME" "$NAME"
     docker push "$NAME"
 done
