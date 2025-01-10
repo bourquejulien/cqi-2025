@@ -73,8 +73,12 @@ def update_settings(api: InternalAPI) -> int:
     for values in values_to_update.strip("\n").split(","):
         if "=" not in values:
             continue
+        
+        values = values.split("=")
+        if len(values) != 2:
+            continue
 
-        key, value = values.split("=")
+        key, value = values
         key = key.strip(STRIP_CHARS)
         value = value.strip(STRIP_CHARS)
 

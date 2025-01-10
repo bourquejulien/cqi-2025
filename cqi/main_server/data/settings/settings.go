@@ -105,7 +105,7 @@ func loadSettings(db *database.Database, ctx context.Context) (*SettingsEntries,
 		if dbValue == nil {
 			setSetting(db, key, *value, ctx)
 		} else {
-			entries[key] = value
+			entries[key] = dbValue
 		}
 	}
 
