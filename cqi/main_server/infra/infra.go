@@ -162,6 +162,10 @@ func (p *Infra) ListImages(teamsIds []string, tags []string, ctx context.Context
 
 		for _, image := range images.ImageIds {
 			for _, tag := range tags {
+				if image.ImageTag == nil || image.ImageDigest == nil {
+					continue
+				}
+
 				if *image.ImageTag == tag {
 					fullUrl := *repo.RepositoryUri + ":" + *image.ImageTag
 					teamImage.Images = append(teamImage.Images, Image{Tag: *image.ImageTag, Digest: *image.ImageDigest, FullUrl: fullUrl})
