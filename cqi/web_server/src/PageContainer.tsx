@@ -17,6 +17,7 @@ function Content({stats, setIsReady}: { stats: Stats | undefined, setIsReady: (i
     return (
         <Routes>
             <Route index element={<MainPage stats={stats} setIsReady={setIsReady}/>}/>
+            <Route path="board/:cpage" element={<MainPage stats={stats} setIsReady={setIsReady}/>}/>
             <Route path="game/:id" element={<GamePage/>}/>
             <Route path="*" element={<MainPage stats={stats} setIsReady={setIsReady}/>}/>
         </Routes>

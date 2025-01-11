@@ -4,6 +4,7 @@ import (
 	"context"
 	"cqiprog/data/database"
 	_ "embed"
+	"fmt"
 	"sync"
 
 	"time"
@@ -120,6 +121,11 @@ func (p *gamesDB) getGamesWithPagination(ctx context.Context, limit int, page in
 	p.lock.RLock()
 	defer p.lock.RUnlock()
 
+	offset := page * limit
+	if offset > p.totalGameCount {
+		return nil, fmt.Errorf("invalid page parameter")
+	}
+
 	if ok, list := p.cache.getGameList(limit, page); ok {
 		return list, nil
 	}
@@ -132,7 +138,6 @@ func (p *gamesDB) getGamesWithPagination(ctx context.Context, limit int, page in
 
 	defer conn.Release()
 
-	offset := page * limit
 	rows, err := conn.Query(ctx, "SELECT id, start_time, end_time, team1_id, team2_id, winner_id, is_error, team1_score, team2_score FROM games ORDER BY end_time desc LIMIT $1 OFFSET $2", limit, offset)
 	if err != nil {
 		return nil, err

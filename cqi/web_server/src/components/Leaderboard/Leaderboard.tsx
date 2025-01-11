@@ -45,7 +45,7 @@ const LeaderBoard = ({leaderBoardData, setCurrentPage, setItemPerPage}: {
         const team2Color = game.isError ? "dark.9" : game.winnerId === game.team2Id ? "green.8" : "dark.9";
 
         return (
-            <Table.Tr className={classes.row} key={game.id} onClick={() => navigate(`game/${game.id}`)}>
+            <Table.Tr className={classes.row} key={game.id} onClick={() => navigate(`/game/${game.id}`)}>
                 <Table.Td style={{textAlign: "center"}}>
                     <ScalableText c={team1Color} text={playerService.getPlayerNameOrDefault(game.team1Id)}
                                   isSmallPage={isSmallPage}/>
@@ -89,7 +89,7 @@ const LeaderBoard = ({leaderBoardData, setCurrentPage, setItemPerPage}: {
 
             <Pagination
                 total={Math.ceil(leaderBoardData.paginationData.totalItemCount / leaderBoardData.paginationData.itemsPerPage)}
-                value={leaderBoardData.paginationData.page} onChange={setCurrentPage}
+                value={leaderBoardData.paginationData.page + 1} onChange={(value) => setCurrentPage(value - 1)}
                 radius={"md"}
                 mt="sm"/>
         </Stack>

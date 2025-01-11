@@ -15,6 +15,7 @@ export interface ErrorResponse extends FetcherResponseBase {
     isSuccess: false;
     error: string;
     isGameEnded: boolean;
+    isServerDown: boolean;
 }
 
 export type FetcherResponse<T> = Promise<OkResponse<T> | ErrorResponse>;
@@ -36,13 +37,14 @@ function handleErrors<T>(response: Promise<Response>): FetcherResponse<T> {
             return {
                 isSuccess: false,
                 isGameEnded: (await response.text()).startsWith("Forbidden"),
+                isServerDown: response.status in [503, 404],
                 error: response.statusText
             } as ErrorResponse;
         }
 
         return {isSuccess: true, data: await response.json()} as OkResponse<T>
     }).catch((error) => {
-        return {isSuccess: false, isGameEnded: false, error: error} as ErrorResponse;
+        return {isSuccess: false, isGameEnded: false, isServerDown: true, error: error} as ErrorResponse;
     });
 }
 
