@@ -5,7 +5,6 @@ import {getDataFetcher} from "../Data.ts";
 import {Stats} from "../interfaces/Stats.ts";
 import {GameDataBase} from "../interfaces/GameData.ts";
 import {MatchPane} from "../components/Panes/MatchPane.tsx";
-import {Match} from "../interfaces/Match.ts";
 import Ranking from "../components/Panes/Ranking.tsx";
 
 function MainPage({stats, setIsReady}: {
@@ -15,16 +14,13 @@ function MainPage({stats, setIsReady}: {
     const [currentPage, setCurrentPage] = useState(1);
     const [itemPerPage, setItemPerPage] = useState(20);
     const [gameData, setGameData] = useState<GameDataBase[]>([]);
-    const [ongoingMatches, setOngoingMatches] = useState<Match[]>([]);
 
     useEffect(() => {
         const updateData = async () => {
             const response = await getDataFetcher().getLeaderBoardData(itemPerPage, Math.max(0, currentPage - 1));
-            const matches = await getDataFetcher().getOngoingMatches();
 
-            if (response.isSuccess && matches.isSuccess) {
+            if (response.isSuccess) {
                 setGameData(response.data.results);
-                setOngoingMatches(matches.data);
             } else if (!response.isSuccess && !response.isGameEnded && gameData.length === 0) {
                 setIsReady(false);
             }
@@ -41,7 +37,7 @@ function MainPage({stats, setIsReady}: {
         <Grid gutter={"xl"}>
             <Grid.Col span={{base: 12, md: 6, lg: 3}}>
                 <Title order={1} style={{textAlign: "center"}}>Parties en cours</Title>
-                <MatchPane matches={ongoingMatches}/>
+                <MatchPane matches={stats.ongoingMatches}/>
             </Grid.Col>
             <Grid.Col span={{base: 12, md: 6, lg: 6}}>
                 <Title order={1} style={{textAlign: "center"}}>Résultats</Title>

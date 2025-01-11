@@ -5,10 +5,19 @@ import (
 	"time"
 )
 
+
+type OngoingMatch struct {
+	Id        string    `json:"id"`
+	Team1Id   string    `json:"team1Id"`
+	Team2Id   string    `json:"team2Id"`
+	StartTime time.Time `json:"startTime"`
+}
+
 type Stats struct {
 	TotalGames  int               `json:"totalGames"`
 	EndTime     time.Time         `json:"endTime"`
 	RankingInfo *data.RankingInfo `json:"rankingInfo"`
+	OngoingMatches []OngoingMatch `json:"ongoingMatches"`
 }
 
 type Match struct {
@@ -23,13 +32,6 @@ type MatchInfo struct {
 	MaxConcurrentMatch  int      `json:"maxConcurrentMatch"`
 	MatchTimeoutSeconds int      `json:"matchTimeoutSeconds"`
 	Matches             []*Match `json:"matches"`
-}
-
-type OngoingMatch struct {
-	Id        string    `json:"id"`
-	Team1Id   string    `json:"team1Id"`
-	Team2Id   string    `json:"team2Id"`
-	StartTime time.Time `json:"startTime"`
 }
 
 type GameResults struct {

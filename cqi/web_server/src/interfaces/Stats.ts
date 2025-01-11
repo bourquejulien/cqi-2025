@@ -1,7 +1,10 @@
+import {Match} from "./Match.ts";
+
 export interface Stats {
     totalGames: number;
     endTime: Date;
     rankingInfo: RankingInfo;
+    ongoingMatches: Match[];
 }
 
 export interface RankingInfo {

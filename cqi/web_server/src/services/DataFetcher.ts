@@ -1,6 +1,5 @@
 import {GameResults, GameSuccess, GameFailure, GameData} from "../interfaces/GameData.ts";
 import {Stats} from "../interfaces/Stats.ts";
-import {Match} from "../interfaces/Match.ts";
 import {LaunchData} from "../interfaces/LaunchData.ts";
 
 export interface FetcherResponseBase {
@@ -144,16 +143,6 @@ class DataFetcher {
         return response;
     }
 
-    async getOngoingMatches(): FetcherResponse<Match[]> {
-        const response = await this.fetch<Match[]>(`${this.baseUrl}/ongoing_matches`);
-        if (response.isSuccess) {
-            response.data.forEach((match) => {
-                match.startTime = new Date(match.startTime);
-            });
-        }
-        return response;
-    }
-
     async getLaunchData(): FetcherResponse<LaunchData> {
         const response = await this.fetch<LaunchData>(`${this.baseUrl}/launch_data`);
         if (response.isSuccess) {
@@ -181,7 +170,10 @@ class DataFetcher {
     async getStatsData(): FetcherResponse<Stats> {
         const response = await this.fetch<Stats>(`${this.baseUrl}/stats`);
         if (response.isSuccess) {
-            response.data.endTime = new Date(response.data.endTime);
+            response.data.endTime = new Date(response.data.endTime)
+            response.data.ongoingMatches.forEach((match) => {
+                match.startTime = new Date(match.startTime);
+            });
         }
         return response;
     }
