@@ -40,7 +40,7 @@ class MainServerClient:
         
         matches_data = response.json()
         matches = [Match(**match, timeout_sec=matches_data["matchTimeoutSeconds"]) for match in matches_data["matches"]]
-        self.max_concurrent_matches = matches_data["maxConcurrentMatch"]
+        self.max_concurrent_matches = max(1, matches_data["maxConcurrentMatch"])
 
         logging.info("Got %s match", len(matches))
         return matches

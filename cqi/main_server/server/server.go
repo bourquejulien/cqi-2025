@@ -51,7 +51,6 @@ func (p *Server) Init() {
 			r.Get("/get", p.getGame)
 		})
 
-		r.Get("/ongoing_matches", p.getOngoingMatches)
 		r.Get("/launch_data", p.getLaunchData)
 		r.Get("/stats", p.getStats)
 	})
@@ -130,7 +129,16 @@ func (p *Server) getGame(w http.ResponseWriter, r *http.Request) {
 	render.JSON(w, r, game)
 }
 
-func (p *Server) getOngoingMatches(w http.ResponseWriter, r *http.Request) {
+func (p *Server) getLaunchData(w http.ResponseWriter, r *http.Request) {
+	launchData := LaunchData{
+		TeamIdMapping: p.Data.GetTeamMapping(),
+		EndTime:       p.Data.GetStats().EndTime,
+	}
+	render.JSON(w, r, launchData)
+}
+
+func (p *Server) getStats(w http.ResponseWriter, r *http.Request) {
+	internalStats := p.Data.GetStats()
 	ongoingMatches := p.Scheduler.ListOngoing()
 	matches := make([]OngoingMatch, len(ongoingMatches))
 
@@ -143,20 +151,13 @@ func (p *Server) getOngoingMatches(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	render.JSON(w, r, matches)
-}
-
-func (p *Server) getLaunchData(w http.ResponseWriter, r *http.Request) {
-	launchData := LaunchData{
-		TeamIdMapping: p.Data.GetTeamMapping(),
-		EndTime:       p.Data.GetStats().EndTime,
+	stats := Stats{
+		internalStats.TotalGames,
+		internalStats.EndTime,
+		p.Data.GetRanking(),
+		matches,
 	}
-	render.JSON(w, r, launchData)
-}
 
-func (p *Server) getStats(w http.ResponseWriter, r *http.Request) {
-	internalStats := p.Data.GetStats()
-	stats := Stats{internalStats.TotalGames, internalStats.EndTime, p.Data.GetRanking()}
 	render.JSON(w, r, stats)
 }
 
@@ -186,9 +187,9 @@ func (p *Server) popMatch(w http.ResponseWriter, r *http.Request) {
 	}
 
 	render.JSON(w, r, MatchInfo{
-		MaxConcurrentMatch: p.Data.GetSettings().MaxMatchPerRunner,
+		MaxConcurrentMatch:  p.Data.GetSettings().MaxMatchPerRunner,
 		MatchTimeoutSeconds: int(p.Data.GetSettings().MatchTimeout.Seconds()),
-		Matches: resultMatches,
+		Matches:             resultMatches,
 	})
 }
 
