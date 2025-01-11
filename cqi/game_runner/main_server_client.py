@@ -35,7 +35,7 @@ class MainServerClient:
             return []
 
         if not response.ok:
-            logging.error("Failed to get next game: ", response.text)
+            logging.error("Failed to get next game: %s", response.text)
             return []
         
         matches_data = response.json()
@@ -56,4 +56,4 @@ class MainServerClient:
             return
 
         if not response.ok:
-            logging.error("Failed to add result: ", response.text)
+            logging.error("Failed to add result: %s", response.text)

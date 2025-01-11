@@ -115,7 +115,7 @@ class GameHandler:
             requests.post(self.offense_bot_url + END_ENDPOINT, {})
             requests.post(self.defense_bot_url + END_ENDPOINT, {})
         except Exception as e:
-            logging.error(f"Error ending game: {e}")
+            logging.error("Error ending game: %s", e)
 
     def start_game(self):
         self.offense_player = OffensePlayer(self.map, self.logger)
@@ -143,7 +143,7 @@ class GameHandler:
                                    json={"is_offense": False, "n_walls": N_WALLS, "element_types_color": element_types_color}, timeout=TIMEOUT)
             result.raise_for_status()
         except Exception as e:
-            logging.error(f"Error starting game: {e}")
+            logging.error("Error starting game: %s", e)
             self.error_message = f"Failed to start game with exception:\n{
                 str(e)}"
             return

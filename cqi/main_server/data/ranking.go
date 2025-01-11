@@ -46,6 +46,16 @@ func updateRanking(data *Data, ctx context.Context) {
 	}
 
 	for _, gameData := range games {
+		if _, ok := teams[gameData.Team1Id]; !ok {
+			log.Printf("Team %v not found in team data in gameId: %v", gameData.Team1Id, gameData.Id)
+			continue
+		}
+
+		if _, ok := teams[gameData.Team2Id]; !ok {
+			log.Printf("Team %v not found in team data in gameId: %v", gameData.Team1Id, gameData.Id)
+			continue
+		}
+
 		teams[gameData.Team1Id].TotalGames++
 		teams[gameData.Team2Id].TotalGames++
 

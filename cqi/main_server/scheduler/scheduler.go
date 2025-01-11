@@ -119,11 +119,15 @@ func (s *Scheduler) ForceAddMatch(team1Id string, team2Id string, ctx context.Co
 	}
 
 	allBotIds := s.data.GetTeamIds(true)
+	allTeamIds := s.data.GetTeamIds(false)
+
 	for _, id := range []string{team1Id, team2Id} {
 		if slices.Contains(allBotIds, id) {
 			botIds = append(botIds, id)
-		} else {
+		} else if slices.Contains(allTeamIds, id) {
 			realTeamIds = append(realTeamIds, id)
+		} else {
+			return false, "Team not found: " + id
 		}
 	}
 
@@ -137,8 +141,13 @@ func (s *Scheduler) ForceAddMatch(team1Id string, team2Id string, ctx context.Co
 	botImages := s.infra.ListBotImages(botIds)
 	teamImages = append(teamImages, botImages...)
 
+	if len(teamImages) < 2 {
+		log.Println("Mismatch between images names and repositories")
+		return false, "Repository not found for all teams"
+	}
+
 	match := Match{uuid.NewString(), team1Id, team2Id, "", "", nil}
-	
+
 	for _, teamImage := range teamImages {
 		if len(teamImage.Images) == 0 {
 			return false, "No images found for team: " + teamImage.TeamId

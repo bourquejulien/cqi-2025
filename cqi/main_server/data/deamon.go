@@ -24,8 +24,6 @@ func deamon(data *Data, ctx context.Context) {
 			log.Printf("data daemon is done")
 			return
 		default:
-			log.Printf("data daemon is running")
-
 			deamonCtx, cancelFunc := context.WithTimeout(ctx, TIMEOUT)
 			defer cancelFunc()
 
