@@ -30,7 +30,7 @@ function MainPage({stats, setIsReady}: {
     const {cpage} = useParams();
     const navigate = useNavigate();
 
-    const [currentPage, setCurrentPage] = useState(0);
+    const [currentPage, setCurrentPage] = useState(safeParseInt(cpage));
     const [itemPerPage, setItemPerPage] = useState(20);
     const [gameData, setGameData] = useState<GameDataBase[]>([]);
 

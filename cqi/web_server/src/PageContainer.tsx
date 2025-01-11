@@ -7,7 +7,7 @@ import {getDataFetcher, getPlayerService} from "./Data.ts";
 import {Stats} from "./interfaces/Stats.ts";
 import {GameOverPage} from "./pages/GameOverPage.tsx";
 import {LoadingPage} from "./pages/LoadingPage.tsx";
-import {Route, Routes} from "react-router";
+import {Route, Routes, Navigate} from "react-router";
 
 function Content({stats, setIsReady}: { stats: Stats | undefined, setIsReady: (isReady: boolean) => void }) {
     if (stats === undefined) {
@@ -19,7 +19,7 @@ function Content({stats, setIsReady}: { stats: Stats | undefined, setIsReady: (i
             <Route index element={<MainPage stats={stats} setIsReady={setIsReady}/>}/>
             <Route path="board/:cpage" element={<MainPage stats={stats} setIsReady={setIsReady}/>}/>
             <Route path="game/:id" element={<GamePage/>}/>
-            <Route path="*" element={<MainPage stats={stats} setIsReady={setIsReady}/>}/>
+            <Route path="*" element={<Navigate to="/" replace />}/>
         </Routes>
     )
 }

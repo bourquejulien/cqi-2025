@@ -141,7 +141,7 @@ func (p *Infra) ListImages(teamsIds []string, tags []string, ctx context.Context
 	for _, repo := range result.Repositories {
 		isValid := false
 		for _, teamId := range teamsIds {
-			if *repo.RepositoryName == teamId {
+			if repo.RepositoryName != nil && *repo.RepositoryName == teamId {
 				isValid = true
 				break
 			}
