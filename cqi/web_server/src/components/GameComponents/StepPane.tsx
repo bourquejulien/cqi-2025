@@ -3,10 +3,12 @@ import {Grid, Pagination, Stack, Text, Title} from "@mantine/core";
 import Map from "./Map.tsx";
 import {useEffect, useState} from "react";
 import LogPane from "./LogPane.tsx";
+import {useMediaQuery} from "@mantine/hooks";
 
 function StepPane({steps}: { steps: GameStep[] }) {
     const [currentStepIndex, setCurrentStepIndex] = useState<number>(0);
     const [width, setWidth] = useState(window.innerWidth);
+    const isSmall = useMediaQuery("(max-width: 50rem)");
 
     useEffect(() => {
         setCurrentStepIndex(0)
@@ -36,6 +38,8 @@ function StepPane({steps}: { steps: GameStep[] }) {
                 </Grid.Col>
             </Grid>
             <Pagination
+                size={isSmall ? "sm" : "lg"}
+                radius={"md"}
                 total={steps.length}
                 value={currentStepIndex + 1}
                 onChange={(value) => setCurrentStepIndex(value - 1)}

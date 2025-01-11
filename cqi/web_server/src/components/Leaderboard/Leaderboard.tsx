@@ -90,6 +90,7 @@ const LeaderBoard = ({leaderBoardData, setCurrentPage, setItemPerPage}: {
             <Pagination
                 total={Math.ceil(leaderBoardData.paginationData.totalItemCount / leaderBoardData.paginationData.itemsPerPage)}
                 value={leaderBoardData.paginationData.page} onChange={setCurrentPage}
+                radius={"md"}
                 mt="sm"/>
         </Stack>
     );
