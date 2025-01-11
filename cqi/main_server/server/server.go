@@ -95,8 +95,18 @@ func (p *Server) listGames(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if limit <= 0 || limit > 100 {
+		http.Error(w, "Invalid limit parameter", http.StatusBadRequest)
+		return
+	}
+
 	page, err := strconv.Atoi(r.URL.Query().Get("page"))
 	if err != nil {
+		http.Error(w, "Invalid page parameter", http.StatusBadRequest)
+		return
+	}
+
+	if page < 0 {
 		http.Error(w, "Invalid page parameter", http.StatusBadRequest)
 		return
 	}
