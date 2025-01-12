@@ -66,10 +66,10 @@ class Map(CommonMap):
 
         if visibility_range is not None:
             left = max(0, offense_position.x - visibility_range)
-            right = min(self.width, offense_position.x + visibility_range)
+            right = min(self.width, offense_position.x + visibility_range + 1)
             upper = max(0, offense_position.y - visibility_range)
-            lower = min(self.height, offense_position.y + visibility_range)
-            image = image.crop(tuple([value * TILE_SIZE for value in [left, upper, right + 1, lower + 1]]))
+            lower = min(self.height, offense_position.y + visibility_range + 1)
+            image = image.crop(tuple([value * TILE_SIZE for value in [left, upper, right, lower]]))
 
         buffered = BytesIO()
         image.save(buffered, format="PNG")
