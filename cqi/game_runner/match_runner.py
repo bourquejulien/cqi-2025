@@ -233,13 +233,11 @@ class MatchRunner:
         except Exception as e:
             logging.error("Failed to get status for match %s: %s", match_data.game.id, e)
             exit(1)
-            pass
         
         try:
             statuses.append(GameServerStatus(**requests.get(f"http://localhost:{match_data.game_2.port}/status", timeout=DEFAULT_TIMEOUT).json()))
         except Exception as e:
             logging.error("Failed to get status for match %s: %s", match_data.game.id, e)
-            pass
         
         is_expired = match_data.start_time + timedelta(seconds=match_data.game.timeout_sec) < datetime.now(timezone.utc)
         if not is_expired and len(statuses) == 2 and not all(status.isOver for status in statuses):
