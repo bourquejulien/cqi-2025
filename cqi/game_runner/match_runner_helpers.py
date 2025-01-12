@@ -8,8 +8,8 @@ from docker.models.networks import Network
 
 from helpers import get_cpu_count, get_memory_MiB
 
-MAX_LOGS = 100
-MAX_LOG_LINE_SIZE = 100
+MAX_LOGS = 200
+MAX_LOG_LINE_SIZE = 200
 DEFAULT_TIMEOUT = 2
 GAME_RUNNER_BASE_NAME = "game-runner-managed"
 
