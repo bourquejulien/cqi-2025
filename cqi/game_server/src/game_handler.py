@@ -17,7 +17,7 @@ NEXT_ENDPOINT = "/next_move"
 END_ENDPOINT = "/end_game"
 
 N_WALLS = 30
-TIMEOUT = 10
+TIMEOUT = 2
 MIN_MAP_SIZE = 20
 MAX_MAP_SIZE = 40
 
@@ -69,15 +69,11 @@ class GameHandler:
 
     @property
     def move_count(self) -> int:
-        return len(self.logger.get())
+        return max(0, len(self.logger.get()) - 1)
         
     @property
     def available_moves(self) -> int:
         return self.max_move - self.move_count
-
-    @available_moves.setter
-    def available_moves(self, value: int) -> None:
-        self.max_move = value + self.move_count
 
     @property
     def score(self) -> int | None:
