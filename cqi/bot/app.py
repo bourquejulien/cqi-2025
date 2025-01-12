@@ -17,6 +17,8 @@ ENV_MODE = "MODE"
 ENV_LEVEL = "BOT_LEVEL"
 DEFAULT_PORT = 5001
 
+ENFORCE_EASY = False
+
 should_play_offense = True
 offense_bot: DumbOffenseBot | ShortestPathBot | None = None
 defense: Defense | None = None
@@ -119,6 +121,9 @@ def main() -> None:
 
     global level
     level = os.environ[ENV_LEVEL] if ENV_LEVEL in os.environ else "medium"
+
+    if ENFORCE_EASY:
+        level = "easy"
 
     app = setup_web_server(is_debug=is_debug)
 

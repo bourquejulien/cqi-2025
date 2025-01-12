@@ -1,6 +1,7 @@
 FROM python:3.12-alpine3.20 AS base
 
 ARG USE_PYARMOR=false
+ARG BOT_LEVEL=medium
 
 RUN apk add --no-cache build-base && \
     pip install --no-cache-dir pyarmor==8.5.11 && \
@@ -15,12 +16,14 @@ WORKDIR /app/bot
 COPY ./bot/src ./src
 COPY ./bot/app.py .
 
+RUN if [ $BOT_LEVEL = "medium" ] ; then echo "ENFORCE_EASY=True" >> app.py ; fi
+
 # Offuscate the python code
 RUN if [ $USE_PYARMOR = "true" ] ; then pyarmor gen . && cp -r ./dist /app/dist ; else cp -r /app/bot /app/dist ; fi 
 
 FROM python:3.12-alpine3.20 AS final
 
-ARG BOT_LEVEL=medium
+ARG BOT_LEVEL
 ARG PORT=5000
 EXPOSE $PORT
 
