@@ -13,7 +13,7 @@ function getArchitecture() {
     --query "Reservations[*].Instances[*].Architecture" \
     --output text)
 
-    echo $ARCHITECTURE
+    [[ $ARCHITECTURE = "arm64" ]] && echo "arm64" || echo "amd64"
 }
 
 IMAGE_NAME_EASY="ghcr.io/bourquejulien/cqi-2025-easy-bot:latest"

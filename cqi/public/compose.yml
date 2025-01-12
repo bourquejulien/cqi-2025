@@ -1,6 +1,8 @@
 services:
   game-server:
     image: ghcr.io/bourquejulien/cqi-2025-game-server-public:latest
+    extra_hosts:
+      host.docker.internal: host-gateway
     ports:
       - "5000:5000"
     networks:
