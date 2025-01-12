@@ -4,19 +4,18 @@
 
 Ce document contient des informations techniques concernant la compétition. Il est séparé en trois sections.
 
-- [Programmation - CQI 2025](#programmation---cqi-2025)
-  - [1. Détails des interactions avec le serveur](#1-détails-des-interactions-avec-le-serveur)
-    - [Lancement de la partie](#lancement-de-la-partie)
-    - [Déroulement d’une partie](#déroulement-dune-partie)
-    - [Fin de la partie](#fin-de-la-partie)
-  - [2. Instructions de déploiement](#2-instructions-de-déploiement)
-    - [Fonctionnement de l'infrastructure](#fonctionnement-de-linfrastructure)
-    - [Déploiement](#déploiement)
-  - [3. Comment tester localement votre solution](#3-comment-tester-localement-votre-solution)
+- [1. Détails des interactions avec le serveur](#1-détails-des-interactions-avec-le-serveur)
+  - [Lancement de la partie](#lancement-de-la-partie)
+  - [Déroulement d’une partie](#déroulement-dune-partie)
+  - [Fin de la partie](#fin-de-la-partie)
+- [2. Instructions de déploiement](#2-instructions-de-déploiement)
+  - [Fonctionnement de l'infrastructure](#fonctionnement-de-linfrastructure)
+  - [Déploiement](#déploiement)
+- [3. Comment tester localement votre solution](#3-comment-tester-localement-votre-solution)
 
 ## 1. Détails des interactions avec le serveur
 
-Cette sous-section détaille les interactions entre votre agent intelligent et le serveur de partie. Le serveur de partie mis à votre disposition localement est le même que celui déployé sur l'infrastructure d'évaluation.
+Cette sous-section détaille les interactions entre votre agent intelligent et le serveur de jeu. Le serveur de jeu mis à votre disposition localement est le même que celui déployé sur l'infrastructure d'évaluation.
 
 ### Lancement de la partie
 
@@ -71,7 +70,7 @@ Le serveur indique à l’agent intelligent s’il est en attaque ou en défense
 Afin de jouer, le serveur envoie une requête ``POST`` sur ``/next_move`` à tour de rôle à chaque agent intelligent. Cette requête peut être lancée à tout moment lorsqu’une partie est en cours.
 
 **Corps de la requête** : L’agent intelligent reçoit une image de la carte. L’image encodée en base64 est au format PNG. Il est à noter que la carte reçue par l'attaquant est partielle, alors que le défenseur peut voir toute la partie.
-La dimension de la carte peut varier, cependant chaque case mesure toujours 20px x 20px. Une case est toujours remplie d'une seule couleur.
+La dimension de la carte peut varier. Cependant chaque case mesure toujours 20px x 20px. Une case est toujours remplie d'une seule couleur.
 
 > [!NOTE]
 > Contrairement à la visualisation de l'interface web, les cartes transmises aux agents intelligents n'ont pas de bordures. Les cartes au format PNG sont seulement constituées de carrés de couleurs de 20px x 20 px.
@@ -107,7 +106,7 @@ La dimension de la carte peut varier, cependant chaque case mesure toujours 20px
 
 ### Fin de la partie
 
-À la fin d’une partie, un appel ``POST`` sera effectué sur le endpoint ``/end_game``. Le conteneur de votre agent intelligent devra alors se stopper.
+À la fin d’une partie, un appel ``POST`` sera effectué sur le endpoint ``/end_game``. Le conteneur de votre agent intelligent devra alors s'arrêter.
 
 **Corps de la requête** : Vide
 
@@ -141,7 +140,7 @@ graph TD
 ```
 
 > [!IMPORTANT]  
-> Les machines permettant d'exécuter les parties disposent d'architecture ``x86_64``, les images poussées doivent être compilées afin d'être compatibles avec cette architecture, autrement les parties ne pourront pas être lancées et une erreur sera retournée. Si votre ordinateur dispose d'un processeur ARM (ex. les MAC M1 et ultérieurs), vous devrez utiliser le script ``push-amd64.sh`` afin de pousser vos images sur l'ECR.
+> Les machines permettant d'exécuter les parties disposent d'architecture ``x86_64``, les images poussées doivent être compilées afin d'être compatibles avec cette architecture, autrement les parties ne pourront pas être lancées et une erreur sera retournée. Si votre ordinateur dispose d'un processeur ARM (ex. les Mac M1 et ultérieurs), vous devrez utiliser le script ``push-amd64.sh`` afin de pousser vos images sur l'ECR.
 
 L'interface de jeu permet de lister les dernières parties ayant été lancées ainsi que d'accéder aux détails de l'exécution de ces parties. Elle permet entre autres d'accéder aux 100 derniers logs (lignes) produits par les conteneurs des agents, ainsi qu'à la carte de jeu qui permet de suivre la progression des matchs (rappel : il y a deux matchs par partie). Les logs du serveur de jeu sont également disponibles et liés au tour affiché par la carte.
 
