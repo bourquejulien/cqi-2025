@@ -121,7 +121,7 @@ Cette section détaille le processus de déploiement ainsi que le fonctionnement
 
 Afin de permettre aux agents des différentes équipes de s'affronter, plusieurs ECR AWS (un par équipe) ont été créés. Les clés vous ayant été remises au début de la compétition vous permettent de leur accéder. Lorsque des images sont disponibles sur ces répertoires, des parties sont lancées sur un ensemble de machines prévues à cet effet. Les différentes machines ont toutes les mêmes spécifications.
 
-Lors des parties, deux matchs ont lieu simultanément. Les matchs sont exécutés dans des environnements isolés, les agents ne peuvent communiquer entre eux ou avec l'extérieur, ils peuvent uniquement communiquer avec le serveur de jeux. Pour chaque match, le rôle de chaque équipe est inversé. L'équipe en attaque dans l'un des matchs devient alors l'équipe en défense dans l'autre. Une fois les deux parties terminées, les résultats sont stockés et peuvent être affichés à partir de [l'interface de jeu](https://cqiprog.info).
+Lors des parties, deux matchs ont lieu simultanément. Les matchs sont exécutés dans des environnements isolés, les agents ne peuvent communiquer entre eux ou avec l'extérieur, ils peuvent uniquement communiquer avec le serveur de jeu. Pour chaque match, le rôle de chaque équipe est inversé. L'équipe en attaque dans l'un des matchs devient alors l'équipe en défense dans l'autre. Une fois les deux parties terminées, les résultats sont stockés et peuvent être affichés à partir de [l'interface de jeu](https://cqiprog.info).
 
 Le diagramme suivant permet de résumer l'infrastructure :
 
@@ -129,7 +129,7 @@ Le diagramme suivant permet de résumer l'infrastructure :
 graph TD
     B[Interface Web]
     B --> C[Serveur de résultats]
-    E[Serveur de partie]
+    E[Serveur de jeu]
     E -->|Résultats de la partie| I
     E <--> F[Conteneur équipe 1]
     E <--> G[Conteneur équipe 2]
@@ -143,12 +143,12 @@ graph TD
 > [!IMPORTANT]  
 > Les machines permettant d'exécuter les parties disposent d'architecture ``x86_64``, les images poussées doivent être compilées afin d'être compatibles avec cette architecture, autrement les parties ne pourront pas être lancées et une erreur sera retournée. Si votre ordinateur dispose d'un processeur ARM (ex. les MAC M1 et ultérieurs), vous devrez utiliser le script ``push-amd64.sh`` afin de pousser vos images sur l'ECR.
 
-L'interface de jeux permet de lister les dernières parties ayant été lancées ainsi que d'accéder aux détails de l'exécution de ces parties. Elle permet entre autres d'accéder aux 100 derniers logs (lignes) produits par les conteneurs des agents, ainsi qu'à la carte de jeu qui permet de suivre la progression des matchs (rappel : il y a deux matchs par partie). Les logs du serveur de jeu sont également disponibles et liés au tour affiché par la carte.
+L'interface de jeu permet de lister les dernières parties ayant été lancées ainsi que d'accéder aux détails de l'exécution de ces parties. Elle permet entre autres d'accéder aux 100 derniers logs (lignes) produits par les conteneurs des agents, ainsi qu'à la carte de jeu qui permet de suivre la progression des matchs (rappel : il y a deux matchs par partie). Les logs du serveur de jeu sont également disponibles et liés au tour affiché par la carte.
 
 L'interface permet aussi d'accéder au classement provisoire des équipes. Le classement provisoire est établi à partir des parties ayant eu lieu au cours des 30 dernières minutes. Le score de ce tableau est disponible à titre informatif seulement. L'évaluation des agents aura lieu après la fin de la compétition.
 
 > [!NOTE]
-> À la fin de la compétition, l'accès à l'interface de jeux sera automatiquement désactivé.
+> À la fin de la compétition, l'accès à l'interface de jeu sera automatiquement désactivé.
 
 ### Déploiement
 
