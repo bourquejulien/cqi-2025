@@ -1,4 +1,5 @@
 import logging
+import random
 import game_server_common.helpers as helpers
 import numpy as np
 
@@ -159,9 +160,12 @@ class ShortestPathBot:
 
         # If no path found, skip turn
         if path is None:
-            logging.debug(f"No path found to target")
-            self.prev_move = OffenseMove.SKIP
-            return OffenseMove.SKIP
+            logging.debug(f"No path found to target, playing random move")
+            moves = [OffenseMove.LEFT, OffenseMove.RIGHT, OffenseMove.UP, OffenseMove.DOWN]
+            index = random.randint(0, 3)
+            move = moves[index]
+            self.prev_move = move
+            return move
         
         next_spot = path[1]
         if next_spot.x < self.map_position.x:
