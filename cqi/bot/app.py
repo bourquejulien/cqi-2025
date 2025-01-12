@@ -98,7 +98,7 @@ async def end_game(request: Request):
 
 def setup_web_server(is_debug: bool) -> Application:
     extra_format = " %(module)s-%(funcName)s:" if is_debug else ":"
-    logging.basicConfig(level=logging.DEBUG if is_debug else logging.INFO,
+    logging.basicConfig(level=logging.DEBUG if is_debug else logging.WARNING,
                         format=f"%(asctime)s %(levelname)s{
                             extra_format} %(message)s",
                         datefmt="%d-%m-%Y %H:%M:%S"
