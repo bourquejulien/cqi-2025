@@ -55,13 +55,18 @@
     "isBot": false
   },
   {
+    "id": "impossible",
+    "name": "V for Vendetta",
+    "isBot": false
+  },
+  {
     "id": "cqi-2025-easy-bot",
-    "name": "Dumb Bot",
+    "name": "Easy Bot",
     "isBot": true
   },
   {
     "id": "cqi-2025-medium-bot",
-    "name": "Less Dumb Bot",
+    "name": "Medium Bot",
     "isBot": true
   }
 ]

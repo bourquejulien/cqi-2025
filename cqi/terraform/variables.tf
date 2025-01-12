@@ -13,6 +13,7 @@ variable "team_names" {
     "uqat",
     "mcgill",
     "mcgill2",
+    "impossible"
   ]
 }
 
