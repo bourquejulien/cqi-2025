@@ -197,4 +197,6 @@ Vous pouvez également inverser les rôles des agents pour tester l'offense et l
 
 Les paramètres ``SEED`` et ``MAX_MOVE`` permettent de contrôler respectivement la reproductibilité des parties et le nombre maximum de coups pour l'attaquant. Régler le paramètre ``SEED`` permet de conserver une même configuration (ex. taille de carte). Ce paramètre prend une valeur aléatoire.
 
+Une fois une partie simulée localement, il est possible d'accéder aux données de la partie (ex. score, carte, log) en effectuant un ``GET`` sur ``localhost:5002/status``.
+
 **Bonne CQI!!**
