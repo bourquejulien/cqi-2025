@@ -12,7 +12,7 @@ from src.offense.offense_bot import DumbOffenseBot
 from src.defense.bots import RandomDefenseBot, BlockerDefenseBot
 from src.defense.defense import Defense
 
-from flag import ENFORCE_EASY
+from src.flag import ENFORCE_EASY
 
 ENV_PORT = "PORT"
 ENV_MODE = "MODE"
@@ -100,10 +100,8 @@ async def end_game(request: Request):
 def setup_web_server(is_debug: bool) -> Application:
     extra_format = " %(module)s-%(funcName)s:" if is_debug else ":"
     logging.basicConfig(level=logging.DEBUG if is_debug else logging.WARNING,
-                        format=f"%(asctime)s %(levelname)s{
-                            extra_format} %(message)s",
-                        datefmt="%d-%m-%Y %H:%M:%S"
-                        )
+                        format=f"%(asctime)s %(levelname)s{extra_format} %(message)s",
+                        datefmt="%d-%m-%Y %H:%M:%S")
 
     app = web.Application(logger=logging.getLogger())
 
