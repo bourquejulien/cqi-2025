@@ -4,14 +4,15 @@
 
 Ce document contient des informations techniques concernant la compétition. Il est séparé en trois sections.
 
-- [1. Détails des interactions avec le serveur](#1-détails-des-interactions-avec-le-serveur)
-  - [Lancement de la partie](#lancement-de-la-partie)
-  - [Déroulement d’une partie](#déroulement-dune-partie)
-  - [Fin de la partie](#fin-de-la-partie)
-- [2. Instructions de déploiement](#2-instructions-de-déploiement)
-  - [Fonctionnement de l'infrastructure](#fonctionnement-de-linfrastructure)
-  - [Déploiement](#déploiement)
-- [3. Comment tester localement votre solution](#3-comment-tester-localement-votre-solution)
+- [Programmation - CQI 2025](#programmation---cqi-2025)
+  - [1. Détails des interactions avec le serveur](#1-détails-des-interactions-avec-le-serveur)
+    - [Lancement de la partie](#lancement-de-la-partie)
+    - [Déroulement d’une partie](#déroulement-dune-partie)
+    - [Fin de la partie](#fin-de-la-partie)
+  - [2. Instructions de déploiement](#2-instructions-de-déploiement)
+    - [Fonctionnement de l'infrastructure](#fonctionnement-de-linfrastructure)
+    - [Déploiement](#déploiement)
+  - [3. Comment tester localement votre solution](#3-comment-tester-localement-votre-solution)
 
 ## 1. Détails des interactions avec le serveur
 
@@ -142,7 +143,7 @@ graph TD
 > [!IMPORTANT]  
 > Les machines permettant d'exécuter les parties disposent d'architecture ``x86_64``, les images poussées doivent être compilées afin d'être compatibles avec cette architecture, autrement les parties ne pourront pas être lancées et une erreur sera retournée. Si votre ordinateur dispose d'un processeur ARM (ex. les Mac M1 et ultérieurs), vous devrez utiliser le script ``push-amd64.sh`` afin de pousser vos images sur l'ECR.
 
-L'interface de jeu permet de lister les dernières parties ayant été lancées ainsi que d'accéder aux détails de l'exécution de ces parties. Elle permet entre autres d'accéder aux 100 derniers logs (lignes) produits par les conteneurs des agents, ainsi qu'à la carte de jeu qui permet de suivre la progression des matchs (rappel : il y a deux matchs par partie). Les logs du serveur de jeu sont également disponibles et liés au tour affiché par la carte.
+L'interface de jeu permet de lister les dernières parties ayant été lancées ainsi que d'accéder aux détails de l'exécution de ces parties. Elle permet entre autres d'accéder aux 200 derniers logs (lignes) produits par les conteneurs des agents, ainsi qu'à la carte de jeu qui permet de suivre la progression des matchs (rappel : il y a deux matchs par partie). Les logs du serveur de jeu sont également disponibles et liés au tour affiché par la carte.
 
 L'interface permet aussi d'accéder au classement provisoire des équipes. Le classement provisoire est établi à partir des parties ayant eu lieu au cours des 30 dernières minutes. Le score de ce tableau est disponible à titre informatif seulement. L'évaluation des agents aura lieu après la fin de la compétition.
 
@@ -169,14 +170,16 @@ Une fois connecté, vous pourrez pousser vos images en utilisant ``docker push``
 > [!TIP]
 > Bien que le script ``push-amd64.sh`` soit conçu pour compiler une image ``x86_64`` sur une machine ARM, vous pouvez toujours l'utiliser où vous en inspirer.
 
-Par exemple, si l'identifiant de votre équipe (fourni avec les clés AWS) est ``hec``, votre image pourra être poussée avec la commande suivante :
+Par exemple, si l'identifiant de votre équipe (fourni avec les clés AWS) est ``universiteduquebecafermont``, votre image pourra être poussée avec la commande suivante :
 
 ```bash
-docker push 481665101132.dkr.ecr.us-east-1.amazonaws.com/hec:latest
+docker push 481665101132.dkr.ecr.us-east-1.amazonaws.com/universiteduquebecafermont:latest
 ```
 
 > [!IMPORTANT]
 > Le tag ``latest`` est indispensable, si un autre tag est utilisé, votre image ne sera jamais lancée.
+
+L’image déployée doit écouter les requêtes entrantes sur ``0.0.0.0:5000``. Elle sera automatiquement lancée et évaluée contre l’agent intelligent des autres équipes. La dernière image poussée sera toujours celle qui sera lancée. Les images déployées doivent avoir une taille inférieure à 200 Mio.
 
 ## 3. Comment tester localement votre solution
 
