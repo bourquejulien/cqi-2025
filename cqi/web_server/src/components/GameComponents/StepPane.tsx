@@ -12,7 +12,7 @@ function StepPane({steps}: { steps: GameStep[] }) {
 
     useEffect(() => {
         setCurrentStepIndex(0)
-    }, [steps.length]);
+    }, [steps]);
 
     useEffect(() => {
         const handleResize = () => setWidth(window.innerWidth);

@@ -16,7 +16,7 @@ WORKDIR /app/bot
 COPY ./bot/src ./src
 COPY ./bot/app.py .
 
-RUN if [ $BOT_LEVEL = "medium" ] ; then echo "ENFORCE_EASY=True" > ./src/flag.py ; fi
+RUN if [ $BOT_LEVEL = "easy" ] ; then echo "ENFORCE_EASY=True" > ./src/flag.py ; fi
 
 # Offuscate the python code
 RUN if [ $USE_PYARMOR = "true" ] ; then pyarmor gen . && cp -r ./dist /app/dist ; else cp -r /app/bot /app/dist ; fi 
