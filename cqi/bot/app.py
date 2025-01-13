@@ -12,12 +12,12 @@ from src.offense.offense_bot import DumbOffenseBot
 from src.defense.bots import RandomDefenseBot, BlockerDefenseBot
 from src.defense.defense import Defense
 
+from flag import ENFORCE_EASY
+
 ENV_PORT = "PORT"
 ENV_MODE = "MODE"
 ENV_LEVEL = "BOT_LEVEL"
 DEFAULT_PORT = 5001
-
-ENFORCE_EASY = False
 
 should_play_offense = True
 offense_bot: DumbOffenseBot | ShortestPathBot | None = None
