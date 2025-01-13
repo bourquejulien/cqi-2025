@@ -40,6 +40,7 @@ class GameHandler:
 
     map: Map
     max_move: int
+    move_count: int
 
     logger: Logger
     error_message: str | None
@@ -55,6 +56,7 @@ class GameHandler:
 
         self.map = Map.create_map(random.randint(MIN_MAP_SIZE, MAX_MAP_SIZE), random.randint(MIN_MAP_SIZE, MAX_MAP_SIZE))
         self.max_move = max_move or (self.map.width + self.map.height) * 4
+        self.move_count = 0
 
         for _ in range(N_FULL_VISION):
             self.map.set_full_vision()
@@ -66,11 +68,7 @@ class GameHandler:
         self.defense_player = None
         self.timebomb = Timebomb(self.map, self.logger)
 
-
-    @property
-    def move_count(self) -> int:
-        return max(0, len(self.logger.get()) - 1)
-        
+   
     @property
     def available_moves(self) -> int:
         return self.max_move - self.move_count
@@ -104,6 +102,7 @@ class GameHandler:
         self._play_defense()
         self._play_offense()
 
+        self.move_count += 1
         self.logger.add_step(self.map.to_list(), self.score, self.offense_player.get_vision_radius())
 
     def end_game(self):
@@ -140,8 +139,7 @@ class GameHandler:
             result.raise_for_status()
         except Exception as e:
             logging.error("Error starting game: %s", e)
-            self.error_message = f"Failed to start game with exception:\n{
-                str(e)}"
+            self.error_message = f"Failed to start game with exception:\n{str(e)}"
             return
         
         self.logger.add_step(self.map.to_list(), self.score, self.offense_player.get_vision_radius())
