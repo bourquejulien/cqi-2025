@@ -58,7 +58,8 @@ def play_defense(payload: dict) -> Response:
 
 async def start(request: Request):
     global should_play_offense, offense_bot, defense
-    logging.info("Starting game - %s", level)
+    logging.warning("Starting game - %s bot", level)
+
     data = await request.json()
     should_play_offense = data["is_offense"]
 
