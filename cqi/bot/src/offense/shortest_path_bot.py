@@ -120,8 +120,9 @@ class ShortestPathBot:
         path_map[self.map_position.x, self.map_position.y] = ElementType.VISITED.value
 
         found = False
+        path: list[Position] = []
         while(len(queue) > 0):
-            path: list[Position] = queue.pop(0)
+            path = queue.pop(0)
             point = path[-1]
 
             if point.x == target.x and point.y == target.y:
@@ -139,7 +140,7 @@ class ShortestPathBot:
         if found:
             return path
         
-        return None
+        return []
 
     def play(self, img: str) -> OffenseMove | None:
         if not (data := self._parse_map(img)):
@@ -159,7 +160,7 @@ class ShortestPathBot:
         path = self.get_shortest_path(target)
 
         # If no path found, skip turn
-        if path is None:
+        if len(path) <= 1:
             logging.debug(f"No path found to target, playing random move")
             moves = [OffenseMove.LEFT, OffenseMove.RIGHT, OffenseMove.UP, OffenseMove.DOWN]
             index = random.randint(0, 3)
