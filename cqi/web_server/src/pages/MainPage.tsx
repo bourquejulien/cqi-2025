@@ -1,4 +1,4 @@
-import {Grid, Title} from "@mantine/core";
+import {Grid, Group, Text, Title} from "@mantine/core";
 import {useEffect, useState} from "react";
 import LeaderBoard from "../components/Leaderboard/Leaderboard.tsx";
 import {getDataFetcher} from "../Data.ts";
@@ -78,7 +78,10 @@ function MainPage({stats, setIsReady}: {
                     setItemPerPage={setItemPerPage}/>
             </Grid.Col>
             <Grid.Col span={{base: 12, md: 6, lg: 3}}>
-                <Title order={1} style={{textAlign: "center"}}>Classement</Title>
+                <Group wrap={"nowrap"} align={"center"} justify={"center"}>
+                    <Title order={1} style={{textAlign: "center"}}>Classement</Title>
+                    <Text size={"xl"} fw={700}>({Math.round(stats.rankingInfo.updatePeriod / (60 * 1000))} min.)</Text>
+                </Group>
                 <Ranking rankingInfo={stats.rankingInfo}/>
             </Grid.Col>
         </Grid>
