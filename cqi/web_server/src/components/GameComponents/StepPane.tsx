@@ -20,6 +20,21 @@ function StepPane({steps}: { steps: GameStep[] }) {
         return () => window.removeEventListener("resize", handleResize);
     }, []);
 
+    useEffect(() => {
+        const bindingsKeyDown = (e: KeyboardEvent) => {
+            if (e.key === "ArrowLeft") {
+                setCurrentStepIndex((index) => Math.max(0, index - 1));
+            } else if (e.key === "ArrowRight") {
+                setCurrentStepIndex((index) => Math.min(steps.length - 1, index + 1));
+            }
+        };
+
+        document.addEventListener("keydown", bindingsKeyDown);
+        return () => {
+            document.removeEventListener("keydown", bindingsKeyDown);
+        };
+    }, [steps]);
+
     if (steps.length === 0) {
         return <Text>Aucune donnée n'est disponible</Text>
     }
