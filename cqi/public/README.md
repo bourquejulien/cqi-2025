@@ -71,11 +71,10 @@ Le serveur indique à l’agent intelligent s’il est en attaque ou en défense
 Afin de jouer, le serveur envoie une requête ``POST`` sur ``/next_move`` à tour de rôle à chaque agent intelligent. Cette requête peut être lancée à tout moment lorsqu’une partie est en cours.
 
 **Corps de la requête** : L’agent intelligent reçoit une image de la carte. L’image encodée en base64 est au format PNG. Il est à noter que la carte reçue par l'attaquant est partielle, alors que le défenseur peut voir toute la partie.
-La dimension de la carte peut varier. Cependant chaque case mesure toujours 20px x 20px. Une case est toujours remplie d'une seule couleur.
+La dimension de la carte peut varier. Cependant, chaque case mesure toujours 20px x 20px. Une case est toujours remplie d'une seule couleur.
 
 > [!NOTE]
 > Contrairement à la visualisation de l'interface web, les cartes transmises aux agents intelligents n'ont pas de bordures. Les cartes au format PNG sont seulement constituées de carrés de couleurs de 20px x 20 px.
-
 
 **Exemple de requête** :
 
@@ -105,6 +104,9 @@ La dimension de la carte peut varier. Cependant chaque case mesure toujours 20px
 }
 ```
 
+> [!NOTE]
+> Rappel : La coordonnée (0, 0) est toujours positionnée en haut à gauche de l'image reçue.
+
 ### Fin de la partie
 
 À la fin d’une partie, un appel ``POST`` sera effectué sur le endpoint ``/end_game``. Le conteneur de votre agent intelligent devra alors s'arrêter.
@@ -123,7 +125,7 @@ Afin de permettre aux agents des différentes équipes de s'affronter, plusieurs
 
 Lors des parties, deux matchs ont lieu simultanément. Les matchs sont exécutés dans des environnements isolés, les agents ne peuvent communiquer entre eux ou avec l'extérieur, ils peuvent uniquement communiquer avec le serveur de jeu. Pour chaque match, le rôle de chaque équipe est inversé. L'équipe en attaque dans l'un des matchs devient alors l'équipe en défense dans l'autre. Une fois les deux parties terminées, les résultats sont stockés et peuvent être affichés à partir de [l'interface de jeu](https://cqiprog.info).
 
-Le diagramme suivant permet de résumer l'infrastructure :
+Le diagramme suivant permet de résumer l'infrastructure (**optionnel, n'est pas nécessaire pour la compétition**) :
 
 ```mermaid
 graph TD
@@ -143,9 +145,9 @@ graph TD
 > [!IMPORTANT]  
 > Les machines permettant d'exécuter les parties disposent d'architecture ``x86_64``, les images poussées doivent être compilées afin d'être compatibles avec cette architecture, autrement les parties ne pourront pas être lancées et une erreur sera retournée. Si votre ordinateur dispose d'un processeur ARM (ex. les Mac M1 et ultérieurs), vous devrez utiliser le script ``push-amd64.sh`` afin de pousser vos images sur l'ECR.
 
-L'interface de jeu permet de lister les dernières parties ayant été lancées ainsi que d'accéder aux détails de l'exécution de ces parties. Elle permet entre autres d'accéder aux 200 derniers logs (lignes) produits par les conteneurs des agents, ainsi qu'à la carte de jeu qui permet de suivre la progression des matchs (rappel : il y a deux matchs par partie). Les logs du serveur de jeu sont également disponibles et liés au tour affiché par la carte.
+L'interface de jeu permet de lister les dernières parties ayant été lancées ainsi que d'accéder aux détails de l'exécution de ces parties (en cliquant sur celles-ci). Elle permet entre autres d'accéder aux 200 derniers logs (lignes de 200 caractères) produits par les conteneurs des agents, ainsi qu'à la carte de jeu qui permet de suivre la progression des matchs (rappel : il y a deux matchs par partie). Les logs du serveur de jeu sont également disponibles et liés au tour affiché par la carte.
 
-L'interface permet aussi d'accéder au classement provisoire des équipes. Le classement provisoire est établi à partir des parties ayant eu lieu au cours des 30 dernières minutes. Le score de ce tableau est disponible à titre informatif seulement. L'évaluation des agents aura lieu après la fin de la compétition.
+L'interface permet aussi d'accéder au classement provisoire des équipes. Le classement provisoire est établi à partir des parties ayant eu lieu au cours des dernières minutes. La période considérée dans le classement est affichée au haut de celui-ci. Le score de ce tableau est disponible à titre informatif seulement. L'évaluation des agents aura lieu après la fin de la compétition.
 
 > [!NOTE]
 > À la fin de la compétition, l'accès à l'interface de jeu sera automatiquement désactivé.
@@ -183,9 +185,9 @@ L’image déployée doit écouter les requêtes entrantes sur ``0.0.0.0:5000``.
 
 ## 3. Comment tester localement votre solution
 
-Pour tester localement votre solution, vous pouvez télécharger les images du serveur de partie ainsi que d'un agent intelligent très rudimentaire.
+Pour tester localement votre solution, vous pouvez télécharger les images du serveur de partie ainsi que d'un agent intelligent très rudimentaire (``Easy Bot``).
 
-Le fichier ``compose.yml`` contient déjà les configurations nécessaires afin de lancer le bot rudimentaire ainsi que le serveur de partie. Pour tester votre agent, vous devrez indiquer l'emplacement de votre ``Dockerfile`` dans la section ``your_bot``. Si vous ne disposez pas encore d'un ``Dockerfile`` il est possible de commenter la section ``your_bot`` et de donner au serveur de partie l'adresse de votre programme.
+Le fichier ``compose.yml`` contient déjà les configurations nécessaires afin de lancer le bot rudimentaire ainsi que le serveur de partie. Pour tester votre agent, vous devrez indiquer l'emplacement de votre ``Dockerfile`` dans la section ``your_bot``. Si vous ne disposez pas encore d'un ``Dockerfile``, il est possible de commenter la section ``your_bot`` et de donner au serveur de partie l'adresse de votre programme.
 
 Par exemple :
 
