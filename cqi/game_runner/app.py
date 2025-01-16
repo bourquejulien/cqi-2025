@@ -11,6 +11,7 @@ import docker
 from docker import DockerClient
 from docker.models.images import Image
 
+from interfaces import Match
 from helpers import *
 from stop_token import StopToken
 from match_runner import MatchRunner
@@ -54,14 +55,17 @@ def main() -> None:
 
     while not stop_token.is_canceled():
         disk_usage = get_disk_usage()
+
+        matches_to_run: list[Match] = []
         if disk_usage < MAX_DISK_USAGE:
             matches_to_run = main_server_client.get_next_matches(match_runner.currently_running)
-            match_runner.run_matches(stop_token, matches_to_run)
         else:
             logging.warning(f"Disk usage is too high ({disk_usage})")
             prune_images(docker_client)
-
+        
+        match_runner.run_matches(stop_token, matches_to_run)
         results = match_runner.get_results()
+
         for result in results:
             main_server_client.add_result(result)
 
