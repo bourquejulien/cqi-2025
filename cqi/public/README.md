@@ -20,7 +20,7 @@ Cette sous-section détaille les interactions entre votre agent intelligent et l
 
 ### Lancement de la partie
 
-Afin de lancer la partie, le serveur envoie une requête ``POST`` sur ``/start`` de chacun des agents intelligents (attaque et défense). Cette requête permet de valider que chacun des agents intelligents est prêt à jouer.
+Afin de lancer la partie, le serveur envoie une requête ``POST`` sur ``/start`` à chaque agent intelligent (attaque et défense). Cette requête permet de valider que chacun des agents intelligents est prêt à jouer.
 
 **Corps de la requête** :
 
@@ -74,7 +74,7 @@ Afin de jouer, le serveur envoie une requête ``POST`` sur ``/next_move`` à tou
 La dimension de la carte peut varier. Cependant, chaque case mesure toujours 20px x 20px. Une case est toujours remplie d'une seule couleur.
 
 > [!NOTE]
-> Contrairement à la visualisation de l'interface web, les cartes transmises aux agents intelligents n'ont pas de bordures. Les cartes au format PNG sont seulement constituées de carrés de couleurs de 20px x 20 px.
+> Contrairement à la visualisation de l'interface web, les cartes transmises aux agents intelligents n'ont pas de bordures. Les cartes au format PNG sont seulement constituées de carrés de couleurs de 20 px par 20 px.
 
 **Exemple de requête** :
 
@@ -105,7 +105,7 @@ La dimension de la carte peut varier. Cependant, chaque case mesure toujours 20p
 ```
 
 > [!NOTE]
-> Rappel : La coordonnée (0, 0) est toujours positionnée en haut à gauche de l'image reçue.
+> La coordonnée (0, 0) est toujours positionnée en haut à gauche de l'image reçue.
 
 ### Fin de la partie
 
@@ -181,14 +181,15 @@ docker push 481665101132.dkr.ecr.us-east-1.amazonaws.com/universiteduquebecaferm
 > [!IMPORTANT]
 > Le tag ``latest`` est indispensable, si un autre tag est utilisé, votre image ne sera jamais lancée.
 
-L’image déployée doit écouter les requêtes entrantes sur ``0.0.0.0:5000``. Elle sera automatiquement lancée et évaluée contre l’agent intelligent des autres équipes. La dernière image poussée sera toujours celle qui sera lancée. Les images déployées doivent avoir une taille inférieure à 200 Mio.
+L’image déployée doit écouter les requêtes entrantes sur ``0.0.0.0:5000``. Elle sera automatiquement lancée et évaluée contre l’agent intelligent des autres équipes. La dernière image poussée sera toujours celle qui sera lancée. Les images déployées doivent avoir une taille **inférieure à 200 Mio**.
 
 ## 3. Comment tester localement votre solution
 
 Pour tester localement votre solution, vous pouvez télécharger les images du serveur de partie ainsi que d'un agent intelligent très rudimentaire (``Easy Bot``).
 
-Le fichier ``compose.yml`` contient déjà les configurations nécessaires afin de lancer le bot rudimentaire ainsi que le serveur de partie. Pour tester votre agent, vous devrez indiquer l'emplacement de votre ``Dockerfile`` dans la section ``your_bot``. Si vous ne disposez pas encore d'un ``Dockerfile``, il est possible de commenter la section ``your_bot`` et de donner au serveur de partie l'adresse de votre programme.
+Le fichier ``compose.yml`` contient déjà les configurations nécessaires afin de lancer le bot rudimentaire ainsi que le serveur de partie. Pour tester votre agent, vous devrez indiquer l'emplacement de votre ``Dockerfile`` dans la section ``your_bot``.  Le serveur de partie se lancera automatiquement et communiquera avec votre agent intelligent.
 
+Si vous ne disposez pas encore d'un ``Dockerfile``, il est possible de commenter la section ``your_bot`` et de donner au serveur de partie l'adresse de votre programme.
 Par exemple :
 
 ```yml
