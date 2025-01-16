@@ -18,7 +18,7 @@ from match_runner import MatchRunner
 from main_server_client import MainServerClient
 
 GAME_SERVER_IMAGE_NAME = "ghcr.io/bourquejulien/cqi-2025-game-server"
-MAX_DISK_USAGE = 0.8
+MAX_DISK_USAGE = 0.9
 
 def prune_images(docker_client: docker.DockerClient) -> None:
     if not is_running_on_ec2():
