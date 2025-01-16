@@ -1,8 +1,10 @@
 #! /bin/bash
 
 set -e
+set -u
+set -o pipefail
 
-if [ -z "$1" ] || [ -z "$2" ]; then
+if [[ -z ${1+x} ]] || [[ -z ${2+x} ]]; then
     echo "Usage: $0 <AWS_ACCESS_KEY_ID> <AWS_SECRET_ACCESS_KEY>"
     exit 1
 fi
