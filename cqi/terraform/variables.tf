@@ -10,7 +10,7 @@ variable "team_names" {
     "rimouski",
     "uqtr",
     "laval",
-    "uqat",
+    # "uqat",
     "mcgill",
     "mcgill2",
     "impossible"
