@@ -78,7 +78,7 @@ const LeaderBoard = ({leaderBoardData, setCurrentPage, setItemPerPage}: {
                     <Table.Tr>
                         <Table.Th style={{textAlign: "center"}}>Équipe 1</Table.Th>
                         <Table.Th style={{textAlign: "center"}}>Équipe 2</Table.Th>
-                        <Table.Th style={{textAlign: "center"}}>Score équipe 2</Table.Th>
+                        <Table.Th style={{textAlign: "center"}}>Score équipe 1</Table.Th>
                         <Table.Th style={{textAlign: "center"}}>Score équipe 2</Table.Th>
                         <Table.Th style={{textAlign: "center"}}>Succès</Table.Th>
                         <Table.Th style={{textAlign: "center"}}>Durée</Table.Th>
