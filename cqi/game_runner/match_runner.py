@@ -252,7 +252,7 @@ class MatchRunner:
             self.subnet_allocator.deallocate_from_network(network)
             safe_execute(network.remove)
 
-        if len(statuses) != 2 or any(status.gameData is None for status in statuses):
+        if len(statuses) != 2 or (not is_expired and any(status.gameData is None for status in statuses)):
             game_result = GameResult(id=match_data.game.id, winner_id=None, is_error=True, team1_score=None, team2_score=None, error_data=to_base_64(build_simple_error("Game server error")), game_data=None)
             logging.warning("Game server crashed for match %s", match_data.game.id)
             self.results.append(game_result)
