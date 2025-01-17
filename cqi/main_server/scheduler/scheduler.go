@@ -163,7 +163,7 @@ func (s *Scheduler) ForceAddMatch(team1Id string, team2Id string, ctx context.Co
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
-	s.plannedMatches = append(s.plannedMatches, &match)
+	s.plannedMatches = append([]*Match{&match}, s.plannedMatches...)
 
 	return true, ""
 }
