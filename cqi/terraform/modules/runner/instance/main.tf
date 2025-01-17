@@ -1,6 +1,6 @@
 resource "aws_instance" "game_runner" {
-  ami                         = "ami-0325498274077fac5" # "ami-0325498274077fac5" Ubuntu 24.04 ARM_64 / "ami-0e2c8caa4b6378d8c" Ubuntu 24.04 X86_64
-  instance_type               = "t4g.small" # "t4g.small" / "m5a.xlarge" or "m5a.2xlarge"
+  ami                         = "ami-0e2c8caa4b6378d8c" # "ami-0325498274077fac5" Ubuntu 24.04 ARM_64 / "ami-0e2c8caa4b6378d8c" Ubuntu 24.04 X86_64
+  instance_type               = "m5a.2xlarge" # "t4g.small" / "m5a.xlarge" or "m5a.2xlarge"
   associate_public_ip_address = true
   vpc_security_group_ids      = [aws_security_group.game_runner_sg.id]
   key_name                    = var.ssh_key_name
@@ -27,6 +27,10 @@ resource "aws_instance" "game_runner" {
       "curl -s 'https://dynamicdns.park-your-domain.com/update?host=${var.domain.game_runner}${var.instance_number}&domain=${var.domain.address}&password=${nonsensitive(var.global_secrets.namecheap_key)}&ip=${self.public_ip}'",
       "sudo GITHUB_TOKEN='${nonsensitive(var.global_secrets.github_token)}' ./init.sh",
     ]
+  }
+
+  root_block_device {
+    volume_size = 64
   }
 
   tags = {

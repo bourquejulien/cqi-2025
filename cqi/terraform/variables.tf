@@ -44,5 +44,5 @@ variable "global_secret_arn" {
 variable "runner_count" {
   description = "The number of runner instances to create"
   type        = number
-  default     = 1
+  default     = 3
 }
