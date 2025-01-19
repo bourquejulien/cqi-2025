@@ -6,4 +6,4 @@ Compétition de sélection.
 
 ## CQI
 
-Compétition finale.
+Compétition finale. Incluant l'infra de compétition.
